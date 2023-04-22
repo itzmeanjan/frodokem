@@ -17,10 +17,7 @@ private:
 
 public:
   // Given an unsigned 32 -bit integer, it constructs an element ∈ Zq
-  inline constexpr zq_t(const uint32_t a)
-    : v(a % Q)
-  {
-  }
+  inline constexpr zq_t(const uint32_t a) { this->v = a % Q; }
 
   // Addition of two integers modulo Q
   inline constexpr zq_t operator+(const zq_t& rhs) const
@@ -54,7 +51,7 @@ public:
                   "# -of bits encoded in each matrix entry must be < 2^B i.e. "
                   "k ∈ [0, 2^B)");
 
-    constexpr uint32_t mask = 1u << B;
+    constexpr uint32_t mask = (1u << B) - 1u;
     constexpr size_t shl = D - B;
     const uint32_t v = (k & mask) << shl;
 
@@ -71,7 +68,7 @@ public:
                   "# -of bits encoded in each matrix entry must be < 2^B i.e. "
                   "k ∈ [0, 2^B)");
 
-    constexpr uint32_t mask = 1u << B;
+    constexpr uint32_t mask = (1u << B) - 1u;
     constexpr size_t shr = D - B;
     const uint32_t v = (this->v >> shr) & mask;
 
