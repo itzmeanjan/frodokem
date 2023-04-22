@@ -25,6 +25,9 @@ public:
     return zq_t((this->v + rhs.v) % Q);
   }
 
+  // Compound addition of two integers modulo Q
+  inline constexpr void operator+=(const zq_t& rhs) { *this = *this + rhs; }
+
   // Negation of an integer modulo Q
   inline constexpr zq_t operator-() const { return zq_t((-this->v) % Q); }
 
