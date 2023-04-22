@@ -1,8 +1,6 @@
 #pragma once
 #include "zq.hpp"
 #include <cassert>
-#include <cstdint>
-#include <iostream>
 
 // Test functional correctness of FrodoKEM along with its components.
 namespace test_frodo {
