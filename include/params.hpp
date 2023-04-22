@@ -14,4 +14,12 @@ check_q(const uint32_t q)
          && (q <= (1u << 16)); // and it must be <= 2^16
 }
 
+// Compile-time executable check for ensuring that FrodoKEM's parameter B only
+// takes arguments suggested on table 4 of FrodoKEM specification.
+constexpr bool
+check_b(const size_t b)
+{
+  return (b == 2) || (b == 3) || (b == 4);
+}
+
 }
