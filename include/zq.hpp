@@ -60,6 +60,23 @@ public:
 
     return zq_t(v);
   }
+
+  // Given an entry of Zq, this routine extracts its most significant B bits
+  // s.t. returned integer v ∈ [0, 2^B).
+  template<const size_t B>
+  inline constexpr uint32_t decode() const
+  {
+    constexpr size_t D = frodo_utils::log2(Q);
+    static_assert(B <= D,
+                  "# -of bits encoded in each matrix entry must be < 2^B i.e. "
+                  "k ∈ [0, 2^B)");
+
+    constexpr uint32_t mask = 1u << B;
+    constexpr size_t shr = D - B;
+    const uint32_t v = (this->v >> shr) & mask;
+
+    return v;
+  }
 };
 
 }
