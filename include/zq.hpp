@@ -1,5 +1,6 @@
 #pragma once
 #include "params.hpp"
+#include "utils.hpp"
 #include <cstddef>
 #include <cstdint>
 
@@ -40,6 +41,24 @@ public:
   inline constexpr zq_t operator*(const zq_t& rhs) const
   {
     return zq_t((this->v * rhs.v) % Q);
+  }
+
+  // Given an integer 0 <= k < 2^B, this routine encodes k as an element of Zq
+  // s.t. q = 2^D and B <= D, following definition of `ec(k)` function, in
+  // section 2.2.1 of FrodoKEM specification.
+  template<const size_t B>
+  static inline constexpr zq_t encode(const uint32_t k)
+  {
+    constexpr size_t D = frodo_utils::log2(Q);
+    static_assert(B <= D,
+                  "# -of bits encoded in each matrix entry must be < 2^B i.e. "
+                  "k ∈ [0, 2^B)");
+
+    constexpr uint32_t mask = 1u << B;
+    constexpr size_t shl = D - B;
+    const uint32_t v = (k & mask) << shl;
+
+    return zq_t(v);
   }
 };
 
