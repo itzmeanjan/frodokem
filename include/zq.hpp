@@ -77,6 +77,9 @@ public:
 
     return v;
   }
+
+  // Get the raw value behind Zq wrapper type.
+  inline constexpr uint32_t get_value() const { return this->v; }
 };
 
 }
