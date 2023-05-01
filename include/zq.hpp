@@ -44,6 +44,18 @@ public:
     return zq_t((this->v * rhs.v) % Q);
   }
 
+  // Check equality of two Zq elements
+  inline constexpr bool operator==(const zq_t& rhs) const
+  {
+    return this->v == rhs.v;
+  }
+
+  // Check inequality of two Zq elements
+  inline constexpr bool operator!=(const zq_t& rhs) const
+  {
+    return !(*this == rhs);
+  }
+
   // Given an integer 0 <= k < 2^B, this routine encodes k as an element of Zq
   // s.t. q = 2^D and B <= D, following definition of `ec(k)` function, in
   // section 2.2.1 of FrodoKEM specification.
