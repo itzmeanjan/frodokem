@@ -1,5 +1,6 @@
 #pragma once
 #include "params.hpp"
+#include "prng.hpp"
 #include "utils.hpp"
 #include <cstddef>
 #include <cstdint>
@@ -43,6 +44,18 @@ public:
     return zq_t((this->v * rhs.v) % Q);
   }
 
+  // Check equality of two Zq elements
+  inline constexpr bool operator==(const zq_t& rhs) const
+  {
+    return this->v == rhs.v;
+  }
+
+  // Check inequality of two Zq elements
+  inline constexpr bool operator!=(const zq_t& rhs) const
+  {
+    return !(*this == rhs);
+  }
+
   // Given an integer 0 <= k < 2^B, this routine encodes k as an element of Zq
   // s.t. q = 2^D and B <= D, following definition of `ec(k)` function, in
   // section 2.2.1 of FrodoKEM specification.
@@ -76,6 +89,18 @@ public:
     const uint32_t v = (this->v >> shr) & mask;
 
     return v;
+  }
+
+  // Get the raw value behind Zq wrapper type.
+  inline constexpr uint32_t get_value() const { return this->v; }
+
+  // Reads four random bytes from PRNG and computes a random element ∈ Zq.
+  static inline zq_t random_value(prng::prng_t& prng)
+  {
+    uint32_t res = 0;
+    prng.read(reinterpret_cast<uint8_t*>(&res), sizeof(res));
+
+    return zq_t(res);
   }
 };
 
