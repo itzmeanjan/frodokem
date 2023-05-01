@@ -1,6 +1,9 @@
 #pragma once
+#include "params.hpp"
+#include "subtle.hpp"
 #include "zq.hpp"
 #include <array>
+#include <cstdint>
 #include <numeric>
 
 // Sampling from the error distribution
@@ -51,5 +54,32 @@ constexpr auto Frodo976_Tχ = compute_cdf(Frodo976_χ);
 
 // Zero-centred CDF used for sampling, in Frodo-976 KEM
 constexpr auto Frodo1344_Tχ = compute_cdf(Frodo1344_χ);
+
+// Given a random len_χ -bit wide value r and a CDF table Tχ, this routine
+// can be used for sampling e ∈ Z from the distribution χ, following algorithm 5
+// of the FrodoKEM specification.
+//
+// Note, this routine is implemented with constant-timeness in mind, but
+// compilers are free to optimize, so it can be better idea to inspect generated
+// assembly rather than just trusting that this implementation will always be
+// constant-time on all targets.
+template<const size_t len_χ, const size_t L>
+int32_t
+sample(const uint32_t r, std::array<uint32_t, L> Tχ)
+  requires(frodo_params::check_len_χ(len_χ))
+{
+  constexpr uint32_t mask = (1u << len_χ) - 1;
+  const uint32_t t = (r & mask) >> 1;
+  uint32_t e = 0;
+
+  for (size_t z = 0; z < L - 1; z++) {
+    const auto br = subtle::ct_gt<uint32_t, uint32_t>(t, Tχ[z]);
+    e += subtle::ct_select(br, 1, 0);
+  }
+
+  const uint32_t r0 = r & 1u;
+  const int32_t sign = -static_cast<int32_t>(r0);
+  return sign * static_cast<int32_t>(e);
+}
 
 }
