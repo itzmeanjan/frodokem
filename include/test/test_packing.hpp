@@ -33,11 +33,9 @@ test_matrix_pack_unpack()
   prng::prng_t prng;
 
   for (size_t i = 0; i < (n1 * n2); i++) {
-    mat[i] = zq::zq_t<Q>::template random_value(prng);
+    mat[i] = zq::zq_t<Q>::random_value(prng);
   }
-
   std::memset(packed, 0, byte_len);
-  std::memset(unpacked, 0, mat_len);
 
   packing::matrix_pack<n1, n2, Q>(mat, packed);
   packing::matrix_unpack<n1, n2, Q>(packed, unpacked);
