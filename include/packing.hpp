@@ -8,7 +8,7 @@ namespace packing {
 
 // Given a matrix of dimension n1 x n2 s.t. its elements ∈ Zq, this routine can
 // be used for packing the matrix into a bit string of length n1 x n2 x D -bits
-// s.t. Q = 1u << D.
+// s.t. Q = 1 << D.
 //
 // Note, we're dealing with byte oriented API, this routine packs matrix as a
 // byte array of length (n1 * n2 * D + 7) / 8.
@@ -90,6 +90,77 @@ matrix_pack(
 
       moff += 1;
       boff += 2;
+    }
+  }
+}
+
+// Given a bit string of length n1 x n2 x D -bits ( as a byte array of length
+// (n1 x n2 x D + 7) / 8 -bytes ), this routine can be used for unpacking
+// contiguous ( D -many ) bits into a n1 x n2 matrix over Zq s.t. q = 1 << D.
+template<const size_t n1, const size_t n2, const uint32_t Q>
+inline void
+matrix_unpack(
+  const uint8_t* const __restrict arr, // byte len ⌈(n1 * n2 * D) / 8⌋
+  zq::zq_t<Q>* const __restrict mat    // matrix of dimension n1 x n2
+  )
+  requires((n1 == n2) && frodo_params::check_q(Q))
+{
+  // alias, so that I've to type lesser !
+  using Zq = zq::zq_t<Q>;
+
+  constexpr size_t D = frodo_utils::log2(Q);
+  constexpr size_t bit_len = n1 * n2 * D;
+  constexpr size_t byte_len = (bit_len + 7) / 8;
+
+  if constexpr (D == 15ul) {
+    constexpr uint8_t mask7 = 0xff >> 1;
+    constexpr uint8_t mask6 = mask7 >> 1;
+    constexpr uint8_t mask5 = mask6 >> 1;
+    constexpr uint8_t mask4 = mask5 >> 1;
+    constexpr uint8_t mask3 = mask4 >> 1;
+    constexpr uint8_t mask2 = mask3 >> 1;
+    constexpr uint8_t mask1 = mask2 >> 1;
+
+    size_t boff = 0;
+    size_t moff = 0;
+
+    while (boff < byte_len) {
+      mat[moff + 0] = Zq((static_cast<uint32_t>(arr[boff + 1] & mask7) << 8) |
+                         static_cast<uint32_t>(arr[boff + 0]));
+      mat[moff + 1] = Zq((static_cast<uint32_t>(arr[boff + 3] & mask6) << 9) |
+                         (static_cast<uint32_t>(arr[boff + 2]) << 1) |
+                         static_cast<uint32_t>(arr[boff + 1] >> 7));
+      mat[moff + 2] = Zq((static_cast<uint32_t>(arr[boff + 5] & mask5) << 10) |
+                         (static_cast<uint32_t>(arr[boff + 4]) << 2) |
+                         static_cast<uint32_t>(arr[boff + 3] >> 6));
+      mat[moff + 3] = Zq((static_cast<uint32_t>(arr[boff + 7] & mask4) << 11) |
+                         (static_cast<uint32_t>(arr[boff + 6]) << 3) |
+                         static_cast<uint32_t>(arr[boff + 5] >> 5));
+      mat[moff + 4] = Zq((static_cast<uint32_t>(arr[boff + 9] & mask3) << 12) |
+                         (static_cast<uint32_t>(arr[boff + 8]) << 4) |
+                         static_cast<uint32_t>(arr[boff + 7] >> 4));
+      mat[moff + 5] = Zq((static_cast<uint32_t>(arr[boff + 11] & mask2) << 13) |
+                         (static_cast<uint32_t>(arr[boff + 10]) << 5) |
+                         static_cast<uint32_t>(arr[boff + 9] >> 3));
+      mat[moff + 6] = Zq((static_cast<uint32_t>(arr[boff + 13] & mask1) << 14) |
+                         (static_cast<uint32_t>(arr[boff + 12]) << 6) |
+                         static_cast<uint32_t>(arr[boff + 11] >> 2));
+      mat[moff + 7] = Zq((static_cast<uint32_t>(arr[boff + 14]) << 7) |
+                         static_cast<uint32_t>(arr[boff + 13] >> 1));
+
+      boff += 15;
+      moff += 8;
+    }
+  } else if constexpr (D == 16ul) {
+    size_t boff = 0;
+    size_t moff = 0;
+
+    while (boff < byte_len) {
+      mat[moff] = Zq((static_cast<uint32_t>(arr[boff + 1]) << 8) |
+                     static_cast<uint32_t>(arr[boff + 0]));
+
+      boff += 2;
+      moff += 1;
     }
   }
 }
