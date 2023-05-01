@@ -1,5 +1,6 @@
 #pragma once
 #include "params.hpp"
+#include "prng.hpp"
 #include "utils.hpp"
 #include <cstddef>
 #include <cstdint>
@@ -80,6 +81,15 @@ public:
 
   // Get the raw value behind Zq wrapper type.
   inline constexpr uint32_t get_value() const { return this->v; }
+
+  // Reads four random bytes from PRNG and computes a random element ∈ Zq.
+  static inline zq_t random_value(prng::prng_t& prng)
+  {
+    uint32_t res = 0;
+    prng.read(reinterpret_cast<uint8_t*>(&res), sizeof(res));
+
+    return zq_t(res);
+  }
 };
 
 }
