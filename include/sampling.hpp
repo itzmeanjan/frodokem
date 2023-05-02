@@ -3,7 +3,6 @@
 #include "subtle.hpp"
 #include "zq.hpp"
 #include <array>
-#include <cstdint>
 #include <numeric>
 
 // Sampling from the error distribution
