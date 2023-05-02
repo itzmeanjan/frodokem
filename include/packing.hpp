@@ -18,7 +18,7 @@ matrix_pack(
   const zq::zq_t<Q>* const __restrict mat, // matrix of dimension n1 x n2
   uint8_t* const __restrict arr            // byte len ⌈(n1 * n2 * D) / 8⌋
   )
-  requires((n1 == n2) && frodo_params::check_q(Q))
+  requires(frodo_params::check_q(Q))
 {
   constexpr size_t D = frodo_utils::log2(Q);
 
@@ -104,7 +104,7 @@ matrix_unpack(
   const uint8_t* const __restrict arr, // byte len ⌈(n1 * n2 * D) / 8⌋
   zq::zq_t<Q>* const __restrict mat    // matrix of dimension n1 x n2
   )
-  requires((n1 == n2) && frodo_params::check_q(Q))
+  requires(frodo_params::check_q(Q))
 {
   // alias, so that I've to type lesser !
   using Zq = zq::zq_t<Q>;
