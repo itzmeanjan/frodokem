@@ -2,7 +2,7 @@ CXX = g++
 CXXFLAGS = -std=c++20 -Wall -Wextra -pedantic
 OPTFLAGS = -O3 -march=native -mtune=native
 IFLAGS = -I ./include
-DEPFLAGS = -I ./sha3/include
+DEPFLAGS = -I ./sha3/include -I ./subtle/include
 
 all: testing
 
