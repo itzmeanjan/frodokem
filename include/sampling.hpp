@@ -95,7 +95,6 @@ inline void
 sample_matrix(const uint32_t* const __restrict r,
               int32_t* const __restrict e,
               std::array<uint32_t, L>& Tχ)
-  requires(n1 == n2)
 {
   // # -of elements in matrix
   constexpr size_t elm_cnt = n1 * n2;
