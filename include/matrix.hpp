@@ -19,4 +19,17 @@ transpose(const zq::zq_t<Q>* const __restrict src,
   }
 }
 
+// Given two matrices (A, B) of same dimension, this routine can be used for
+// adding two matrices, resulting into another matrix (C) of same dimension.
+template<const size_t m, const size_t n, const uint32_t Q>
+inline void
+add(const zq::zq_t<Q>* const __restrict matA,
+    const zq::zq_t<Q>* const __restrict matB,
+    zq::zq_t<Q>* const __restrict matC)
+{
+  for (size_t i = 0; i < m * n; i++) {
+    matC[i] = matA[i] + matB[i];
+  }
+}
+
 }
