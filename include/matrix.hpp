@@ -58,4 +58,16 @@ mul(const zq::zq_t<Q>* const __restrict matA,
   }
 }
 
+// Given a matrix of dimension m x n over Z, this routine is used for
+// interpreting it as an matrix over Zq.
+template<const size_t m, const size_t n, const uint32_t Q>
+inline void
+from_Z_to_mod_Q(const int32_t* const __restrict src,
+                zq::zq_t<Q>* const __restrict dst)
+{
+  for (size_t i = 0; i < m * n; i++) {
+    dst[i] = zq::zq_t<Q>::from_Z(src[i]);
+  }
+}
+
 }

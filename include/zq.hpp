@@ -20,6 +20,12 @@ public:
   // Given an unsigned 32 -bit integer, it constructs an element ∈ Zq
   inline constexpr zq_t(const uint32_t a) { this->v = a % Q; }
 
+  // Given an element ∈ Z, this routine is used for deriving an element ∈ Zq.
+  static inline constexpr zq_t from_Z(const int32_t v)
+  {
+    return zq_t(static_cast<uint32_t>(static_cast<int32_t>(Q * (v < 0)) + v));
+  }
+
   // Addition of two integers modulo Q
   inline constexpr zq_t operator+(const zq_t& rhs) const
   {
