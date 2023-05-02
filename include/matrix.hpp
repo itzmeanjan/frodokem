@@ -32,4 +32,30 @@ add(const zq::zq_t<Q>* const __restrict matA,
   }
 }
 
+// Given two matrices A ( of dimension l_m x l_n ) and B ( of dimension r_m x
+// r_n ) s.t. l_n == r_m, this routine can be used for multiplying them,
+// resulting into another matrix (C) of dimension l_m x r_n.
+template<const size_t l_m,
+         const size_t l_n,
+         const size_t r_m,
+         const size_t r_n,
+         const uint32_t Q>
+inline void
+mul(const zq::zq_t<Q>* const __restrict matA,
+    const zq::zq_t<Q>* const __restrict matB,
+    zq::zq_t<Q>* const __restrict matC)
+  requires(l_n == r_m)
+{
+  for (size_t i = 0; i < l_m; i++) {
+    for (size_t j = 0; j < r_n; j++) {
+      zq::zq_t<Q> tmp(0);
+
+      for (size_t k = 0; k < l_n; k++) {
+        tmp += (matA[i * l_n + k] * matB[k * r_n + j]);
+      }
+      matC[i * r_n + j] = tmp;
+    }
+  }
+}
+
 }
