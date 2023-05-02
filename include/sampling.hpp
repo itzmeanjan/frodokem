@@ -64,8 +64,8 @@ constexpr auto Frodo1344_Tχ = compute_cdf(Frodo1344_χ);
 // assembly rather than just trusting that this implementation will always be
 // constant-time on all targets.
 template<const size_t len_χ, const size_t L>
-int32_t
-sample(const uint32_t r, std::array<uint32_t, L> Tχ)
+inline int32_t
+sample(const uint32_t r, std::array<uint32_t, L>& Tχ)
   requires(frodo_params::check_len_χ(len_χ))
 {
   constexpr uint32_t mask = (1u << len_χ) - 1;
@@ -80,6 +80,30 @@ sample(const uint32_t r, std::array<uint32_t, L> Tχ)
   const uint32_t r0 = r & 1u;
   const int32_t sign = -static_cast<int32_t>(r0);
   return sign * static_cast<int32_t>(e);
+}
+
+// Given a bit string of length n1 x n2 x len_χ -bits ( r ) and a CDF table Tχ,
+// this routine can be used for sampling n1 x n2 -many elements ∈ Z, following
+// algorithm 6 of FrodoKEM specification.
+//
+// Input bit string r is provided as an array of 32 -bit unsigned integers s.t.
+// length of that array is n1 x n2 and only least significant len_χ -many bits
+// of each array element are of importance.
+//
+// e is a matrix of dimension n1 x n2, over Z.
+template<const size_t n1, const size_t n2, const size_t len_χ, const size_t L>
+inline void
+sample_matrix(const uint32_t* const __restrict r,
+              int32_t* const __restrict e,
+              std::array<uint32_t, L>& Tχ)
+  requires(n1 == n2)
+{
+  // # -of elements in matrix
+  constexpr size_t elm_cnt = n1 * n2;
+
+  for (size_t i = 0; i < elm_cnt; i++) {
+    e[i] = sample<len_χ>(r[i], Tχ);
+  }
 }
 
 }
