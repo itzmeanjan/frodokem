@@ -85,22 +85,22 @@ sample(const uint32_t r, std::array<uint32_t, L>& Tχ)
 // this routine can be used for sampling n1 x n2 -many elements ∈ Z, following
 // algorithm 6 of FrodoKEM specification.
 //
-// Input bit string r is provided as an array of 32 -bit unsigned integers s.t.
-// length of that array is n1 x n2 and only least significant len_χ -many bits
-// of each array element are of importance.
-//
-// e is a matrix of dimension n1 x n2, over Z.
+// - r is a byte array of length n1 x n2 x (len_χ/ 8) -bytes.
+// - e is a matrix of dimension n1 x n2, over Z.
 template<const size_t n1, const size_t n2, const size_t len_χ, const size_t L>
 inline void
-sample_matrix(const uint32_t* const __restrict r,
+sample_matrix(const uint8_t* const __restrict r,
               int32_t* const __restrict e,
               std::array<uint32_t, L>& Tχ)
 {
   // # -of elements in matrix
-  constexpr size_t elm_cnt = n1 * n2;
+  constexpr size_t elm_cnt = n1 * n2 * (len_χ / 8);
 
-  for (size_t i = 0; i < elm_cnt; i++) {
-    e[i] = sample<len_χ>(r[i], Tχ);
+  for (size_t i = 0; i < elm_cnt; i += (len_χ / 8)) {
+    const uint32_t tmp = (static_cast<uint32_t>(r[i + 1]) << 8) |
+                         (static_cast<uint32_t>(r[i + 0]) << 0);
+
+    e[i] = sample<len_χ>(tmp, Tχ);
   }
 }
 
