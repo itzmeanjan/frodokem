@@ -169,7 +169,7 @@ encrypt(const uint8_t* const __restrict seedSE, // len_seed_SE -bits
   zq::zq_t<Q> tmp1[m_bar * n_bar];
   zq::zq_t<Q> v[m_bar * n_bar];
 
-  matrix::mul<m_bar, n, n, n_bar>(s_prime, b, tmp1);
+  matrix::mul<m_bar, n, n, n_bar, Q>(s_prime_, b, tmp1);
   matrix::add<m_bar, n_bar>(tmp1, e_dprime_, v);
 
   zq::zq_t<Q> encoded[m_bar * n_bar];
@@ -213,7 +213,7 @@ decrypt(const uint8_t* const __restrict skey,
   packing::matrix_unpack<m_bar, n_bar>(cipher + cipher_off, c2);
 
   zq::zq_t<Q> tmp[m_bar * n_bar];
-  matrix::mul<m_bar, n, n, n_bar>(c1, s, tmp);
+  matrix::mul<m_bar, n, n, n_bar, Q>(c1, s, tmp);
 
   zq::zq_t<Q> m[m_bar * n_bar];
   matrix::sub<m_bar, n_bar>(c2, tmp, m);
