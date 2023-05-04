@@ -64,7 +64,7 @@ constexpr auto Frodo1344_Tχ = compute_cdf(Frodo1344_χ);
 // constant-time on all targets.
 template<const size_t len_χ, const size_t L>
 inline int32_t
-sample(const uint32_t r, std::array<uint32_t, L>& Tχ)
+sample(const uint32_t r, std::array<uint32_t, L> Tχ)
   requires(frodo_params::check_len_χ(len_χ))
 {
   constexpr uint32_t mask = (1u << len_χ) - 1;
@@ -77,8 +77,7 @@ sample(const uint32_t r, std::array<uint32_t, L>& Tχ)
   }
 
   const uint32_t r0 = r & 1u;
-  const int32_t sign = -static_cast<int32_t>(r0);
-  return sign * static_cast<int32_t>(e);
+  return r0 ? -static_cast<int32_t>(e) : static_cast<int32_t>(e);
 }
 
 // Given a bit string of length n1 x n2 x len_χ -bits ( r ) and a CDF table Tχ,
