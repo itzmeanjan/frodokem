@@ -24,5 +24,10 @@ main()
   test_frodo::test_matrix_pack_unpack<8, 8, 1u << 16>();
   std::cout << "[test] Packing/ unpacking of matrix over Zq\n";
 
+  test_frodo::test_pke<640, 128, 8, 8, 128, 128, 16, 1u << 15, 2>();
+  test_frodo::test_pke<976, 192, 8, 8, 128, 192, 16, 1u << 16, 3>();
+  test_frodo::test_pke<1344, 256, 8, 8, 128, 256, 16, 1u << 16, 4>();
+  std::cout << "[test] Frodo Public Key Encryption\n";
+
   return 0;
 }
