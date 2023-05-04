@@ -172,14 +172,53 @@ encrypt(const uint8_t* const __restrict seedSE, // len_seed_SE -bits
   matrix::mul<m_bar, n, n, n_bar>(s_prime, b, tmp1);
   matrix::add<m_bar, n_bar>(tmp1, e_dprime_, v);
 
-  zq::zq_t<Q> decoded[m_bar * n_bar];
-  encoding::matrix_encode<m_bar, n_bar, Q, B>(msg, decoded);
+  zq::zq_t<Q> encoded[m_bar * n_bar];
+  encoding::matrix_encode<m_bar, n_bar, Q, B>(msg, encoded);
 
-  matrix::add<m_bar, n_bar>(v, decoded, tmp1);
+  matrix::add<m_bar, n_bar>(v, encoded, tmp1);
 
   constexpr size_t cipher_off = (m_bar * n * frodo_utils::log2(Q) + 7) / 8;
+
   packing::matrix_pack<m_bar, n>(b_prime, cipher);
   packing::matrix_pack<m_bar, n_bar>(tmp1, cipher + cipher_off);
+}
+
+// Given a cipher text and Frodo PKE secret key of respective public key, this
+// routine can be used for decrypting l -bits message, computing plain text,
+// following algorithm 11 of FrodoKEM specification.
+template<const size_t n,
+         const size_t l,
+         const size_t m_bar,
+         const size_t n_bar,
+         const uint32_t Q,
+         const size_t B>
+inline void
+decrypt(const uint8_t* const __restrict skey,
+        const uint8_t* const __restrict cipher,
+        uint8_t* const __restrict msg // l -bits
+)
+{
+  zq::zq_t<Q> s_t[n_bar * n];
+  zq::zq_t<Q> s[n * n_bar];
+
+  packing::matrix_unpack<n_bar, n>(skey, s_t);
+  matrix::transpose<n_bar, n>(s_t, s);
+
+  zq::zq_t<Q> c1[m_bar * n];
+  zq::zq_t<Q> c2[m_bar * n_bar];
+
+  constexpr size_t cipher_off = (m_bar * n * frodo_utils::log2(Q) + 7) / 8;
+
+  packing::matrix_unpack<m_bar, n>(cipher, c1);
+  packing::matrix_unpack<m_bar, n_bar>(cipher + cipher_off, c2);
+
+  zq::zq_t<Q> tmp[m_bar * n_bar];
+  matrix::mul<m_bar, n, n, n_bar>(c1, s, tmp);
+
+  zq::zq_t<Q> m[m_bar * n_bar];
+  matrix::sub<m_bar, n_bar>(c2, tmp, m);
+
+  encoding::matrix_decode<m_bar, n_bar, Q, B>(m, msg);
 }
 
 }
