@@ -73,7 +73,7 @@ sample(const uint32_t r, std::array<uint32_t, L>& Tχ)
 
   for (size_t z = 0; z < L - 1; z++) {
     const auto br = subtle::ct_gt<uint32_t, uint32_t>(t, Tχ[z]);
-    e += subtle::ct_select(br, 1, 0);
+    e += subtle::ct_select(br, 1u, 0u);
   }
 
   const uint32_t r0 = r & 1u;
@@ -91,16 +91,19 @@ template<const size_t n1, const size_t n2, const size_t len_χ, const size_t L>
 inline void
 sample_matrix(const uint8_t* const __restrict r,
               int32_t* const __restrict e,
-              std::array<uint32_t, L>& Tχ)
+              std::array<uint32_t, L> Tχ)
 {
-  // # -of elements in matrix
-  constexpr size_t elm_cnt = n1 * n2 * (len_χ / 8);
+  size_t moff = 0;
+  size_t boff = 0;
 
-  for (size_t i = 0; i < elm_cnt; i += (len_χ / 8)) {
-    const uint32_t tmp = (static_cast<uint32_t>(r[i + 1]) << 8) |
-                         (static_cast<uint32_t>(r[i + 0]) << 0);
+  while (moff < (n1 * n2)) {
+    const uint32_t tmp = (static_cast<uint32_t>(r[boff + 1]) << 8) |
+                         (static_cast<uint32_t>(r[boff + 0]) << 0);
 
-    e[i] = sample<len_χ>(tmp, Tχ);
+    e[moff] = sample<len_χ>(tmp, Tχ);
+
+    moff += 1;
+    boff += 2;
   }
 }
 
