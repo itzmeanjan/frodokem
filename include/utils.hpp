@@ -31,11 +31,23 @@ pke_pub_key_len(const size_t n,
 
 // Compile-time computable byte length of Frodo PKE secret key.
 constexpr size_t
-pke_sec_key_len(const size_t n_bar, const size_t n, const uint32_t Q)
+pke_sec_key_len(const size_t n, const size_t n_bar, const uint32_t Q)
 {
   const size_t bit_len = n_bar * n * log2(Q);
   const size_t byte_len = (bit_len + 7) / 8;
   return byte_len;
+}
+
+// Compile-time computable byte length of Frodo PKE cipher text.
+constexpr size_t
+pke_cipher_text_len(const size_t n,
+                    const size_t m_bar,
+                    const size_t n_bar,
+                    const uint32_t Q)
+{
+  const size_t c1 = (m_bar * n * log2(Q) + 7) / 8;
+  const size_t c2 = (m_bar * n_bar * log2(Q) + 7) / 8;
+  return c1 + c2;
 }
 
 }
