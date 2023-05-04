@@ -32,6 +32,19 @@ add(const zq::zq_t<Q>* const __restrict matA,
   }
 }
 
+// Given two matrices (A, B) of same dimension, this routine can be used for
+// subtracting B from A, resulting into another matrix (C) of same dimension.
+template<const size_t m, const size_t n, const uint32_t Q>
+inline void
+sub(const zq::zq_t<Q>* const __restrict matA,
+    const zq::zq_t<Q>* const __restrict matB,
+    zq::zq_t<Q>* const __restrict matC)
+{
+  for (size_t i = 0; i < m * n; i++) {
+    matC[i] = matA[i] - matB[i];
+  }
+}
+
 // Given two matrices A ( of dimension l_m x l_n ) and B ( of dimension r_m x
 // r_n ) s.t. l_n == r_m, this routine can be used for multiplying them,
 // resulting into another matrix (C) of dimension l_m x r_n.
