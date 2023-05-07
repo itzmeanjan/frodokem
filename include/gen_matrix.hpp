@@ -14,7 +14,7 @@ template<const size_t len_seed_A, const size_t n, const uint32_t Q>
 inline void
 gen(const uint8_t* const __restrict seed, zq::zq_t<Q>* const __restrict mat)
 {
-  constexpr size_t seed_bytes = len_seed_A / 8;
+  constexpr size_t seed_bytes = (len_seed_A + 7) / 8;
 
   uint8_t buf[2 + seed_bytes];
   uint8_t dig[n * 2];
