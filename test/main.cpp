@@ -20,6 +20,12 @@ main()
   test_frodo::test_matrix_encode_decode<8, 8, 1u << 16, 4>();
   std::cout << "[test] Encoding/ decoding of matrix over Zq\n";
 
+  test_frodo::test_matrix_pack_unpack<640, 8, 1u << 15>();
+  test_frodo::test_matrix_pack_unpack<8, 640, 1u << 15>();
+  test_frodo::test_matrix_pack_unpack<976, 8, 1u << 16>();
+  test_frodo::test_matrix_pack_unpack<8, 976, 1u << 16>();
+  test_frodo::test_matrix_pack_unpack<1344, 8, 1u << 16>();
+  test_frodo::test_matrix_pack_unpack<8, 1344, 1u << 16>();
   test_frodo::test_matrix_pack_unpack<8, 8, 1u << 15>();
   test_frodo::test_matrix_pack_unpack<8, 8, 1u << 16>();
   std::cout << "[test] Packing/ unpacking of matrix over Zq\n";
