@@ -34,6 +34,12 @@ main()
   test_frodo::test_matrix_transpose<8, 640, 1u << 15>();
   test_frodo::test_matrix_transpose<8, 976, 1u << 16>();
   test_frodo::test_matrix_transpose<8, 1344, 1u << 16>();
+
+  test_frodo::test_matrix_add_sub<8, 640, 1u << 15>();
+  test_frodo::test_matrix_add_sub<8, 976, 1u << 16>();
+  test_frodo::test_matrix_add_sub<8, 1344, 1u << 16>();
+  test_frodo::test_matrix_add_sub<8, 8, 1u << 15>();
+  test_frodo::test_matrix_add_sub<8, 8, 1u << 16>();
   std::cout << "[test] Operations on matrices over Zq\n";
 
   test_frodo::test_pke<640, 128, 8, 8, 128, 128, 16, 1u << 15, 2>();
