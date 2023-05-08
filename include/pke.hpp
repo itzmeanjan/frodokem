@@ -21,7 +21,8 @@ template<const size_t n,
          const size_t len_seed_A,
          const size_t len_seed_SE,
          const size_t len_χ,
-         const uint32_t Q>
+         const uint32_t Q,
+         const size_t B>
 inline void
 keygen(const uint8_t* const __restrict seedA,  // len_seed_A -bits
        const uint8_t* const __restrict seedSE, // len_seed_SE -bits
@@ -70,8 +71,8 @@ keygen(const uint8_t* const __restrict seedA,  // len_seed_A -bits
   zq::zq_t<Q> s_t_[n_bar * n];
   zq::zq_t<Q> e_[n * n_bar];
 
-  matrix::from_Z_to_mod_Q<n_bar, n>(s_t, s_t_);
-  matrix::from_Z_to_mod_Q<n, n_bar>(e, e_);
+  matrix::from_Z_to_mod_Q<n_bar, n, Q, B>(s_t, s_t_);
+  matrix::from_Z_to_mod_Q<n, n_bar, Q, B>(e, e_);
 
   zq::zq_t<Q> s[n * n_bar];
   matrix::transpose<n_bar, n>(s_t_, s);
@@ -153,9 +154,9 @@ encrypt(const uint8_t* const __restrict seedSE, // len_seed_SE -bits
   zq::zq_t<Q> e_prime_[m_bar * n];
   zq::zq_t<Q> e_dprime_[m_bar * n_bar];
 
-  matrix::from_Z_to_mod_Q<m_bar, n>(s_prime, s_prime_);
-  matrix::from_Z_to_mod_Q<m_bar, n>(e_prime, e_prime_);
-  matrix::from_Z_to_mod_Q<m_bar, n>(e_dprime, e_dprime_);
+  matrix::from_Z_to_mod_Q<m_bar, n, Q, B>(s_prime, s_prime_);
+  matrix::from_Z_to_mod_Q<m_bar, n, Q, B>(e_prime, e_prime_);
+  matrix::from_Z_to_mod_Q<m_bar, n, Q, B>(e_dprime, e_dprime_);
 
   zq::zq_t<Q> tmp0[m_bar * n];
   zq::zq_t<Q> b_prime[m_bar * n];

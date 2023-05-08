@@ -47,7 +47,7 @@ test_pke()
   prng.read(seedSE, len_seed_SE / 8);
   prng.read(msg, mlen);
 
-  pke::keygen<n, n_bar, len_seed_A, len_seed_SE, len_χ, Q>(
+  pke::keygen<n, n_bar, len_seed_A, len_seed_SE, len_χ, Q, B>(
     seedA, seedSE, pkey, skey);
   pke::encrypt<n, l, m_bar, n_bar, len_seed_A, len_seed_SE, len_χ, Q, B>(
     seedSE, pkey, msg, cipher);
