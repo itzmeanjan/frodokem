@@ -20,10 +20,19 @@ public:
   // Given an unsigned 32 -bit integer, it constructs an element ∈ Zq
   inline constexpr zq_t(const uint32_t a = 0u) { this->v = a % Q; }
 
-  // Given an element ∈ Z, this routine is used for deriving an element ∈ Zq.
+  // Given an element v ∈ [-q/ 2^(B+1), q/ 2^(B+1)) s.t. q = 2^D, B <= D, this
+  // routine is used for deriving an element ∈ [0, q/ 2^B).
+  template<const size_t B>
   static inline constexpr zq_t from_Z(const int32_t v)
   {
-    return zq_t(static_cast<uint32_t>(static_cast<int32_t>(Q) * (v < 0) + v));
+    constexpr size_t D = frodo_utils::log2(Q);
+    static_assert(B <= D, "v must ∈ [-q/ 2^(B+1), q/ 2^(B+1))");
+
+    constexpr uint32_t wrap_at = 1u << (D - B);
+    const bool flg = v < 0;
+    const int32_t wrapped = static_cast<int32_t>(wrap_at) * flg + v;
+
+    return zq_t(static_cast<uint32_t>(wrapped));
   }
 
   // Addition of two integers modulo Q
