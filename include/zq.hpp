@@ -20,22 +20,6 @@ public:
   // Given an unsigned 32 -bit integer, it constructs an element ∈ Zq
   inline constexpr zq_t(const uint32_t a = 0u) { this->v = a % Q; }
 
-  // Given an element v ∈ [-q/ 2^(B+1), q/ 2^(B+1)) s.t. q = 2^D, B <= D, this
-  // routine is used for deriving an element ∈ [0, q/ 2^B), by wrapping its
-  // value around the boundary (q/ 2^B).
-  template<const size_t B>
-  static inline constexpr zq_t from_Z(const int32_t v)
-  {
-    constexpr size_t D = frodo_utils::log2(Q);
-    static_assert(B <= D, "v must ∈ [-q/ 2^(B+1), q/ 2^(B+1))");
-
-    constexpr uint32_t wrap_at = 1u << (D - B);
-    const bool flg = v < 0;
-    const int32_t wrapped = static_cast<int32_t>(wrap_at) * flg + v;
-
-    return zq_t(static_cast<uint32_t>(wrapped));
-  }
-
   // Addition of two integers modulo Q
   inline constexpr zq_t operator+(const zq_t& rhs) const
   {
@@ -91,7 +75,8 @@ public:
   }
 
   // Given an entry of Zq, this routine extracts its most significant B bits
-  // s.t. returned integer v ∈ [0, 2^B).
+  // s.t. returned integer v ∈ [0, 2^B), collecting inspiration from
+  // https://github.com/microsoft/PQCrypto-LWEKE/blob/d7037ccb110665237884ae451b93afeaa0b7eff1/python3/frodokem.py#L335.
   template<const size_t B>
   inline constexpr uint32_t decode() const
   {
@@ -101,9 +86,7 @@ public:
                   "k ∈ [0, 2^B)");
 
     constexpr uint32_t mask = (1u << B) - 1u;
-    constexpr size_t shr = D - B;
-    const uint32_t v = (this->v >> shr) & mask;
-
+    const uint32_t v = (((this->v << B) + (1u << (D - 1))) >> D) & mask;
     return v;
   }
 
