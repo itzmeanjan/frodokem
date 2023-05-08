@@ -21,7 +21,8 @@ public:
   inline constexpr zq_t(const uint32_t a = 0u) { this->v = a % Q; }
 
   // Given an element v ∈ [-q/ 2^(B+1), q/ 2^(B+1)) s.t. q = 2^D, B <= D, this
-  // routine is used for deriving an element ∈ [0, q/ 2^B).
+  // routine is used for deriving an element ∈ [0, q/ 2^B), by wrapping its
+  // value around the boundary (q/ 2^B).
   template<const size_t B>
   static inline constexpr zq_t from_Z(const int32_t v)
   {
