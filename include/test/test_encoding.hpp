@@ -21,7 +21,7 @@ void
 test_matrix_encode_decode()
 {
   constexpr size_t bit_len = m * n * B;
-  constexpr size_t byte_len = bit_len / 8;
+  constexpr size_t byte_len = (bit_len + 7) / 8;
   constexpr size_t mat_len = sizeof(zq::zq_t<Q>) * m * n;
 
   auto org_enc = static_cast<uint8_t*>(std::malloc(byte_len));

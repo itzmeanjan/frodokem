@@ -22,7 +22,7 @@ matrix_encode(
   using Zq = zq::zq_t<Q>;
 
   constexpr size_t bit_len = m * n * B;
-  constexpr size_t byte_len = bit_len / 8;
+  constexpr size_t byte_len = (bit_len + 7) / 8;
 
   if constexpr (B == 2) {
     constexpr uint8_t mask = 0b11;

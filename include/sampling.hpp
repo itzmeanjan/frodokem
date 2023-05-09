@@ -62,10 +62,11 @@ constexpr auto Frodo1344_Tχ = compute_cdf(Frodo1344_χ);
 // compilers are free to optimize, so it can be better idea to inspect generated
 // assembly rather than just trusting that this implementation will always be
 // constant-time on all targets.
-template<const size_t len_χ, const size_t L>
-inline int32_t
-sample(const uint32_t r, std::array<uint32_t, L>& Tχ)
-  requires(frodo_params::check_len_χ(len_χ))
+template<const size_t len_χ, const uint32_t Q, const size_t B, const size_t L>
+inline zq::zq_t<Q>
+sample(const uint32_t r, std::array<uint32_t, L> Tχ)
+  requires(frodo_params::check_len_χ(len_χ) && frodo_params::check_q(Q) &&
+           frodo_params::check_b(B))
 {
   constexpr uint32_t mask = (1u << len_χ) - 1;
   const uint32_t t = (r & mask) >> 1;
@@ -73,34 +74,43 @@ sample(const uint32_t r, std::array<uint32_t, L>& Tχ)
 
   for (size_t z = 0; z < L - 1; z++) {
     const auto br = subtle::ct_gt<uint32_t, uint32_t>(t, Tχ[z]);
-    e += subtle::ct_select(br, 1, 0);
+    e += subtle::ct_select(br, 1u, 0u);
   }
 
+  // Inspired from
+  // https://github.com/microsoft/PQCrypto-LWEKE/blob/d7037ccb/src/noise.c#L26-L27
   const uint32_t r0 = r & 1u;
-  const int32_t sign = -static_cast<int32_t>(r0);
-  return sign * static_cast<int32_t>(e);
+  return zq::zq_t<Q>(((-r0) ^ e) + r0);
 }
 
 // Given a bit string of length n1 x n2 x len_χ -bits ( r ) and a CDF table Tχ,
 // this routine can be used for sampling n1 x n2 -many elements ∈ Z, following
 // algorithm 6 of FrodoKEM specification.
 //
-// Input bit string r is provided as an array of 32 -bit unsigned integers s.t.
-// length of that array is n1 x n2 and only least significant len_χ -many bits
-// of each array element are of importance.
-//
-// e is a matrix of dimension n1 x n2, over Z.
-template<const size_t n1, const size_t n2, const size_t len_χ, const size_t L>
+// - r is a byte array of length n1 x n2 x (len_χ/ 8) -bytes.
+// - e is a matrix of dimension n1 x n2, over Z.
+template<const size_t n1,
+         const size_t n2,
+         const size_t len_χ,
+         const uint32_t Q,
+         const size_t B,
+         const size_t L>
 inline void
-sample_matrix(const uint32_t* const __restrict r,
-              int32_t* const __restrict e,
-              std::array<uint32_t, L>& Tχ)
+sample_matrix(const uint8_t* const __restrict r,
+              zq::zq_t<Q>* const __restrict e,
+              std::array<uint32_t, L> Tχ)
 {
-  // # -of elements in matrix
-  constexpr size_t elm_cnt = n1 * n2;
+  size_t moff = 0;
+  size_t boff = 0;
 
-  for (size_t i = 0; i < elm_cnt; i++) {
-    e[i] = sample<len_χ>(r[i], Tχ);
+  while (moff < (n1 * n2)) {
+    const uint32_t tmp = (static_cast<uint32_t>(r[boff + 1]) << 8) |
+                         (static_cast<uint32_t>(r[boff + 0]) << 0);
+
+    e[moff] = sample<len_χ, Q, B, L>(tmp, Tχ);
+
+    moff += 1;
+    boff += 2;
   }
 }
 

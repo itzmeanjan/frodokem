@@ -18,7 +18,7 @@ private:
 
 public:
   // Given an unsigned 32 -bit integer, it constructs an element ∈ Zq
-  inline constexpr zq_t(const uint32_t a) { this->v = a % Q; }
+  inline constexpr zq_t(const uint32_t a = 0u) { this->v = a % Q; }
 
   // Addition of two integers modulo Q
   inline constexpr zq_t operator+(const zq_t& rhs) const
@@ -75,7 +75,8 @@ public:
   }
 
   // Given an entry of Zq, this routine extracts its most significant B bits
-  // s.t. returned integer v ∈ [0, 2^B).
+  // s.t. returned integer v ∈ [0, 2^B), collecting inspiration from
+  // https://github.com/microsoft/PQCrypto-LWEKE/blob/d7037ccb/python3/frodokem.py#L335.
   template<const size_t B>
   inline constexpr uint32_t decode() const
   {
@@ -85,9 +86,7 @@ public:
                   "k ∈ [0, 2^B)");
 
     constexpr uint32_t mask = (1u << B) - 1u;
-    constexpr size_t shr = D - B;
-    const uint32_t v = (this->v >> shr) & mask;
-
+    const uint32_t v = (((this->v << B) + (1u << (D - 1))) >> D) & mask;
     return v;
   }
 
