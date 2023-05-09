@@ -2,7 +2,6 @@
 #include "frodo1344_pke.hpp"
 #include "frodo640_pke.hpp"
 #include "frodo976_pke.hpp"
-#include "prng.hpp"
 #include <benchmark/benchmark.h>
 
 // Benchmark FrodoKEM and its components
