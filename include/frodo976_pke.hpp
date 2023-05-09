@@ -2,7 +2,7 @@
 #include "pke.hpp"
 
 // Frodo-976 Public Key Encryption
-namespace frodo640_pke {
+namespace frodo976_pke {
 
 namespace utils = frodo_utils;
 
