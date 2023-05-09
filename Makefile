@@ -16,6 +16,8 @@ bench/a.out: bench/main.cpp include/*.hpp include/bench/*.hpp sha3/include/*.hpp
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(IFLAGS) $(DEPFLAGS) $< -lbenchmark -o $@
 
 benchmark: bench/a.out
+	# Don't forget to put all CPU cores on performance mode before running benchmarks,
+	# follow https://github.com/google/benchmark/blob/2dd015df/docs/reducing_variance.md
 	./$< --benchmark_time_unit=us --benchmark_counters_tabular=true
 
 clean:
