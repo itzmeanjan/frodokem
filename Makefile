@@ -6,11 +6,17 @@ DEPFLAGS = -I ./sha3/include -I ./subtle/include
 
 all: testing
 
-test/a.out: test/main.cpp include/*.hpp include/test/*.hpp
+test/a.out: test/main.cpp include/*.hpp include/test/*.hpp sha3/include/*.hpp subtle/include/*.hpp
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(IFLAGS) $(DEPFLAGS) $< -o $@
 
 testing: test/a.out
 	./$<
+
+bench/a.out: bench/main.cpp include/*.hpp include/bench/*.hpp sha3/include/*.hpp subtle/include/*.hpp
+	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(IFLAGS) $(DEPFLAGS) $< -lbenchmark -o $@
+
+benchmark: bench/a.out
+	./$< --benchmark_time_unit=us
 
 clean:
 	find . -name '*.out' -o -name '*.o' -o -name '*.so' -o -name '*.gch' | xargs rm -rf
