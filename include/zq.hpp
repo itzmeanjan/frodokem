@@ -76,7 +76,7 @@ public:
 
   // Given an entry of Zq, this routine extracts its most significant B bits
   // s.t. returned integer v ∈ [0, 2^B), collecting inspiration from
-  // https://github.com/microsoft/PQCrypto-LWEKE/blob/d7037ccb110665237884ae451b93afeaa0b7eff1/python3/frodokem.py#L335.
+  // https://github.com/microsoft/PQCrypto-LWEKE/blob/d7037ccb/python3/frodokem.py#L335.
   template<const size_t B>
   inline constexpr uint32_t decode() const
   {
