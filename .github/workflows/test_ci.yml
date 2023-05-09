@@ -1,4 +1,4 @@
-name: Test FrodoKEM using CI
+name: Test Frodo {PKE, KEM} using CI
 
 on:
   push:
@@ -21,5 +21,9 @@ jobs:
       run: git submodule update --init
     - name: Execute Tests
       run: make
+    - name: Run Examples
+      run: |
+        g++ -std=c++20 -O3 -march=native -mtune=native -Wall -I include -I sha3/include -I subtle/include examples/frodo640_pke.cpp
+        ./a.out
     - name: Cleanup
       run: make clean
