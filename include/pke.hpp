@@ -3,6 +3,7 @@
 #include "gen_matrix.hpp"
 #include "matrix.hpp"
 #include "packing.hpp"
+#include "params.hpp"
 #include "sampling.hpp"
 #include "shake128.hpp"
 #include "shake256.hpp"
@@ -28,6 +29,13 @@ keygen(const uint8_t* const __restrict seedA,  // len_seed_A -bits
        const uint8_t* const __restrict seedSE, // len_seed_SE -bits
        uint8_t* const __restrict pkey,
        uint8_t* const __restrict skey)
+  requires(frodo_params::check_frodo_pke_keygen_params(n,
+                                                       n_bar,
+                                                       len_seed_A,
+                                                       len_seed_SE,
+                                                       len_χ,
+                                                       Q,
+                                                       B))
 {
   zq::zq_t<Q> a[n * n];
   gen_matrix::gen<len_seed_A, n>(seedA, a);
@@ -107,6 +115,15 @@ encrypt(const uint8_t* const __restrict seedSE, // len_seed_SE -bits
         const uint8_t* const __restrict pkey,
         const uint8_t* const __restrict msg, // l -bits
         uint8_t* const __restrict cipher)
+  requires(frodo_params::check_frodo_pke_encrypt_params(n,
+                                                        l,
+                                                        m_bar,
+                                                        n_bar,
+                                                        len_seed_A,
+                                                        len_seed_SE,
+                                                        len_χ,
+                                                        Q,
+                                                        B))
 {
   zq::zq_t<Q> a[n * n];
   gen_matrix::gen<len_seed_A, n>(pkey, a);
@@ -199,7 +216,9 @@ inline void
 decrypt(const uint8_t* const __restrict skey,
         const uint8_t* const __restrict cipher,
         uint8_t* const __restrict msg // l -bits
-)
+        )
+  requires(
+    frodo_params::check_frodo_pke_decrypt_params(n, l, m_bar, n_bar, Q, B))
 {
   zq::zq_t<Q> s_t[n_bar * n];
   zq::zq_t<Q> s[n * n_bar];
