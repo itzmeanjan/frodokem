@@ -12,15 +12,17 @@ int
 main()
 {
   // SeedA, SeedSE byte length
-  constexpr size_t SLEN = 16;
+  constexpr size_t SEED_A_LEN = 16;
+  constexpr size_t SEED_SE_LEN = 16;
+
   // To be encrypted message byte length
   constexpr size_t MLEN = 16;
 
   std::vector<uint8_t> pkey(frodo640_pke::PUB_KEY_LEN, 0);
   std::vector<uint8_t> skey(frodo640_pke::SEC_KEY_LEN, 0);
   std::vector<uint8_t> cipher(frodo640_pke::CIPHER_LEN, 0);
-  std::vector<uint8_t> seedA(SLEN, 0);
-  std::vector<uint8_t> seedSE(SLEN, 0);
+  std::vector<uint8_t> seedA(SEED_A_LEN, 0);
+  std::vector<uint8_t> seedSE(SEED_SE_LEN, 0);
   std::vector<uint8_t> msg(MLEN, 0);
   std::vector<uint8_t> decrypted(MLEN, 0);
 
