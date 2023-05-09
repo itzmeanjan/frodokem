@@ -15,12 +15,12 @@ constexpr size_t SEC_KEY_LEN = utils::pke_sec_key_len(976, 8, 1u << 16);
 // = 15744 -bytes cipher text
 constexpr size_t CIPHER_LEN = utils::pke_cipher_text_len(976, 8, 8, 1u << 16);
 
-// Given 16 -bytes seedA ( used for generating matrix A ) and 16 -bytes seedSE (
+// Given 16 -bytes seedA ( used for generating matrix A ) and 24 -bytes seedSE (
 // used for sampling error matrices ), this routine is used for deterministic
 // generation of a Frodo-976 public/ private keypair.
 inline void
 keygen(const uint8_t* const __restrict seedA,  // 16 -bytes
-       const uint8_t* const __restrict seedSE, // 16 -bytes
+       const uint8_t* const __restrict seedSE, // 24 -bytes
        uint8_t* const __restrict pkey,         // 15632 -bytes
        uint8_t* const __restrict skey          // 15616 -bytes
 )
@@ -28,12 +28,12 @@ keygen(const uint8_t* const __restrict seedA,  // 16 -bytes
   pke::keygen<976, 8, 128, 192, 16, 1u << 16, 3>(seedA, seedSE, pkey, skey);
 }
 
-// Given a 16 -bytes seedSE ( used for sampling error matrices ), along with 24
+// Given a 24 -bytes seedSE ( used for sampling error matrices ), along with 24
 // -bytes message and 15632 -bytes Frodo-976 PKE public key, this routine can be
 // used for encrypting the 24 -bytes message as 15744 -bytes cipher text, which
 // can only be decrypted by associated Frodo-976 secret key.
 inline void
-encrypt(const uint8_t* const __restrict seed, // 16 -bytes
+encrypt(const uint8_t* const __restrict seed, // 24 -bytes
         const uint8_t* const __restrict pkey, // 15632 -bytes
         const uint8_t* const __restrict msg,  // 24 -bytes
         uint8_t* const __restrict enc         // 15744 -bytes
