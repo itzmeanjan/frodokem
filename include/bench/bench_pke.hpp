@@ -34,6 +34,8 @@ frodo640_pke_keygen(benchmark::State& state)
     benchmark::ClobberMemory();
   }
 
+  state.SetItemsProcessed(state.iterations());
+
   std::free(seedA);
   std::free(seedSE);
   std::free(pkey);
@@ -72,6 +74,8 @@ frodo640_pke_encrypt(benchmark::State& state)
     benchmark::DoNotOptimize(enc);
     benchmark::ClobberMemory();
   }
+
+  state.SetItemsProcessed(state.iterations());
 
   std::free(seedA);
   std::free(seedSE);
@@ -115,6 +119,8 @@ frodo640_pke_decrypt(benchmark::State& state)
     benchmark::ClobberMemory();
   }
 
+  state.SetItemsProcessed(state.iterations());
+
   std::free(seedA);
   std::free(seedSE);
   std::free(pkey);
@@ -150,6 +156,8 @@ frodo976_pke_keygen(benchmark::State& state)
     benchmark::DoNotOptimize(skey);
     benchmark::ClobberMemory();
   }
+
+  state.SetItemsProcessed(state.iterations());
 
   std::free(seedA);
   std::free(seedSE);
@@ -189,6 +197,8 @@ frodo976_pke_encrypt(benchmark::State& state)
     benchmark::DoNotOptimize(enc);
     benchmark::ClobberMemory();
   }
+
+  state.SetItemsProcessed(state.iterations());
 
   std::free(seedA);
   std::free(seedSE);
@@ -232,6 +242,8 @@ frodo976_pke_decrypt(benchmark::State& state)
     benchmark::ClobberMemory();
   }
 
+  state.SetItemsProcessed(state.iterations());
+
   std::free(seedA);
   std::free(seedSE);
   std::free(pkey);
@@ -267,6 +279,8 @@ frodo1344_pke_keygen(benchmark::State& state)
     benchmark::DoNotOptimize(skey);
     benchmark::ClobberMemory();
   }
+
+  state.SetItemsProcessed(state.iterations());
 
   std::free(seedA);
   std::free(seedSE);
@@ -306,6 +320,8 @@ frodo1344_pke_encrypt(benchmark::State& state)
     benchmark::DoNotOptimize(enc);
     benchmark::ClobberMemory();
   }
+
+  state.SetItemsProcessed(state.iterations());
 
   std::free(seedA);
   std::free(seedSE);
@@ -348,6 +364,8 @@ frodo1344_pke_decrypt(benchmark::State& state)
     benchmark::DoNotOptimize(dec);
     benchmark::ClobberMemory();
   }
+
+  state.SetItemsProcessed(state.iterations());
 
   std::free(seedA);
   std::free(seedSE);
