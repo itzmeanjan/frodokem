@@ -62,10 +62,11 @@ constexpr auto Frodo1344_Tχ = compute_cdf(Frodo1344_χ);
 // compilers are free to optimize, so it can be better idea to inspect generated
 // assembly rather than just trusting that this implementation will always be
 // constant-time on all targets.
-template<const size_t len_χ, const size_t L>
-inline int32_t
+template<const size_t len_χ, const uint32_t Q, const size_t B, const size_t L>
+inline zq::zq_t<Q>
 sample(const uint32_t r, std::array<uint32_t, L> Tχ)
-  requires(frodo_params::check_len_χ(len_χ))
+  requires(frodo_params::check_len_χ(len_χ) && frodo_params::check_q(Q) &&
+           frodo_params::check_b(B))
 {
   constexpr uint32_t mask = (1u << len_χ) - 1;
   const uint32_t t = (r & mask) >> 1;
@@ -76,8 +77,10 @@ sample(const uint32_t r, std::array<uint32_t, L> Tχ)
     e += subtle::ct_select(br, 1u, 0u);
   }
 
+  // Inspired from
+  // https://github.com/microsoft/PQCrypto-LWEKE/blob/d7037ccb/src/noise.c#L26-L27
   const uint32_t r0 = r & 1u;
-  return r0 ? -static_cast<int32_t>(e) : static_cast<int32_t>(e);
+  return zq::zq_t<Q>(((-r0) ^ e) + r0);
 }
 
 // Given a bit string of length n1 x n2 x len_χ -bits ( r ) and a CDF table Tχ,
@@ -86,10 +89,15 @@ sample(const uint32_t r, std::array<uint32_t, L> Tχ)
 //
 // - r is a byte array of length n1 x n2 x (len_χ/ 8) -bytes.
 // - e is a matrix of dimension n1 x n2, over Z.
-template<const size_t n1, const size_t n2, const size_t len_χ, const size_t L>
+template<const size_t n1,
+         const size_t n2,
+         const size_t len_χ,
+         const uint32_t Q,
+         const size_t B,
+         const size_t L>
 inline void
 sample_matrix(const uint8_t* const __restrict r,
-              int32_t* const __restrict e,
+              zq::zq_t<Q>* const __restrict e,
               std::array<uint32_t, L> Tχ)
 {
   size_t moff = 0;
@@ -99,7 +107,7 @@ sample_matrix(const uint8_t* const __restrict r,
     const uint32_t tmp = (static_cast<uint32_t>(r[boff + 1]) << 8) |
                          (static_cast<uint32_t>(r[boff + 0]) << 0);
 
-    e[moff] = sample<len_χ>(tmp, Tχ);
+    e[moff] = sample<len_χ, Q, B, L>(tmp, Tχ);
 
     moff += 1;
     boff += 2;
