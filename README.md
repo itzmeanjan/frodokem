@@ -1,5 +1,28 @@
+> **Warning** I attempt to make this library implementation constant-time but be informed that it is not yet audited. If you consider using it in production, be careful !
+
 # frodokem
 FrodoKEM: Post-Quantum Key Encapsulation Mechanism based on LWE
+
+## Overview
+
+FrodoKEM is a post-quantum key encapsulation mechanism (KEM), based on hardness of learning with errors (LWE) problem, which has close connections to conjectured-hard problems on generic, algebraically unstructured lattices, offering IND-CCA security. FrodoKEM is built on top of FrodoPKE, which is a public key encryption (PKE) algorithm, can be used for encrypting fixed length messages, offering IND-CPA security. 
+
+Scheme | What does it offer ?
+--- | --:
+FrodoPKE | Lets you encrypt a fixed length message M, using your peer's public key, resulting in a cipher text, which can only be decrypted by respective peer's secret key.
+FrodoKEM | Helps in secure ephemeral session establishment between two parties - starting communication over insecure channel, later on begins using some authenticated encryption with associated data (AEAD) schemes for encrypting their messages, using the common key that both of them arrived at by using the KEM scheme.
+
+Here I'm maintaining a zero-dependency, header-only, easy-to-use ( see [below](#usage) ) C++ library, offering FrodoPKE API, for three security levels.
+
+Scheme | Target Security Level
+--- | --:
+Frodo-640 PKE | NIST-I
+Frodo-976 PKE | NIST-III
+Frodo-1344 PKE | NIST-V
+
+> **Note** While working on this implementation, I've followed [this](https://frodokem.org/files/FrodoKEM-specification-20210604.pdf) FrodoKEM specification. I suggest you go through it for an in-depth understanding of the scheme.
+
+> **Warning** Right now this library offers only FrodoPKE, I'm still working on FrodoKEM.
 
 ## Prerequisites
 
