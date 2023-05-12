@@ -99,6 +99,12 @@ public:
 
     return zq_t(res);
   }
+
+  // Writes an element of Zq to output stream
+  friend std::ostream& operator<<(std::ostream& os, const zq_t& elm)
+  {
+    return os << "Zq(" << elm.v << ", " << Q << ")";
+  };
 };
 
 }
