@@ -93,6 +93,32 @@ public:
 
     return res;
   }
+
+  // Given two matrices A ( of dimension rows x cols ) and B ( of dimension
+  // rhs_rows x rhs_cols ) s.t. cols == rhs_rows, this routine can be used for
+  // multiplying them over Zq, resulting into another matrix (C) of dimension
+  // rows x rhs_cols.
+  template<const size_t rhs_rows, const size_t rhs_cols>
+  inline constexpr matrix<rows, rhs_cols, Q> operator*(
+    const matrix<rhs_rows, rhs_cols, Q>& rhs) const
+    requires(cols == rhs_rows)
+  {
+    matrix<rows, rhs_cols, Q> res{};
+
+    for (size_t i = 0; i < rows; i++) {
+      for (size_t j = 0; j < rhs_cols; j++) {
+        zq::zq_t<Q> tmp(0);
+
+        for (size_t k = 0; k < cols; k++) {
+          tmp += (*this)[{ i, k }] * rhs[{ k, j }];
+        }
+
+        res[{ i, j }] = tmp;
+      }
+    }
+
+    return res;
+  }
 };
 
 // Given a matrix (src) of dimension m x n over Zq, this routine is used for
