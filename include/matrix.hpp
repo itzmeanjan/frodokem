@@ -1,6 +1,7 @@
 #pragma once
 #include "prng.hpp"
 #include "zq.hpp"
+#include <algorithm>
 #include <array>
 #include <span>
 
@@ -120,6 +121,13 @@ public:
     }
 
     return res;
+  }
+
+  // Given two matrices A, B of same dimension, this routine can be used for
+  // testing equality of A and B i.e. only returns true if A == B.
+  inline constexpr bool operator==(const matrix<rows, cols, Q>& rhs) const
+  {
+    return std::ranges::equal(this->elements, rhs.elements);
   }
 
   // Given a seed of length len_seed_A -bits, this routine can be used for
