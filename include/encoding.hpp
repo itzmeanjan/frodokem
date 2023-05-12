@@ -20,9 +20,7 @@ encode(std::span<const uint8_t, (m * n * B + 7) / 8> arr)
   // alias, so that I've to type lesser !
   using Zq = zq::zq_t<Q>;
 
-  constexpr size_t bit_len = m * n * B;
-  constexpr size_t byte_len = (bit_len + 7) / 8;
-
+  constexpr size_t byte_len = arr.size();
   matrix::matrix<m, n, Q> mat{};
 
   if constexpr (B == 2) {

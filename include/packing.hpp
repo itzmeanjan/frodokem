@@ -107,8 +107,7 @@ unpack(std::span<const uint8_t, (n1 * n2 * frodo_utils::log2(Q) + 7) / 8> arr)
   using Zq = zq::zq_t<Q>;
 
   constexpr size_t D = frodo_utils::log2(Q);
-  constexpr size_t bit_len = n1 * n2 * D;
-  constexpr size_t byte_len = (bit_len + 7) / 8;
+  constexpr size_t byte_len = arr.size();
 
   matrix::matrix<n1, n2, Q> mat{};
 
