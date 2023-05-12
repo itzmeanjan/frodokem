@@ -1,8 +1,47 @@
 #pragma once
 #include "zq.hpp"
+#include <array>
 
 // Operations on Matrices over Zq
 namespace matrix {
+
+// Wrapper type encapsulating operations on matrices s.t. its elements ∈ Zq
+template<const size_t rows, const size_t cols, const uint32_t Q>
+struct matrix
+{
+private:
+  std::array<zq::zq_t<Q>, rows * cols> elements{};
+
+public:
+  inline constexpr matrix() = default;
+
+  // Given linear index of matrix, returns reference to requested element.
+  inline constexpr zq::zq_t<Q>& operator[](const size_t lin_idx)
+  {
+    return this->elements[lin_idx];
+  }
+
+  // Given linear index of matrix, returns const reference to requested element.
+  inline constexpr const zq::zq_t<Q>& operator[](const size_t lin_idx) const
+  {
+    return this->elements[lin_idx];
+  }
+
+  // Given row and column index of matrix, returns reference to requested
+  // element.
+  inline constexpr zq::zq_t<Q>& operator[](std::pair<size_t, size_t> idx)
+  {
+    return this->elements[idx.first * cols + idx.second];
+  }
+
+  // Given row and column index of matrix, returns const reference to requested
+  // element.
+  inline constexpr const zq::zq_t<Q>& operator[](
+    std::pair<size_t, size_t> idx) const
+  {
+    return this->elements[idx.first * cols + idx.second];
+  }
+};
 
 // Given a matrix (src) of dimension m x n over Zq, this routine is used for
 // computing its transpose matrix (dst) of dimension n x m.
