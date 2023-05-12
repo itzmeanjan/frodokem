@@ -95,13 +95,12 @@ sample(const uint32_t r)
 //
 // - r is a byte array of length n1 x n2 x (len_χ/ 8) -bytes.
 // - e is a matrix of dimension n1 x n2, over Z.
-template<const size_t n1,
+template<const size_t n,
+         const size_t n1,
          const size_t n2,
          const size_t len_χ,
          const uint32_t Q,
-         const size_t B,
-         const size_t L,
-         const std::array<uint32_t, L> Tχ>
+         const size_t B>
 inline constexpr matrix::matrix<n1, n2, Q>
 sample_matrix(std::span<const uint8_t, (n1 * n2 * len_χ + 7) / 8> r)
 {
@@ -114,7 +113,13 @@ sample_matrix(std::span<const uint8_t, (n1 * n2 * len_χ + 7) / 8> r)
     const uint32_t tmp = (static_cast<uint32_t>(r[boff + 1]) << 8) |
                          (static_cast<uint32_t>(r[boff + 0]) << 0);
 
-    e[moff] = sample<len_χ, Q, B, L, Tχ>(tmp);
+    if constexpr (n == 640) {
+      e[moff] = sample<len_χ, Q, B, 13, Frodo640_Tχ>(tmp);
+    } else if constexpr (n == 976) {
+      e[moff] = sample<len_χ, Q, B, 11, Frodo976_Tχ>(tmp);
+    } else if constexpr (n == 1344) {
+      e[moff] = sample<len_χ, Q, B, 7, Frodo1344_Tχ>(tmp);
+    }
 
     moff += 1;
     boff += 2;
