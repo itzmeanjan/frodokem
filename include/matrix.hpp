@@ -1,6 +1,7 @@
 #pragma once
 #include "zq.hpp"
 #include <array>
+#include <span>
 
 // Operations on Matrices over Zq
 namespace matrix {
@@ -118,6 +119,44 @@ public:
     }
 
     return res;
+  }
+
+  // Given a seed of length len_seed_A -bits, this routine can be used for
+  // deterministically generating a pseudorandom matrix of dimension n x n,
+  // using SHAKE128 XOF, following algorithm 8 of FrodoKEM specification.
+  template<const size_t len_seed_A>
+  inline static constexpr matrix<rows, cols, Q> generate(
+    std::span<const uint8_t, (len_seed_A + 7) / 8> seed)
+    requires(rows == cols)
+  {
+    constexpr size_t seed_bytes = seed.size();
+
+    uint8_t buf[2 + seed_bytes];
+    uint8_t dig[cols * 2];
+    std::memcpy(buf + 2, seed.data(), seed_bytes);
+
+    matrix<rows, cols, Q> mat{};
+
+    for (size_t i = 0; i < rows; i++) {
+      const uint16_t ridx = static_cast<uint16_t>(i);
+
+      buf[0] = (ridx >> 0) & 0xff;
+      buf[1] = (ridx >> 8) & 0xff;
+
+      shake128::shake128 hasher{};
+
+      hasher.hash(buf, sizeof(buf));
+      hasher.read(dig, sizeof(dig));
+
+      for (size_t j = 0; j < cols; j++) {
+        const uint16_t word = (static_cast<uint16_t>(dig[2 * j + 1]) << 8) |
+                              (static_cast<uint16_t>(dig[2 * j + 0]) << 0);
+
+        mat[{ i, j }] = zq::zq_t<Q>(static_cast<uint32_t>(word));
+      }
+    }
+
+    return mat;
   }
 };
 
