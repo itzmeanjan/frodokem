@@ -41,6 +41,30 @@ public:
   {
     return this->elements[idx.first * cols + idx.second];
   }
+
+  // Returns # -of rows in matrix M
+  inline constexpr size_t row_count() const { return rows; }
+
+  // Returns # -of cols in matrix M
+  inline constexpr size_t col_count() const { return cols; }
+
+  // Returns # -of elements in matrix M
+  inline constexpr size_t element_count() const { return rows * cols; }
+
+  // Given a matrix M of dimension m x n, this routine is used for computing its
+  // transpose M' s.t. resulting matrix's dimension becomes n x m.
+  inline constexpr matrix<cols, rows, Q> transpose() const
+  {
+    matrix<cols, rows, Q> res{};
+
+    for (size_t i = 0; i < cols; i++) {
+      for (size_t j = 0; j < rows; j++) {
+        res[{ i, j }] = (*this)[{ j, i }];
+      }
+    }
+
+    return res;
+  }
 };
 
 // Given a matrix (src) of dimension m x n over Zq, this routine is used for
