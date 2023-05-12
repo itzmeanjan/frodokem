@@ -1,4 +1,5 @@
 #pragma once
+#include "prng.hpp"
 #include "zq.hpp"
 #include <array>
 #include <span>
@@ -154,6 +155,18 @@ public:
 
         mat[{ i, j }] = zq::zq_t<Q>(static_cast<uint32_t>(word));
       }
+    }
+
+    return mat;
+  }
+
+  // Computes a random matrix, while reading pseudo random bytes from PRNG.
+  inline static constexpr matrix<rows, cols, Q> random(prng::prng_t& prng)
+  {
+    matrix<rows, cols, Q> mat{};
+
+    for (size_t i = 0; i < mat.element_count(); i++) {
+      mat[i] = zq::zq_t<Q>::random_value(prng);
     }
 
     return mat;
