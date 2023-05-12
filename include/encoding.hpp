@@ -14,7 +14,7 @@ namespace encoding {
 // following algorithm 1 of FrodoKEM specification.
 template<const size_t m, const size_t n, const uint32_t Q, const size_t B>
 inline constexpr matrix::matrix<m, n, Q>
-matrix_encode(std::span<const uint8_t, (m * n * B + 7) / 8> arr)
+encode(std::span<const uint8_t, (m * n * B + 7) / 8> arr)
   requires((m == n) && frodo_params::check_q(Q) && frodo_params::check_b(B))
 {
   // alias, so that I've to type lesser !
@@ -87,9 +87,9 @@ matrix_encode(std::span<const uint8_t, (m * n * B + 7) / 8> arr)
 // function, returning a byte array of length (m x n x B + 7)/ 8 -bytes,
 // following algorithm 2 of FrodoKEM specification.
 template<const size_t m, const size_t n, const uint32_t Q, const size_t B>
-inline void
-matrix_decode(matrix::matrix<m, n, Q>& mat,
-              std::span<uint8_t, (m * n * B + 7) / 8> arr)
+inline constexpr void
+decode(const matrix::matrix<m, n, Q>& mat,
+       std::span<uint8_t, (m * n * B + 7) / 8> arr)
   requires((m == n) && frodo_params::check_q(Q) && frodo_params::check_b(B))
 {
   if constexpr (B == 2) {
@@ -98,7 +98,7 @@ matrix_decode(matrix::matrix<m, n, Q>& mat,
     size_t moff = 0;
     size_t boff = 0;
 
-    while (moff < (m * n)) {
+    while (moff < mat.element_count()) {
       arr[boff] = ((mat[moff + 3].template decode<B>() & mask) << 6) |
                   ((mat[moff + 2].template decode<B>() & mask) << 4) |
                   ((mat[moff + 1].template decode<B>() & mask) << 2) |
@@ -115,7 +115,7 @@ matrix_decode(matrix::matrix<m, n, Q>& mat,
     size_t moff = 0;
     size_t boff = 0;
 
-    while (moff < (m * n)) {
+    while (moff < mat.element_count()) {
       const auto t0 = mat[moff + 0].template decode<B>() & mask3;
       const auto t1 = mat[moff + 1].template decode<B>() & mask3;
       const auto t2 = mat[moff + 2].template decode<B>() & mask3;
@@ -142,7 +142,7 @@ matrix_decode(matrix::matrix<m, n, Q>& mat,
     size_t moff = 0;
     size_t boff = 0;
 
-    while (moff < (m * n)) {
+    while (moff < mat.element_count()) {
       arr[boff] = ((mat[moff + 1].template decode<B>() & mask) << 4) |
                   ((mat[moff + 0].template decode<B>() & mask) << 0);
 

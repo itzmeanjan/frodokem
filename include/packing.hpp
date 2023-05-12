@@ -1,7 +1,9 @@
 #pragma once
+#include "matrix.hpp"
 #include "params.hpp"
 #include "utils.hpp"
 #include "zq.hpp"
+#include <span>
 
 // Packing matrices modulo Q to bit strings and vice versa
 namespace packing {
@@ -13,11 +15,9 @@ namespace packing {
 // Note, we're dealing with byte oriented API, this routine packs matrix as a
 // byte array of length (n1 * n2 * D + 7) / 8.
 template<const size_t n1, const size_t n2, const uint32_t Q>
-inline void
-matrix_pack(
-  const zq::zq_t<Q>* const __restrict mat, // matrix of dimension n1 x n2
-  uint8_t* const __restrict arr            // byte len ⌈(n1 * n2 * D) / 8⌋
-  )
+inline constexpr void
+pack(const matrix::matrix<n1, n2, Q>& mat,
+     std::span<uint8_t, (n1 * n2 * frodo_utils::log2(Q) + 7) / 8> arr)
   requires(frodo_params::check_q(Q))
 {
   constexpr size_t D = frodo_utils::log2(Q);
@@ -35,7 +35,7 @@ matrix_pack(
     size_t moff = 0;
     size_t boff = 0;
 
-    while (moff < (n1 * n2)) {
+    while (moff < mat.element_count()) {
       const auto v0 = mat[moff + 0].get_value();
       const auto v1 = mat[moff + 1].get_value();
 
@@ -82,7 +82,7 @@ matrix_pack(
     size_t moff = 0;
     size_t boff = 0;
 
-    while (moff < (n1 * n2)) {
+    while (moff < mat.element_count()) {
       const auto v = mat[moff].get_value();
 
       arr[boff + 0] = (v >> 0) & mask;
@@ -99,11 +99,8 @@ matrix_pack(
 // contiguous ( D -many ) bits into a n1 x n2 matrix over Zq s.t. q = 1 << D,
 // following algorithm 4 of FrodoKEM specification.
 template<const size_t n1, const size_t n2, const uint32_t Q>
-inline void
-matrix_unpack(
-  const uint8_t* const __restrict arr, // byte len ⌈(n1 * n2 * D) / 8⌋
-  zq::zq_t<Q>* const __restrict mat    // matrix of dimension n1 x n2
-  )
+inline constexpr matrix::matrix<n1, n2, Q>
+unpack(std::span<const uint8_t, (n1 * n2 * frodo_utils::log2(Q) + 7) / 8> arr)
   requires(frodo_params::check_q(Q))
 {
   // alias, so that I've to type lesser !
@@ -112,6 +109,8 @@ matrix_unpack(
   constexpr size_t D = frodo_utils::log2(Q);
   constexpr size_t bit_len = n1 * n2 * D;
   constexpr size_t byte_len = (bit_len + 7) / 8;
+
+  matrix::matrix<n1, n2, Q> mat{};
 
   if constexpr (D == 15ul) {
     constexpr uint8_t mask7 = 0xff >> 1;
@@ -164,6 +163,8 @@ matrix_unpack(
       moff += 1;
     }
   }
+
+  return mat;
 }
 
 }
