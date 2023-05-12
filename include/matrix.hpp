@@ -65,6 +65,34 @@ public:
 
     return res;
   }
+
+  // Given two matrices A, B of same dimension, this routine can be used for
+  // performing matrix addition over Zq, returning a matrix of same dimension.
+  inline constexpr matrix<rows, cols, Q> operator+(
+    const matrix<rows, cols, Q>& rhs) const
+  {
+    matrix<rows, cols, Q> res{};
+
+    for (size_t i = 0; i < res.element_count(); i++) {
+      res[i] = (*this)[i] + rhs[i];
+    }
+
+    return res;
+  }
+
+  // Given two matrices A, B of same dimension, this routine can be used for
+  // subtracting B from A, resulting into another matrix C of same dimension.
+  inline constexpr matrix<rows, cols, Q> operator-(
+    const matrix<rows, cols, Q>& rhs) const
+  {
+    matrix<rows, cols, Q> res{};
+
+    for (size_t i = 0; i < res.element_count(); i++) {
+      res[i] = (*this)[i] - rhs[i];
+    }
+
+    return res;
+  }
 };
 
 // Given a matrix (src) of dimension m x n over Zq, this routine is used for
