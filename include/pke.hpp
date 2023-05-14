@@ -1,6 +1,5 @@
 #pragma once
 #include "encoding.hpp"
-#include "gen_matrix.hpp"
 #include "matrix.hpp"
 #include "packing.hpp"
 #include "params.hpp"
@@ -9,9 +8,13 @@
 #include "shake256.hpp"
 #include "utils.hpp"
 #include "zq.hpp"
+#include <array>
+#include <span>
 
 // Frodo Public Key Encryption
 namespace pke {
+
+namespace utils = frodo_utils;
 
 // Given a uniformly random seed seedA and another uniformly drawn random seed
 // seedSE, this routine can be used for deterministically computing Frodo public
@@ -22,80 +25,61 @@ template<const size_t n,
          const size_t len_seed_A,
          const size_t len_seed_SE,
          const size_t len_χ,
-         const uint32_t Q,
-         const size_t B>
+         const uint32_t q,
+         const size_t b>
 inline void
-keygen(const uint8_t* const __restrict seedA,  // len_seed_A -bits
-       const uint8_t* const __restrict seedSE, // len_seed_SE -bits
-       uint8_t* const __restrict pkey,
-       uint8_t* const __restrict skey)
+keygen(std::span<const uint8_t, (len_seed_A + 7) / 8> seedA,
+       std::span<const uint8_t, (len_seed_SE + 7) / 8> seedSE,
+       std::span<uint8_t, utils::pke_pub_key_len(n, n_bar, len_seed_A, q)> pkey,
+       std::span<uint8_t, utils::pke_sec_key_len(n, n_bar, q)> skey)
   requires(frodo_params::check_frodo_pke_keygen_params(n,
                                                        n_bar,
                                                        len_seed_A,
                                                        len_seed_SE,
                                                        len_χ,
-                                                       Q,
-                                                       B))
+                                                       q,
+                                                       b))
 {
-  zq::zq_t<Q> a[n * n];
-  gen_matrix::gen<len_seed_A, n>(seedA, a);
+  auto A = matrix::matrix<n, n, q>::template generate<len_seed_A>(seedA);
 
-  uint8_t buf[1 + (len_seed_SE / 8)];
-  uint8_t dig[2 * n * n_bar * (len_χ / 8)];
+  std::array<uint8_t, 1 + seedSE.size()> buf{};
+  std::array<uint8_t, (2 * n * n_bar * len_χ + 7) / 8> dig{};
 
   buf[0] = 0x5f;
-  std::memcpy(buf + 1, seedSE, len_seed_SE / 8);
+  std::memcpy(buf.data() + 1, seedSE.data(), seedSE.size());
 
   if constexpr (n == 640) {
     shake128::shake128 hasher;
 
-    hasher.hash(buf, sizeof(buf));
-    hasher.read(dig, sizeof(dig));
+    hasher.hash(buf.data(), buf.size());
+    hasher.read(dig.data(), dig.size());
   } else if constexpr ((n == 976) || (n == 1344)) {
     shake256::shake256 hasher;
 
-    hasher.hash(buf, sizeof(buf));
-    hasher.read(dig, sizeof(dig));
+    hasher.hash(buf.data(), buf.size());
+    hasher.read(dig.data(), dig.size());
   }
 
-  zq::zq_t<Q> s_t[n_bar * n];
-  zq::zq_t<Q> e[n * n_bar];
+  constexpr size_t doff = (n * n_bar * len_χ + 7) / 8;
 
-  {
-    using namespace sampling;
+  std::span<uint8_t, dig.size()> _dig{ dig };
+  auto _dig0 = _dig.template subspan<0, doff>();
+  auto _dig1 = _dig.template subspan<doff, _dig.size() - doff>();
 
-    constexpr size_t off = n * n_bar * (len_χ / 8);
+  using namespace sampling;
 
-    if constexpr (n == 640) {
-      const auto Tχ = Frodo640_Tχ;
+  auto S_transposed = sample_matrix<n, n_bar, n, len_χ, q, b>(_dig0);
+  auto E = sample_matrix<n, n, n_bar, len_χ, q, b>(_dig1);
 
-      sample_matrix<n_bar, n, len_χ, Q, B>(dig, s_t, Tχ);
-      sample_matrix<n, n_bar, len_χ, Q, B>(dig + off, e, Tχ);
-    } else if constexpr (n == 976) {
-      const auto Tχ = Frodo976_Tχ;
+  auto S = S_transposed.transpose();
+  auto B = A * S + E;
 
-      sample_matrix<n_bar, n, len_χ, Q, B>(dig, s_t, Tχ);
-      sample_matrix<n, n_bar, len_χ, Q, B>(dig + off, e, Tχ);
-    } else if constexpr (n == 1344) {
-      const auto Tχ = Frodo1344_Tχ;
+  constexpr size_t pkoff = seedA.size();
+  auto _pkey = pkey.template subspan<pkoff, pkey.size() - pkoff>();
 
-      sample_matrix<n_bar, n, len_χ, Q, B>(dig, s_t, Tχ);
-      sample_matrix<n, n_bar, len_χ, Q, B>(dig + off, e, Tχ);
-    }
-  }
-
-  zq::zq_t<Q> s[n * n_bar];
-  matrix::transpose<n_bar, n>(s_t, s);
-
-  zq::zq_t<Q> tmp[n * n_bar];
-  zq::zq_t<Q> b[n * n_bar];
-
-  matrix::mul<n, n, n, n_bar>(a, s, tmp);
-  matrix::add<n, n_bar>(tmp, e, b);
-
-  std::memcpy(pkey, seedA, len_seed_A / 8);
-  packing::matrix_pack<n, n_bar>(b, pkey + (len_seed_A / 8));
-  packing::matrix_pack<n_bar, n>(s_t, skey);
+  std::memcpy(pkey.data(), seedA.data(), seedA.size());
+  packing::pack(B, _pkey);
+  packing::pack(S_transposed, skey);
 }
 
 // Given a uniformly random seed seedSE, Frodo public key and l -bits message M,
@@ -105,102 +89,79 @@ template<const size_t n,
          const size_t l,
          const size_t m_bar,
          const size_t n_bar,
-         const size_t len_seed_A,
-         const size_t len_seed_SE,
+         const size_t lseed_A,
+         const size_t lseed_SE,
          const size_t len_χ,
-         const uint32_t Q,
-         const size_t B>
+         const uint32_t q,
+         const size_t b>
 inline void
-encrypt(const uint8_t* const __restrict seedSE, // len_seed_SE -bits
-        const uint8_t* const __restrict pkey,
-        const uint8_t* const __restrict msg, // l -bits
-        uint8_t* const __restrict cipher)
+encrypt(
+  std::span<const uint8_t, (lseed_SE + 7) / 8> seedSE,
+  std::span<const uint8_t, utils::pke_pub_key_len(n, n_bar, lseed_A, q)> pkey,
+  std::span<const uint8_t, (l + 7) / 8> msg,
+  std::span<uint8_t, utils::pke_cipher_text_len(n, m_bar, n_bar, q)> enc)
   requires(frodo_params::check_frodo_pke_encrypt_params(n,
                                                         l,
                                                         m_bar,
                                                         n_bar,
-                                                        len_seed_A,
-                                                        len_seed_SE,
+                                                        lseed_A,
+                                                        lseed_SE,
                                                         len_χ,
-                                                        Q,
-                                                        B))
+                                                        q,
+                                                        b))
 {
-  zq::zq_t<Q> a[n * n];
-  gen_matrix::gen<len_seed_A, n>(pkey, a);
+  auto seedA = pkey.template subspan<0, (lseed_A + 7) / 8>();
+  constexpr size_t pkoff = seedA.size();
+  auto _pkey = pkey.template subspan<pkoff, pkey.size() - pkoff>();
 
-  uint8_t buf[1 + (len_seed_SE / 8)];
-  uint8_t dig[(2 * m_bar * n + m_bar * n_bar) * (len_χ / 8)];
+  auto A = matrix::matrix<n, n, q>::template generate<lseed_A>(seedA);
+
+  std::array<uint8_t, 1 + seedSE.size()> buf{};
+  std::array<uint8_t, ((2 * m_bar * n + m_bar * n_bar) * len_χ + 7) / 8> dig{};
 
   buf[0] = 0x96;
-  std::memcpy(buf + 1, seedSE, len_seed_SE / 8);
+  std::memcpy(buf.data() + 1, seedSE.data(), seedSE.size());
 
   if constexpr (n == 640) {
     shake128::shake128 hasher;
 
-    hasher.hash(buf, sizeof(buf));
-    hasher.read(dig, sizeof(dig));
+    hasher.hash(buf.data(), buf.size());
+    hasher.read(dig.data(), dig.size());
   } else if constexpr ((n == 976) || (n == 1344)) {
     shake256::shake256 hasher;
 
-    hasher.hash(buf, sizeof(buf));
-    hasher.read(dig, sizeof(dig));
+    hasher.hash(buf.data(), buf.size());
+    hasher.read(dig.data(), dig.size());
   }
 
-  zq::zq_t<Q> s_prime[m_bar * n];
-  zq::zq_t<Q> e_prime[m_bar * n];
-  zq::zq_t<Q> e_dprime[m_bar * n_bar];
+  constexpr size_t off0 = (m_bar * n * len_χ + 7) / 8;
+  constexpr size_t off1 = off0 + (m_bar * n * len_χ + 7) / 8;
 
-  {
-    using namespace sampling;
+  std::span<uint8_t, dig.size()> _dig{ dig };
+  auto _dig0 = _dig.template subspan<0, off0>();
+  auto _dig1 = _dig.template subspan<off0, off1 - off0>();
+  auto _dig2 = _dig.template subspan<off1, _dig.size() - off1>();
 
-    constexpr size_t off0 = m_bar * n * (len_χ / 8);
-    constexpr size_t off1 = off0 + m_bar * n * (len_χ / 8);
+  using namespace sampling;
 
-    if constexpr (n == 640) {
-      const auto Tχ = Frodo640_Tχ;
+  auto S_prime = sample_matrix<n, m_bar, n, len_χ, q, b>(_dig0);
+  auto E_prime = sample_matrix<n, m_bar, n, len_χ, q, b>(_dig1);
+  auto E_dprime = sample_matrix<n, m_bar, n_bar, len_χ, q, b>(_dig2);
 
-      sample_matrix<m_bar, n, len_χ, Q, B>(dig, s_prime, Tχ);
-      sample_matrix<m_bar, n, len_χ, Q, B>(dig + off0, e_prime, Tχ);
-      sample_matrix<m_bar, n_bar, len_χ, Q, B>(dig + off1, e_dprime, Tχ);
-    } else if constexpr (n == 976) {
-      const auto Tχ = Frodo976_Tχ;
+  auto B_prime = S_prime * A + E_prime;
 
-      sample_matrix<m_bar, n, len_χ, Q, B>(dig, s_prime, Tχ);
-      sample_matrix<m_bar, n, len_χ, Q, B>(dig + off0, e_prime, Tχ);
-      sample_matrix<m_bar, n_bar, len_χ, Q, B>(dig + off1, e_dprime, Tχ);
-    } else if constexpr (n == 1344) {
-      const auto Tχ = Frodo1344_Tχ;
+  auto B = packing::unpack<n, n_bar, q>(_pkey);
+  auto V = S_prime * B + E_dprime; // = C1
 
-      sample_matrix<m_bar, n, len_χ, Q, B>(dig, s_prime, Tχ);
-      sample_matrix<m_bar, n, len_χ, Q, B>(dig + off0, e_prime, Tχ);
-      sample_matrix<m_bar, n_bar, len_χ, Q, B>(dig + off1, e_dprime, Tχ);
-    }
-  }
+  auto M = encoding::encode<m_bar, n_bar, q, b>(msg);
+  auto C2 = V + M;
 
-  zq::zq_t<Q> tmp0[m_bar * n];
-  zq::zq_t<Q> b_prime[m_bar * n];
+  constexpr size_t coff = (m_bar * n * frodo_utils::log2(q) + 7) / 8;
+  auto _enc0 = enc.template subspan<0, coff>();
+  auto _enc1 = enc.template subspan<coff, enc.size() - coff>();
 
-  matrix::mul<m_bar, n, n, n>(s_prime, a, tmp0);
-  matrix::add<m_bar, n>(tmp0, e_prime, b_prime);
-
-  zq::zq_t<Q> b[n * n_bar];
-  packing::matrix_unpack<n, n_bar>(pkey + (len_seed_A / 8), b);
-
-  zq::zq_t<Q> tmp1[m_bar * n_bar];
-  zq::zq_t<Q> v[m_bar * n_bar];
-
-  matrix::mul<m_bar, n, n, n_bar, Q>(s_prime, b, tmp1);
-  matrix::add<m_bar, n_bar>(tmp1, e_dprime, v);
-
-  zq::zq_t<Q> encoded[m_bar * n_bar];
-  encoding::matrix_encode<m_bar, n_bar, Q, B>(msg, encoded);
-
-  matrix::add<m_bar, n_bar>(v, encoded, tmp1);
-
-  constexpr size_t cipher_off = (m_bar * n * frodo_utils::log2(Q) + 7) / 8;
-
-  packing::matrix_pack<m_bar, n>(b_prime, cipher);
-  packing::matrix_pack<m_bar, n_bar>(tmp1, cipher + cipher_off);
+  packing::pack(B_prime, _enc0);
+  packing::pack(C2, _enc1);
 }
 
 // Given a cipher text and Frodo PKE secret key of respective public key, this
@@ -210,37 +171,28 @@ template<const size_t n,
          const size_t l,
          const size_t m_bar,
          const size_t n_bar,
-         const uint32_t Q,
-         const size_t B>
+         const uint32_t q,
+         const size_t b>
 inline void
-decrypt(const uint8_t* const __restrict skey,
-        const uint8_t* const __restrict cipher,
-        uint8_t* const __restrict msg // l -bits
-        )
+decrypt(
+  std::span<const uint8_t, utils::pke_sec_key_len(n, n_bar, q)> skey,
+  std::span<const uint8_t, utils::pke_cipher_text_len(n, m_bar, n_bar, q)> enc,
+  std::span<uint8_t, (l + 7) / 8> msg)
   requires(
-    frodo_params::check_frodo_pke_decrypt_params(n, l, m_bar, n_bar, Q, B))
+    frodo_params::check_frodo_pke_decrypt_params(n, l, m_bar, n_bar, q, b))
 {
-  zq::zq_t<Q> s_t[n_bar * n];
-  zq::zq_t<Q> s[n * n_bar];
+  auto S_transposed = packing::unpack<n_bar, n, q>(skey);
+  auto S = S_transposed.transpose();
 
-  packing::matrix_unpack<n_bar, n>(skey, s_t);
-  matrix::transpose<n_bar, n>(s_t, s);
+  constexpr size_t coff = (m_bar * n * frodo_utils::log2(q) + 7) / 8;
+  auto _enc0 = enc.template subspan<0, coff>();
+  auto _enc1 = enc.template subspan<coff, enc.size() - coff>();
 
-  zq::zq_t<Q> c1[m_bar * n];
-  zq::zq_t<Q> c2[m_bar * n_bar];
+  auto C1 = packing::unpack<m_bar, n, q>(_enc0);
+  auto C2 = packing::unpack<m_bar, n_bar, q>(_enc1);
 
-  constexpr size_t cipher_off = (m_bar * n * frodo_utils::log2(Q) + 7) / 8;
-
-  packing::matrix_unpack<m_bar, n>(cipher, c1);
-  packing::matrix_unpack<m_bar, n_bar>(cipher + cipher_off, c2);
-
-  zq::zq_t<Q> tmp[m_bar * n_bar];
-  matrix::mul<m_bar, n, n, n_bar, Q>(c1, s, tmp);
-
-  zq::zq_t<Q> m[m_bar * n_bar];
-  matrix::sub<m_bar, n_bar>(c2, tmp, m);
-
-  encoding::matrix_decode<m_bar, n_bar, Q, B>(m, msg);
+  auto M = C2 - C1 * S;
+  encoding::decode<m_bar, n_bar, q, b>(M, msg);
 }
 
 }

@@ -17,20 +17,23 @@ private:
   uint32_t v = 0u;
 
 public:
+  // Default constructor returning Zq, with value 0.
+  inline constexpr zq_t() = default;
+
   // Given an unsigned 32 -bit integer, it constructs an element ∈ Zq
-  inline constexpr zq_t(const uint32_t a = 0u) { this->v = a % Q; }
+  inline constexpr zq_t(const uint32_t a) { this->v = a % Q; }
 
   // Addition of two integers modulo Q
   inline constexpr zq_t operator+(const zq_t& rhs) const
   {
-    return zq_t((this->v + rhs.v) % Q);
+    return zq_t(this->v + rhs.v);
   }
 
   // Compound addition of two integers modulo Q
   inline constexpr void operator+=(const zq_t& rhs) { *this = *this + rhs; }
 
   // Negation of an integer modulo Q
-  inline constexpr zq_t operator-() const { return zq_t((-this->v) % Q); }
+  inline constexpr zq_t operator-() const { return zq_t(-this->v); }
 
   // Subtraction of one integer from another one, modulo Q
   inline constexpr zq_t operator-(const zq_t& rhs) const
@@ -41,7 +44,7 @@ public:
   // Multiply two integers, modulo Q
   inline constexpr zq_t operator*(const zq_t& rhs) const
   {
-    return zq_t((this->v * rhs.v) % Q);
+    return zq_t(this->v * rhs.v);
   }
 
   // Check equality of two Zq elements
@@ -61,16 +64,13 @@ public:
   // section 2.2.1 of FrodoKEM specification.
   template<const size_t B>
   static inline constexpr zq_t encode(const uint32_t k)
+    requires(B <= frodo_utils::log2(Q))
   {
     constexpr size_t D = frodo_utils::log2(Q);
-    static_assert(B <= D,
-                  "# -of bits encoded in each matrix entry must be < 2^B i.e. "
-                  "k ∈ [0, 2^B)");
-
     constexpr uint32_t mask = (1u << B) - 1u;
     constexpr size_t shl = D - B;
-    const uint32_t v = (k & mask) << shl;
 
+    const uint32_t v = (k & mask) << shl;
     return zq_t(v);
   }
 
@@ -79,13 +79,11 @@ public:
   // https://github.com/microsoft/PQCrypto-LWEKE/blob/d7037ccb/python3/frodokem.py#L335.
   template<const size_t B>
   inline constexpr uint32_t decode() const
+    requires(B <= frodo_utils::log2(Q))
   {
     constexpr size_t D = frodo_utils::log2(Q);
-    static_assert(B <= D,
-                  "# -of bits encoded in each matrix entry must be < 2^B i.e. "
-                  "k ∈ [0, 2^B)");
-
     constexpr uint32_t mask = (1u << B) - 1u;
+
     const uint32_t v = (((this->v << B) + (1u << (D - 1))) >> D) & mask;
     return v;
   }
@@ -101,6 +99,12 @@ public:
 
     return zq_t(res);
   }
+
+  // Writes an element of Zq to output stream
+  friend std::ostream& operator<<(std::ostream& os, const zq_t& elm)
+  {
+    return os << "Zq(" << elm.v << ", " << Q << ")";
+  };
 };
 
 }

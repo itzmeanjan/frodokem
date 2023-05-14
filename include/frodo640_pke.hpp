@@ -19,11 +19,10 @@ constexpr size_t CIPHER_LEN = utils::pke_cipher_text_len(640, 8, 8, 1u << 15);
 // used for sampling error matrices ), this routine is used for deterministic
 // generation of a Frodo-640 public/ private keypair.
 inline void
-keygen(const uint8_t* const __restrict seedA,  // 16 -bytes
-       const uint8_t* const __restrict seedSE, // 16 -bytes
-       uint8_t* const __restrict pkey,         // 9616 -bytes
-       uint8_t* const __restrict skey          // 9600 -bytes
-)
+keygen(std::span<const uint8_t, 16> seedA,
+       std::span<const uint8_t, 16> seedSE,
+       std::span<uint8_t, 9616> pkey,
+       std::span<uint8_t, 9600> skey)
 {
   pke::keygen<640, 8, 128, 128, 16, 1u << 15, 2>(seedA, seedSE, pkey, skey);
 }
@@ -33,11 +32,10 @@ keygen(const uint8_t* const __restrict seedA,  // 16 -bytes
 // used for encrypting the 16 -bytes message as 9720 -bytes cipher text, which
 // can only be decrypted by associated Frodo-640 secret key.
 inline void
-encrypt(const uint8_t* const __restrict seed, // 16 -bytes
-        const uint8_t* const __restrict pkey, // 9616 -bytes
-        const uint8_t* const __restrict msg,  // 16 -bytes
-        uint8_t* const __restrict enc         // 9720 -bytes
-)
+encrypt(std::span<const uint8_t, 16> seed,
+        std::span<const uint8_t, 9616> pkey,
+        std::span<const uint8_t, 16> msg,
+        std::span<uint8_t, 9720> enc)
 {
   pke::encrypt<640, 128, 8, 8, 128, 128, 16, 1u << 15, 2>(seed, pkey, msg, enc);
 }
@@ -48,10 +46,9 @@ encrypt(const uint8_t* const __restrict seed, // 16 -bytes
 // ), this routine can be used for decrypting cipher text into a 16 -bytes
 // message m.
 inline void
-decrypt(const uint8_t* const __restrict skey, // 9600 -bytes
-        const uint8_t* const __restrict enc,  // 9720 -bytes
-        uint8_t* const __restrict msg         // 16 -bytes
-)
+decrypt(std::span<const uint8_t, 9600> skey,
+        std::span<const uint8_t, 9720> enc,
+        std::span<uint8_t, 16> msg)
 {
   pke::decrypt<640, 128, 8, 8, 1u << 15, 2>(skey, enc, msg);
 }

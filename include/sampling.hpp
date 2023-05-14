@@ -1,9 +1,11 @@
 #pragma once
+#include "matrix.hpp"
 #include "params.hpp"
 #include "subtle.hpp"
 #include "zq.hpp"
 #include <array>
 #include <numeric>
+#include <span>
 
 // Sampling from the error distribution
 namespace sampling {
@@ -62,9 +64,13 @@ constexpr auto Frodo1344_Tχ = compute_cdf(Frodo1344_χ);
 // compilers are free to optimize, so it can be better idea to inspect generated
 // assembly rather than just trusting that this implementation will always be
 // constant-time on all targets.
-template<const size_t len_χ, const uint32_t Q, const size_t B, const size_t L>
-inline zq::zq_t<Q>
-sample(const uint32_t r, std::array<uint32_t, L> Tχ)
+template<const size_t len_χ,
+         const uint32_t Q,
+         const size_t B,
+         const size_t L,
+         const std::array<uint32_t, L> Tχ>
+inline constexpr zq::zq_t<Q>
+sample(const uint32_t r)
   requires(frodo_params::check_len_χ(len_χ) && frodo_params::check_q(Q) &&
            frodo_params::check_b(B))
 {
@@ -89,29 +95,37 @@ sample(const uint32_t r, std::array<uint32_t, L> Tχ)
 //
 // - r is a byte array of length n1 x n2 x (len_χ/ 8) -bytes.
 // - e is a matrix of dimension n1 x n2, over Z.
-template<const size_t n1,
+template<const size_t n,
+         const size_t n1,
          const size_t n2,
          const size_t len_χ,
          const uint32_t Q,
-         const size_t B,
-         const size_t L>
-inline void
-sample_matrix(const uint8_t* const __restrict r,
-              zq::zq_t<Q>* const __restrict e,
-              std::array<uint32_t, L> Tχ)
+         const size_t B>
+inline constexpr matrix::matrix<n1, n2, Q>
+sample_matrix(std::span<const uint8_t, (n1 * n2 * len_χ + 7) / 8> r)
 {
+  matrix::matrix<n1, n2, Q> e{};
+
   size_t moff = 0;
   size_t boff = 0;
 
-  while (moff < (n1 * n2)) {
+  while (moff < e.element_count()) {
     const uint32_t tmp = (static_cast<uint32_t>(r[boff + 1]) << 8) |
                          (static_cast<uint32_t>(r[boff + 0]) << 0);
 
-    e[moff] = sample<len_χ, Q, B, L>(tmp, Tχ);
+    if constexpr (n == 640) {
+      e[moff] = sample<len_χ, Q, B, 13, Frodo640_Tχ>(tmp);
+    } else if constexpr (n == 976) {
+      e[moff] = sample<len_χ, Q, B, 11, Frodo976_Tχ>(tmp);
+    } else if constexpr (n == 1344) {
+      e[moff] = sample<len_χ, Q, B, 7, Frodo1344_Tχ>(tmp);
+    }
 
     moff += 1;
     boff += 2;
   }
+
+  return e;
 }
 
 }

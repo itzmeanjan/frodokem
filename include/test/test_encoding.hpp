@@ -1,6 +1,8 @@
 #pragma once
 #include "encoding.hpp"
 #include "prng.hpp"
+#include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstring>
 
@@ -22,26 +24,17 @@ test_matrix_encode_decode()
 {
   constexpr size_t bit_len = m * n * B;
   constexpr size_t byte_len = (bit_len + 7) / 8;
-  constexpr size_t mat_len = sizeof(zq::zq_t<Q>) * m * n;
 
-  auto org_enc = static_cast<uint8_t*>(std::malloc(byte_len));
-  auto decoded = static_cast<zq::zq_t<Q>*>(std::malloc(mat_len));
-  auto fin_enc = static_cast<uint8_t*>(std::malloc(byte_len));
+  std::array<uint8_t, byte_len> org_bytes{};
+  std::array<uint8_t, byte_len> fin_bytes{};
 
   prng::prng_t prng;
-  prng.read(org_enc, byte_len);
-  std::memset(fin_enc, 0, byte_len);
+  prng.read(org_bytes.data(), byte_len);
 
-  encoding::matrix_encode<m, n, Q, B>(org_enc, decoded);
-  encoding::matrix_decode<m, n, Q, B>(decoded, fin_enc);
+  auto encoded = encoding::encode<m, n, Q, B>(org_bytes);
+  encoding::decode<m, n, Q, B>(encoded, fin_bytes);
 
-  for (size_t i = 0; i < byte_len; i++) {
-    assert(org_enc[i] == fin_enc[i]);
-  }
-
-  std::free(org_enc);
-  std::free(decoded);
-  std::free(fin_enc);
+  assert(std::ranges::equal(org_bytes, fin_bytes));
 }
 
 }

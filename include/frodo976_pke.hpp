@@ -19,11 +19,10 @@ constexpr size_t CIPHER_LEN = utils::pke_cipher_text_len(976, 8, 8, 1u << 16);
 // used for sampling error matrices ), this routine is used for deterministic
 // generation of a Frodo-976 public/ private keypair.
 inline void
-keygen(const uint8_t* const __restrict seedA,  // 16 -bytes
-       const uint8_t* const __restrict seedSE, // 24 -bytes
-       uint8_t* const __restrict pkey,         // 15632 -bytes
-       uint8_t* const __restrict skey          // 15616 -bytes
-)
+keygen(std::span<const uint8_t, 16> seedA,
+       std::span<const uint8_t, 24> seedSE,
+       std::span<uint8_t, 15632> pkey,
+       std::span<uint8_t, 15616> skey)
 {
   pke::keygen<976, 8, 128, 192, 16, 1u << 16, 3>(seedA, seedSE, pkey, skey);
 }
@@ -33,11 +32,10 @@ keygen(const uint8_t* const __restrict seedA,  // 16 -bytes
 // used for encrypting the 24 -bytes message as 15744 -bytes cipher text, which
 // can only be decrypted by associated Frodo-976 secret key.
 inline void
-encrypt(const uint8_t* const __restrict seed, // 24 -bytes
-        const uint8_t* const __restrict pkey, // 15632 -bytes
-        const uint8_t* const __restrict msg,  // 24 -bytes
-        uint8_t* const __restrict enc         // 15744 -bytes
-)
+encrypt(std::span<const uint8_t, 24> seed,
+        std::span<const uint8_t, 15632> pkey,
+        std::span<const uint8_t, 24> msg,
+        std::span<uint8_t, 15744> enc)
 {
   pke::encrypt<976, 192, 8, 8, 128, 192, 16, 1u << 16, 3>(seed, pkey, msg, enc);
 }
@@ -48,10 +46,9 @@ encrypt(const uint8_t* const __restrict seed, // 24 -bytes
 // ), this routine can be used for decrypting cipher text into a 24 -bytes
 // message m.
 inline void
-decrypt(const uint8_t* const __restrict skey, // 15616 -bytes
-        const uint8_t* const __restrict enc,  // 15744 -bytes
-        uint8_t* const __restrict msg         // 24 -bytes
-)
+decrypt(std::span<const uint8_t, 15616> skey,
+        std::span<const uint8_t, 15744> enc,
+        std::span<uint8_t, 24> msg)
 {
   pke::decrypt<976, 192, 8, 8, 1u << 16, 3>(skey, enc, msg);
 }

@@ -1,28 +1,27 @@
 #pragma once
+#include "matrix.hpp"
 #include "params.hpp"
 #include "zq.hpp"
+#include <span>
 
 // Encoding bit strings to matrix and vice versa.
 namespace encoding {
 
-// Given a bit string ( of length m x n x B -bits ) as byte array, this routine
-// encodes each B -bit wide sub-string as an integer k ∈ [0, 2^B), which is
-// encoded as an element of Zq s.t. q = 2^D and B <= D using `ec()` function,
-// returning a matrix of dimension m x n over Zq, following algorithm 1 of
-// FrodoKEM specification.
+// Given a bit string ( of length m x n x B -bits ) as byte array of length (m x
+// n x B + 7)/ 8 -bytes, this routine treats each B -bit wide sub-string as an
+// integer k ∈ [0, 2^B), which is encoded as an element of Zq s.t. q = 2^D and B
+// <= D using `ec()` function, returning a matrix of dimension m x n over Zq,
+// following algorithm 1 of FrodoKEM specification.
 template<const size_t m, const size_t n, const uint32_t Q, const size_t B>
-inline void
-matrix_encode(
-  const uint8_t* const __restrict arr, // of length (m x n x B)/ 8 -bytes
-  zq::zq_t<Q>* const __restrict mat    // matrix of dimension m x n
-  )
+inline constexpr matrix::matrix<m, n, Q>
+encode(std::span<const uint8_t, (m * n * B + 7) / 8> arr)
   requires((m == n) && frodo_params::check_q(Q) && frodo_params::check_b(B))
 {
   // alias, so that I've to type lesser !
   using Zq = zq::zq_t<Q>;
 
-  constexpr size_t bit_len = m * n * B;
-  constexpr size_t byte_len = (bit_len + 7) / 8;
+  constexpr size_t byte_len = arr.size();
+  matrix::matrix<m, n, Q> mat{};
 
   if constexpr (B == 2) {
     constexpr uint8_t mask = 0b11;
@@ -76,19 +75,19 @@ matrix_encode(
       moff += 2;
     }
   }
+
+  return mat;
 }
 
 // Given a matrix of dimension m x n s.t. its elements ∈ Zq, this routine can be
-// used for decoding it into a bit string of length m x n x B -bits, extracting
-// B bits from most significant portion of each matrix entry, by applying `dc()`
-// function, returning a byte array of length (m x n x B)/ 8 -bytes, following
-// algorithm 2 of FrodoKEM specification.
+// used for decoding it into a bit string of length m x n x B -bits, rounding to
+// the B most significant bits of each matrix entry, by applying `dc()`
+// function, returning a byte array of length (m x n x B + 7)/ 8 -bytes,
+// following algorithm 2 of FrodoKEM specification.
 template<const size_t m, const size_t n, const uint32_t Q, const size_t B>
-inline void
-matrix_decode(
-  const zq::zq_t<Q>* const __restrict mat, // matrix of dimension m x n
-  uint8_t* const __restrict arr            // of length (m x n x B)/ 8 -bytes
-  )
+inline constexpr void
+decode(const matrix::matrix<m, n, Q>& mat,
+       std::span<uint8_t, (m * n * B + 7) / 8> arr)
   requires((m == n) && frodo_params::check_q(Q) && frodo_params::check_b(B))
 {
   if constexpr (B == 2) {
@@ -97,7 +96,7 @@ matrix_decode(
     size_t moff = 0;
     size_t boff = 0;
 
-    while (moff < (m * n)) {
+    while (moff < mat.element_count()) {
       arr[boff] = ((mat[moff + 3].template decode<B>() & mask) << 6) |
                   ((mat[moff + 2].template decode<B>() & mask) << 4) |
                   ((mat[moff + 1].template decode<B>() & mask) << 2) |
@@ -114,7 +113,7 @@ matrix_decode(
     size_t moff = 0;
     size_t boff = 0;
 
-    while (moff < (m * n)) {
+    while (moff < mat.element_count()) {
       const auto t0 = mat[moff + 0].template decode<B>() & mask3;
       const auto t1 = mat[moff + 1].template decode<B>() & mask3;
       const auto t2 = mat[moff + 2].template decode<B>() & mask3;
@@ -141,7 +140,7 @@ matrix_decode(
     size_t moff = 0;
     size_t boff = 0;
 
-    while (moff < (m * n)) {
+    while (moff < mat.element_count()) {
       arr[boff] = ((mat[moff + 1].template decode<B>() & mask) << 4) |
                   ((mat[moff + 0].template decode<B>() & mask) << 0);
 

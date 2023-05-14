@@ -2,7 +2,10 @@
 #include "pke.hpp"
 #include "prng.hpp"
 #include "utils.hpp"
+#include <algorithm>
 #include <cassert>
+#include <span>
+#include <vector>
 
 // Test functional correctness of FrodoKEM along with its components.
 namespace test_frodo {
@@ -28,44 +31,42 @@ test_pke()
 {
   namespace utils = frodo_utils;
 
-  constexpr size_t mlen = l / 8;
+  constexpr size_t mlen = (l + 7) / 8;
   constexpr size_t pklen = utils::pke_pub_key_len(n, n_bar, lA, Q);
   constexpr size_t sklen = utils::pke_sec_key_len(n, n_bar, Q);
   constexpr size_t ctlen = utils::pke_cipher_text_len(n, m_bar, n_bar, Q);
 
-  auto seedA = static_cast<uint8_t*>(std::malloc(lA / 8));
-  auto seedSE = static_cast<uint8_t*>(std::malloc(lSE / 8));
-  auto pkey = static_cast<uint8_t*>(std::malloc(pklen));
-  auto skey = static_cast<uint8_t*>(std::malloc(sklen));
-  auto msg = static_cast<uint8_t*>(std::malloc(mlen));
-  auto cipher = static_cast<uint8_t*>(std::malloc(ctlen));
-  auto decrypted = static_cast<uint8_t*>(std::malloc(mlen));
+  std::vector<uint8_t> seedA(lA / 8, 0);
+  std::vector<uint8_t> seedSE(lSE / 8, 0);
+  std::vector<uint8_t> pkey(pklen, 0);
+  std::vector<uint8_t> skey(sklen, 0);
+  std::vector<uint8_t> msg(mlen, 0);
+  std::vector<uint8_t> enc(ctlen, 0);
+  std::vector<uint8_t> dec(mlen, 0);
+
+  std::span<uint8_t, lA / 8> _seedA{ seedA };
+  std::span<uint8_t, lSE / 8> _seedSE{ seedSE };
+  std::span<uint8_t, pklen> _pkey{ pkey };
+  std::span<uint8_t, sklen> _skey{ skey };
+  std::span<uint8_t, mlen> _msg{ msg };
+  std::span<uint8_t, ctlen> _enc{ enc };
+  std::span<uint8_t, mlen> _dec{ dec };
 
   prng::prng_t prng;
 
-  prng.read(seedA, lA / 8);
-  prng.read(seedSE, lSE / 8);
-  prng.read(msg, mlen);
+  prng.read(seedA.data(), seedA.size());
+  prng.read(seedSE.data(), seedSE.size());
+  prng.read(msg.data(), msg.size());
 
   {
     using namespace pke;
 
-    keygen<n, n_bar, lA, lSE, lχ, Q, B>(seedA, seedSE, pkey, skey);
-    encrypt<n, l, m_bar, n_bar, lA, lSE, lχ, Q, B>(seedSE, pkey, msg, cipher);
-    decrypt<n, l, m_bar, n_bar, Q, B>(skey, cipher, decrypted);
+    keygen<n, n_bar, lA, lSE, lχ, Q, B>(_seedA, _seedSE, _pkey, _skey);
+    encrypt<n, l, m_bar, n_bar, lA, lSE, lχ, Q, B>(_seedSE, _pkey, _msg, _enc);
+    decrypt<n, l, m_bar, n_bar, Q, B>(_skey, _enc, _dec);
   }
 
-  for (size_t i = 0; i < mlen; i++) {
-    assert(msg[i] == decrypted[i]);
-  }
-
-  std::free(seedA);
-  std::free(seedSE);
-  std::free(pkey);
-  std::free(skey);
-  std::free(msg);
-  std::free(cipher);
-  std::free(decrypted);
+  assert(std::ranges::equal(_msg, _dec));
 }
 
 }

@@ -185,16 +185,22 @@ int main() {
     std::vector<uint8_t> seedA(SEED_A_LEN, 0);
     std::vector<uint8_t> seedSE(SEED_SE_LEN, 0);
 
+    std::span<uint8_t, SEED_A_LEN> _seedA{ seedA };
+    std::span<uint8_t, SEED_SE_LEN> _seedSE{ seedSE };
+
     // Generate pseudo random seed bytes
     prng::prng_t prng;
-    prng.read(seedA.data(), seedA.size());
-    prng.read(seedSE.data(), seedSE.size());
+    prng.read(_seedA.data(), _seedA.size());
+    prng.read(_seedSE.data(), _seedSE.size());
 
     std::vector<uint8_t> pkey(frodo640_pke::PUB_KEY_LEN, 0);
     std::vector<uint8_t> skey(frodo640_pke::SEC_KEY_LEN, 0);
 
+    std::span<uint8_t, frodo640_pke::PUB_KEY_LEN> _pkey{ pkey };
+    std::span<uint8_t, frodo640_pke::SEC_KEY_LEN> _skey{ skey };
+
     // Generate a new Frodo-640 public/ private keypair    
-    frodo640_pke::keygen(seedA.data(), seedSE.data(), pkey.data(), skey.data());
+    frodo640_pke::keygen(_seedA, _seedSE, _pkey, _skey);
 
     // ...
 }
@@ -213,11 +219,14 @@ int main() {
     std::vector<uint8_t> cipher(frodo640_pke::CIPHER_LEN, 0);
     std::vector<uint8_t> msg(MLEN, 0);
 
+    std::span<uint8_t, frodo640_pke::CIPHER_LEN> _cipher{ cipher };
+    std::span<uint8_t, MLEN> _msg{ msg };
+
     // Pseudo random message, which will be encrypted
-    prng.read(msg.data(), msg.size());
+    prng.read(_msg.data(), _msg.size());
 
     // Encrypt message bytes, computing Frodo-640 PKE cipher text
-    frodo640_pke::encrypt(seedSE.data(), pkey.data(), msg.data(), cipher.data());
+    frodo640_pke::encrypt(_seedSE, _pkey, _msg, _cipher);
 
     // ...
 }
@@ -238,12 +247,13 @@ int main() {
     // ...
 
     std::vector<uint8_t> decrypted(MLEN, 0);
+    std::span<uint8_t, MLEN> _decrypted{ decrypted };
 
     // Decrypt cipher text, recovering 16 message -bytes 
-    frodo640_pke::decrypt(skey.data(), cipher.data(), decrypted.data());
+    frodo640_pke::decrypt(_skey, _cipher, _decrypted);
 
     // check if original message m == decrypted message m'
-    assert(std::ranges::equal(msg, decrypted));
+    assert(std::ranges::equal(_msg, _decrypted));
     return 0;
 }
 ```
