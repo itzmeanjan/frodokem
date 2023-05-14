@@ -14,32 +14,32 @@ frodo640_pke_keygen(benchmark::State& state)
   constexpr size_t SEED_A_LEN = 16;
   constexpr size_t SEED_SE_LEN = 16;
 
-  auto seedA = static_cast<uint8_t*>(std::malloc(SEED_A_LEN));
-  auto seedSE = static_cast<uint8_t*>(std::malloc(SEED_SE_LEN));
-  auto pkey = static_cast<uint8_t*>(std::malloc(frodo640_pke::PUB_KEY_LEN));
-  auto skey = static_cast<uint8_t*>(std::malloc(frodo640_pke::SEC_KEY_LEN));
+  std::vector<uint8_t> seedA(SEED_A_LEN, 0);
+  std::vector<uint8_t> seedSE(SEED_SE_LEN, 0);
+  std::vector<uint8_t> pkey(frodo640_pke::PUB_KEY_LEN, 0);
+  std::vector<uint8_t> skey(frodo640_pke::SEC_KEY_LEN, 0);
+
+  std::span<uint8_t, SEED_A_LEN> _seedA{ seedA };
+  std::span<uint8_t, SEED_SE_LEN> _seedSE{ seedSE };
+  std::span<uint8_t, frodo640_pke::PUB_KEY_LEN> _pkey{ pkey };
+  std::span<uint8_t, frodo640_pke::SEC_KEY_LEN> _skey{ skey };
 
   prng::prng_t prng;
 
-  prng.read(seedA, SEED_A_LEN);
-  prng.read(seedSE, SEED_SE_LEN);
+  prng.read(_seedA.data(), SEED_A_LEN);
+  prng.read(_seedSE.data(), SEED_SE_LEN);
 
   for (auto _ : state) {
-    frodo640_pke::keygen(seedA, seedSE, pkey, skey);
+    frodo640_pke::keygen(_seedA, _seedSE, _pkey, _skey);
 
-    benchmark::DoNotOptimize(seedA);
-    benchmark::DoNotOptimize(seedSE);
-    benchmark::DoNotOptimize(pkey);
-    benchmark::DoNotOptimize(skey);
+    benchmark::DoNotOptimize(_seedA);
+    benchmark::DoNotOptimize(_seedSE);
+    benchmark::DoNotOptimize(_pkey);
+    benchmark::DoNotOptimize(_skey);
     benchmark::ClobberMemory();
   }
 
   state.SetItemsProcessed(state.iterations());
-
-  std::free(seedA);
-  std::free(seedSE);
-  std::free(pkey);
-  std::free(skey);
 }
 
 // Benchmark execution of Frodo640 PKE's encryption algorithm.
@@ -50,39 +50,39 @@ frodo640_pke_encrypt(benchmark::State& state)
   constexpr size_t SEED_SE_LEN = 16;
   constexpr size_t MLEN = 16;
 
-  auto seedA = static_cast<uint8_t*>(std::malloc(SEED_A_LEN));
-  auto seedSE = static_cast<uint8_t*>(std::malloc(SEED_SE_LEN));
-  auto pkey = static_cast<uint8_t*>(std::malloc(frodo640_pke::PUB_KEY_LEN));
-  auto skey = static_cast<uint8_t*>(std::malloc(frodo640_pke::SEC_KEY_LEN));
-  auto msg = static_cast<uint8_t*>(std::malloc(MLEN));
-  auto enc = static_cast<uint8_t*>(std::malloc(frodo640_pke::CIPHER_LEN));
+  std::vector<uint8_t> seedA(SEED_A_LEN, 0);
+  std::vector<uint8_t> seedSE(SEED_SE_LEN, 0);
+  std::vector<uint8_t> pkey(frodo640_pke::PUB_KEY_LEN, 0);
+  std::vector<uint8_t> skey(frodo640_pke::SEC_KEY_LEN, 0);
+  std::vector<uint8_t> msg(MLEN, 0);
+  std::vector<uint8_t> enc(frodo640_pke::CIPHER_LEN, 0);
+
+  std::span<uint8_t, SEED_A_LEN> _seedA{ seedA };
+  std::span<uint8_t, SEED_SE_LEN> _seedSE{ seedSE };
+  std::span<uint8_t, frodo640_pke::PUB_KEY_LEN> _pkey{ pkey };
+  std::span<uint8_t, frodo640_pke::SEC_KEY_LEN> _skey{ skey };
+  std::span<uint8_t, MLEN> _msg{ msg };
+  std::span<uint8_t, frodo640_pke::CIPHER_LEN> _enc{ enc };
 
   prng::prng_t prng;
 
-  prng.read(seedA, SEED_A_LEN);
-  prng.read(seedSE, SEED_SE_LEN);
-  prng.read(msg, MLEN);
+  prng.read(_seedA.data(), SEED_A_LEN);
+  prng.read(_seedSE.data(), SEED_SE_LEN);
+  prng.read(_msg.data(), MLEN);
 
-  frodo640_pke::keygen(seedA, seedSE, pkey, skey);
+  frodo640_pke::keygen(_seedA, _seedSE, _pkey, _skey);
 
   for (auto _ : state) {
-    frodo640_pke::encrypt(seedSE, pkey, msg, enc);
+    frodo640_pke::encrypt(_seedSE, _pkey, _msg, _enc);
 
-    benchmark::DoNotOptimize(seedSE);
-    benchmark::DoNotOptimize(pkey);
-    benchmark::DoNotOptimize(msg);
-    benchmark::DoNotOptimize(enc);
+    benchmark::DoNotOptimize(_seedSE);
+    benchmark::DoNotOptimize(_pkey);
+    benchmark::DoNotOptimize(_msg);
+    benchmark::DoNotOptimize(_enc);
     benchmark::ClobberMemory();
   }
 
   state.SetItemsProcessed(state.iterations());
-
-  std::free(seedA);
-  std::free(seedSE);
-  std::free(pkey);
-  std::free(skey);
-  std::free(msg);
-  std::free(enc);
 }
 
 // Benchmark execution of Frodo640 PKE's decryption algorithm.
@@ -93,41 +93,41 @@ frodo640_pke_decrypt(benchmark::State& state)
   constexpr size_t SEED_SE_LEN = 16;
   constexpr size_t MLEN = 16;
 
-  auto seedA = static_cast<uint8_t*>(std::malloc(SEED_A_LEN));
-  auto seedSE = static_cast<uint8_t*>(std::malloc(SEED_SE_LEN));
-  auto pkey = static_cast<uint8_t*>(std::malloc(frodo640_pke::PUB_KEY_LEN));
-  auto skey = static_cast<uint8_t*>(std::malloc(frodo640_pke::SEC_KEY_LEN));
-  auto msg = static_cast<uint8_t*>(std::malloc(MLEN));
-  auto enc = static_cast<uint8_t*>(std::malloc(frodo640_pke::CIPHER_LEN));
-  auto dec = static_cast<uint8_t*>(std::malloc(MLEN));
+  std::vector<uint8_t> seedA(SEED_A_LEN, 0);
+  std::vector<uint8_t> seedSE(SEED_SE_LEN, 0);
+  std::vector<uint8_t> pkey(frodo640_pke::PUB_KEY_LEN, 0);
+  std::vector<uint8_t> skey(frodo640_pke::SEC_KEY_LEN, 0);
+  std::vector<uint8_t> msg(MLEN, 0);
+  std::vector<uint8_t> enc(frodo640_pke::CIPHER_LEN, 0);
+  std::vector<uint8_t> dec(MLEN, 0);
+
+  std::span<uint8_t, SEED_A_LEN> _seedA{ seedA };
+  std::span<uint8_t, SEED_SE_LEN> _seedSE{ seedSE };
+  std::span<uint8_t, frodo640_pke::PUB_KEY_LEN> _pkey{ pkey };
+  std::span<uint8_t, frodo640_pke::SEC_KEY_LEN> _skey{ skey };
+  std::span<uint8_t, MLEN> _msg{ msg };
+  std::span<uint8_t, frodo640_pke::CIPHER_LEN> _enc{ enc };
+  std::span<uint8_t, MLEN> _dec{ dec };
 
   prng::prng_t prng;
 
-  prng.read(seedA, SEED_A_LEN);
-  prng.read(seedSE, SEED_SE_LEN);
-  prng.read(msg, MLEN);
+  prng.read(_seedA.data(), SEED_A_LEN);
+  prng.read(_seedSE.data(), SEED_SE_LEN);
+  prng.read(_msg.data(), MLEN);
 
-  frodo640_pke::keygen(seedA, seedSE, pkey, skey);
-  frodo640_pke::encrypt(seedSE, pkey, msg, enc);
+  frodo640_pke::keygen(_seedA, _seedSE, _pkey, _skey);
+  frodo640_pke::encrypt(_seedSE, _pkey, _msg, _enc);
 
   for (auto _ : state) {
-    frodo640_pke::decrypt(skey, enc, dec);
+    frodo640_pke::decrypt(_skey, _enc, _dec);
 
-    benchmark::DoNotOptimize(skey);
-    benchmark::DoNotOptimize(enc);
-    benchmark::DoNotOptimize(dec);
+    benchmark::DoNotOptimize(_skey);
+    benchmark::DoNotOptimize(_enc);
+    benchmark::DoNotOptimize(_dec);
     benchmark::ClobberMemory();
   }
 
   state.SetItemsProcessed(state.iterations());
-
-  std::free(seedA);
-  std::free(seedSE);
-  std::free(pkey);
-  std::free(skey);
-  std::free(msg);
-  std::free(enc);
-  std::free(dec);
 }
 
 // Benchmark execution of Frodo976 PKE's key generation algorithm.
@@ -137,32 +137,32 @@ frodo976_pke_keygen(benchmark::State& state)
   constexpr size_t SEED_A_LEN = 16;
   constexpr size_t SEED_SE_LEN = 24;
 
-  auto seedA = static_cast<uint8_t*>(std::malloc(SEED_A_LEN));
-  auto seedSE = static_cast<uint8_t*>(std::malloc(SEED_SE_LEN));
-  auto pkey = static_cast<uint8_t*>(std::malloc(frodo976_pke::PUB_KEY_LEN));
-  auto skey = static_cast<uint8_t*>(std::malloc(frodo976_pke::SEC_KEY_LEN));
+  std::vector<uint8_t> seedA(SEED_A_LEN, 0);
+  std::vector<uint8_t> seedSE(SEED_SE_LEN, 0);
+  std::vector<uint8_t> pkey(frodo976_pke::PUB_KEY_LEN, 0);
+  std::vector<uint8_t> skey(frodo976_pke::SEC_KEY_LEN, 0);
+
+  std::span<uint8_t, SEED_A_LEN> _seedA{ seedA };
+  std::span<uint8_t, SEED_SE_LEN> _seedSE{ seedSE };
+  std::span<uint8_t, frodo976_pke::PUB_KEY_LEN> _pkey{ pkey };
+  std::span<uint8_t, frodo976_pke::SEC_KEY_LEN> _skey{ skey };
 
   prng::prng_t prng;
 
-  prng.read(seedA, SEED_A_LEN);
-  prng.read(seedSE, SEED_SE_LEN);
+  prng.read(_seedA.data(), SEED_A_LEN);
+  prng.read(_seedSE.data(), SEED_SE_LEN);
 
   for (auto _ : state) {
-    frodo976_pke::keygen(seedA, seedSE, pkey, skey);
+    frodo976_pke::keygen(_seedA, _seedSE, _pkey, _skey);
 
-    benchmark::DoNotOptimize(seedA);
-    benchmark::DoNotOptimize(seedSE);
-    benchmark::DoNotOptimize(pkey);
-    benchmark::DoNotOptimize(skey);
+    benchmark::DoNotOptimize(_seedA);
+    benchmark::DoNotOptimize(_seedSE);
+    benchmark::DoNotOptimize(_pkey);
+    benchmark::DoNotOptimize(_skey);
     benchmark::ClobberMemory();
   }
 
   state.SetItemsProcessed(state.iterations());
-
-  std::free(seedA);
-  std::free(seedSE);
-  std::free(pkey);
-  std::free(skey);
 }
 
 // Benchmark execution of Frodo976 PKE's encryption algorithm.
@@ -173,39 +173,39 @@ frodo976_pke_encrypt(benchmark::State& state)
   constexpr size_t SEED_SE_LEN = 24;
   constexpr size_t MLEN = 24;
 
-  auto seedA = static_cast<uint8_t*>(std::malloc(SEED_A_LEN));
-  auto seedSE = static_cast<uint8_t*>(std::malloc(SEED_SE_LEN));
-  auto pkey = static_cast<uint8_t*>(std::malloc(frodo976_pke::PUB_KEY_LEN));
-  auto skey = static_cast<uint8_t*>(std::malloc(frodo976_pke::SEC_KEY_LEN));
-  auto msg = static_cast<uint8_t*>(std::malloc(MLEN));
-  auto enc = static_cast<uint8_t*>(std::malloc(frodo976_pke::CIPHER_LEN));
+  std::vector<uint8_t> seedA(SEED_A_LEN, 0);
+  std::vector<uint8_t> seedSE(SEED_SE_LEN, 0);
+  std::vector<uint8_t> pkey(frodo976_pke::PUB_KEY_LEN, 0);
+  std::vector<uint8_t> skey(frodo976_pke::SEC_KEY_LEN, 0);
+  std::vector<uint8_t> msg(MLEN, 0);
+  std::vector<uint8_t> enc(frodo976_pke::CIPHER_LEN, 0);
+
+  std::span<uint8_t, SEED_A_LEN> _seedA{ seedA };
+  std::span<uint8_t, SEED_SE_LEN> _seedSE{ seedSE };
+  std::span<uint8_t, frodo976_pke::PUB_KEY_LEN> _pkey{ pkey };
+  std::span<uint8_t, frodo976_pke::SEC_KEY_LEN> _skey{ skey };
+  std::span<uint8_t, MLEN> _msg{ msg };
+  std::span<uint8_t, frodo976_pke::CIPHER_LEN> _enc{ enc };
 
   prng::prng_t prng;
 
-  prng.read(seedA, SEED_A_LEN);
-  prng.read(seedSE, SEED_SE_LEN);
-  prng.read(msg, MLEN);
+  prng.read(_seedA.data(), SEED_A_LEN);
+  prng.read(_seedSE.data(), SEED_SE_LEN);
+  prng.read(_msg.data(), MLEN);
 
-  frodo976_pke::keygen(seedA, seedSE, pkey, skey);
+  frodo976_pke::keygen(_seedA, _seedSE, _pkey, _skey);
 
   for (auto _ : state) {
-    frodo976_pke::encrypt(seedSE, pkey, msg, enc);
+    frodo976_pke::encrypt(_seedSE, _pkey, _msg, _enc);
 
-    benchmark::DoNotOptimize(seedSE);
-    benchmark::DoNotOptimize(pkey);
-    benchmark::DoNotOptimize(msg);
-    benchmark::DoNotOptimize(enc);
+    benchmark::DoNotOptimize(_seedSE);
+    benchmark::DoNotOptimize(_pkey);
+    benchmark::DoNotOptimize(_msg);
+    benchmark::DoNotOptimize(_enc);
     benchmark::ClobberMemory();
   }
 
   state.SetItemsProcessed(state.iterations());
-
-  std::free(seedA);
-  std::free(seedSE);
-  std::free(pkey);
-  std::free(skey);
-  std::free(msg);
-  std::free(enc);
 }
 
 // Benchmark execution of Frodo976 PKE's decryption algorithm.
@@ -216,41 +216,41 @@ frodo976_pke_decrypt(benchmark::State& state)
   constexpr size_t SEED_SE_LEN = 24;
   constexpr size_t MLEN = 24;
 
-  auto seedA = static_cast<uint8_t*>(std::malloc(SEED_A_LEN));
-  auto seedSE = static_cast<uint8_t*>(std::malloc(SEED_SE_LEN));
-  auto pkey = static_cast<uint8_t*>(std::malloc(frodo976_pke::PUB_KEY_LEN));
-  auto skey = static_cast<uint8_t*>(std::malloc(frodo976_pke::SEC_KEY_LEN));
-  auto msg = static_cast<uint8_t*>(std::malloc(MLEN));
-  auto enc = static_cast<uint8_t*>(std::malloc(frodo976_pke::CIPHER_LEN));
-  auto dec = static_cast<uint8_t*>(std::malloc(MLEN));
+  std::vector<uint8_t> seedA(SEED_A_LEN, 0);
+  std::vector<uint8_t> seedSE(SEED_SE_LEN, 0);
+  std::vector<uint8_t> pkey(frodo976_pke::PUB_KEY_LEN, 0);
+  std::vector<uint8_t> skey(frodo976_pke::SEC_KEY_LEN, 0);
+  std::vector<uint8_t> msg(MLEN, 0);
+  std::vector<uint8_t> enc(frodo976_pke::CIPHER_LEN, 0);
+  std::vector<uint8_t> dec(MLEN, 0);
+
+  std::span<uint8_t, SEED_A_LEN> _seedA{ seedA };
+  std::span<uint8_t, SEED_SE_LEN> _seedSE{ seedSE };
+  std::span<uint8_t, frodo976_pke::PUB_KEY_LEN> _pkey{ pkey };
+  std::span<uint8_t, frodo976_pke::SEC_KEY_LEN> _skey{ skey };
+  std::span<uint8_t, MLEN> _msg{ msg };
+  std::span<uint8_t, frodo976_pke::CIPHER_LEN> _enc{ enc };
+  std::span<uint8_t, MLEN> _dec{ dec };
 
   prng::prng_t prng;
 
-  prng.read(seedA, SEED_A_LEN);
-  prng.read(seedSE, SEED_SE_LEN);
-  prng.read(msg, MLEN);
+  prng.read(_seedA.data(), SEED_A_LEN);
+  prng.read(_seedSE.data(), SEED_SE_LEN);
+  prng.read(_msg.data(), MLEN);
 
-  frodo976_pke::keygen(seedA, seedSE, pkey, skey);
-  frodo976_pke::encrypt(seedSE, pkey, msg, enc);
+  frodo976_pke::keygen(_seedA, _seedSE, _pkey, _skey);
+  frodo976_pke::encrypt(_seedSE, _pkey, _msg, _enc);
 
   for (auto _ : state) {
-    frodo976_pke::decrypt(skey, enc, dec);
+    frodo976_pke::decrypt(_skey, _enc, _dec);
 
-    benchmark::DoNotOptimize(skey);
-    benchmark::DoNotOptimize(enc);
-    benchmark::DoNotOptimize(dec);
+    benchmark::DoNotOptimize(_skey);
+    benchmark::DoNotOptimize(_enc);
+    benchmark::DoNotOptimize(_dec);
     benchmark::ClobberMemory();
   }
 
   state.SetItemsProcessed(state.iterations());
-
-  std::free(seedA);
-  std::free(seedSE);
-  std::free(pkey);
-  std::free(skey);
-  std::free(msg);
-  std::free(enc);
-  std::free(dec);
 }
 
 // Benchmark execution of Frodo1344 PKE's key generation algorithm.
@@ -260,32 +260,32 @@ frodo1344_pke_keygen(benchmark::State& state)
   constexpr size_t SEED_A_LEN = 16;
   constexpr size_t SEED_SE_LEN = 32;
 
-  auto seedA = static_cast<uint8_t*>(std::malloc(SEED_A_LEN));
-  auto seedSE = static_cast<uint8_t*>(std::malloc(SEED_SE_LEN));
-  auto pkey = static_cast<uint8_t*>(std::malloc(frodo1344_pke::PUB_KEY_LEN));
-  auto skey = static_cast<uint8_t*>(std::malloc(frodo1344_pke::SEC_KEY_LEN));
+  std::vector<uint8_t> seedA(SEED_A_LEN, 0);
+  std::vector<uint8_t> seedSE(SEED_SE_LEN, 0);
+  std::vector<uint8_t> pkey(frodo1344_pke::PUB_KEY_LEN, 0);
+  std::vector<uint8_t> skey(frodo1344_pke::SEC_KEY_LEN, 0);
+
+  std::span<uint8_t, SEED_A_LEN> _seedA{ seedA };
+  std::span<uint8_t, SEED_SE_LEN> _seedSE{ seedSE };
+  std::span<uint8_t, frodo1344_pke::PUB_KEY_LEN> _pkey{ pkey };
+  std::span<uint8_t, frodo1344_pke::SEC_KEY_LEN> _skey{ skey };
 
   prng::prng_t prng;
 
-  prng.read(seedA, SEED_A_LEN);
-  prng.read(seedSE, SEED_SE_LEN);
+  prng.read(_seedA.data(), SEED_A_LEN);
+  prng.read(_seedSE.data(), SEED_SE_LEN);
 
   for (auto _ : state) {
-    frodo1344_pke::keygen(seedA, seedSE, pkey, skey);
+    frodo1344_pke::keygen(_seedA, _seedSE, _pkey, _skey);
 
-    benchmark::DoNotOptimize(seedA);
-    benchmark::DoNotOptimize(seedSE);
-    benchmark::DoNotOptimize(pkey);
-    benchmark::DoNotOptimize(skey);
+    benchmark::DoNotOptimize(_seedA);
+    benchmark::DoNotOptimize(_seedSE);
+    benchmark::DoNotOptimize(_pkey);
+    benchmark::DoNotOptimize(_skey);
     benchmark::ClobberMemory();
   }
 
   state.SetItemsProcessed(state.iterations());
-
-  std::free(seedA);
-  std::free(seedSE);
-  std::free(pkey);
-  std::free(skey);
 }
 
 // Benchmark execution of Frodo1344 PKE's encryption algorithm.
@@ -296,39 +296,39 @@ frodo1344_pke_encrypt(benchmark::State& state)
   constexpr size_t SEED_SE_LEN = 32;
   constexpr size_t MLEN = 32;
 
-  auto seedA = static_cast<uint8_t*>(std::malloc(SEED_A_LEN));
-  auto seedSE = static_cast<uint8_t*>(std::malloc(SEED_SE_LEN));
-  auto pkey = static_cast<uint8_t*>(std::malloc(frodo1344_pke::PUB_KEY_LEN));
-  auto skey = static_cast<uint8_t*>(std::malloc(frodo1344_pke::SEC_KEY_LEN));
-  auto msg = static_cast<uint8_t*>(std::malloc(MLEN));
-  auto enc = static_cast<uint8_t*>(std::malloc(frodo1344_pke::CIPHER_LEN));
+  std::vector<uint8_t> seedA(SEED_A_LEN, 0);
+  std::vector<uint8_t> seedSE(SEED_SE_LEN, 0);
+  std::vector<uint8_t> pkey(frodo1344_pke::PUB_KEY_LEN, 0);
+  std::vector<uint8_t> skey(frodo1344_pke::SEC_KEY_LEN, 0);
+  std::vector<uint8_t> msg(MLEN, 0);
+  std::vector<uint8_t> enc(frodo1344_pke::CIPHER_LEN, 0);
+
+  std::span<uint8_t, SEED_A_LEN> _seedA{ seedA };
+  std::span<uint8_t, SEED_SE_LEN> _seedSE{ seedSE };
+  std::span<uint8_t, frodo1344_pke::PUB_KEY_LEN> _pkey{ pkey };
+  std::span<uint8_t, frodo1344_pke::SEC_KEY_LEN> _skey{ skey };
+  std::span<uint8_t, MLEN> _msg{ msg };
+  std::span<uint8_t, frodo1344_pke::CIPHER_LEN> _enc{ enc };
 
   prng::prng_t prng;
 
-  prng.read(seedA, SEED_A_LEN);
-  prng.read(seedSE, SEED_SE_LEN);
-  prng.read(msg, MLEN);
+  prng.read(_seedA.data(), SEED_A_LEN);
+  prng.read(_seedSE.data(), SEED_SE_LEN);
+  prng.read(_msg.data(), MLEN);
 
-  frodo1344_pke::keygen(seedA, seedSE, pkey, skey);
+  frodo1344_pke::keygen(_seedA, _seedSE, _pkey, _skey);
 
   for (auto _ : state) {
-    frodo1344_pke::encrypt(seedSE, pkey, msg, enc);
+    frodo1344_pke::encrypt(_seedSE, _pkey, _msg, _enc);
 
-    benchmark::DoNotOptimize(seedSE);
-    benchmark::DoNotOptimize(pkey);
-    benchmark::DoNotOptimize(msg);
-    benchmark::DoNotOptimize(enc);
+    benchmark::DoNotOptimize(_seedSE);
+    benchmark::DoNotOptimize(_pkey);
+    benchmark::DoNotOptimize(_msg);
+    benchmark::DoNotOptimize(_enc);
     benchmark::ClobberMemory();
   }
 
   state.SetItemsProcessed(state.iterations());
-
-  std::free(seedA);
-  std::free(seedSE);
-  std::free(pkey);
-  std::free(skey);
-  std::free(msg);
-  std::free(enc);
 }
 
 // Benchmark execution of Frodo1344 PKE's decryption algorithm.
@@ -339,41 +339,41 @@ frodo1344_pke_decrypt(benchmark::State& state)
   constexpr size_t SEED_SE_LEN = 32;
   constexpr size_t MLEN = 32;
 
-  auto seedA = static_cast<uint8_t*>(std::malloc(SEED_A_LEN));
-  auto seedSE = static_cast<uint8_t*>(std::malloc(SEED_SE_LEN));
-  auto pkey = static_cast<uint8_t*>(std::malloc(frodo1344_pke::PUB_KEY_LEN));
-  auto skey = static_cast<uint8_t*>(std::malloc(frodo1344_pke::SEC_KEY_LEN));
-  auto msg = static_cast<uint8_t*>(std::malloc(MLEN));
-  auto enc = static_cast<uint8_t*>(std::malloc(frodo1344_pke::CIPHER_LEN));
-  auto dec = static_cast<uint8_t*>(std::malloc(MLEN));
+  std::vector<uint8_t> seedA(SEED_A_LEN, 0);
+  std::vector<uint8_t> seedSE(SEED_SE_LEN, 0);
+  std::vector<uint8_t> pkey(frodo1344_pke::PUB_KEY_LEN, 0);
+  std::vector<uint8_t> skey(frodo1344_pke::SEC_KEY_LEN, 0);
+  std::vector<uint8_t> msg(MLEN, 0);
+  std::vector<uint8_t> enc(frodo1344_pke::CIPHER_LEN, 0);
+  std::vector<uint8_t> dec(MLEN, 0);
+
+  std::span<uint8_t, SEED_A_LEN> _seedA{ seedA };
+  std::span<uint8_t, SEED_SE_LEN> _seedSE{ seedSE };
+  std::span<uint8_t, frodo1344_pke::PUB_KEY_LEN> _pkey{ pkey };
+  std::span<uint8_t, frodo1344_pke::SEC_KEY_LEN> _skey{ skey };
+  std::span<uint8_t, MLEN> _msg{ msg };
+  std::span<uint8_t, frodo1344_pke::CIPHER_LEN> _enc{ enc };
+  std::span<uint8_t, MLEN> _dec{ dec };
 
   prng::prng_t prng;
 
-  prng.read(seedA, SEED_A_LEN);
-  prng.read(seedSE, SEED_SE_LEN);
-  prng.read(msg, MLEN);
+  prng.read(_seedA.data(), SEED_A_LEN);
+  prng.read(_seedSE.data(), SEED_SE_LEN);
+  prng.read(_msg.data(), MLEN);
 
-  frodo1344_pke::keygen(seedA, seedSE, pkey, skey);
-  frodo1344_pke::encrypt(seedSE, pkey, msg, enc);
+  frodo1344_pke::keygen(_seedA, _seedSE, _pkey, _skey);
+  frodo1344_pke::encrypt(_seedSE, _pkey, _msg, _enc);
 
   for (auto _ : state) {
-    frodo1344_pke::decrypt(skey, enc, dec);
+    frodo1344_pke::decrypt(_skey, _enc, _dec);
 
-    benchmark::DoNotOptimize(skey);
-    benchmark::DoNotOptimize(enc);
-    benchmark::DoNotOptimize(dec);
+    benchmark::DoNotOptimize(_skey);
+    benchmark::DoNotOptimize(_enc);
+    benchmark::DoNotOptimize(_dec);
     benchmark::ClobberMemory();
   }
 
   state.SetItemsProcessed(state.iterations());
-
-  std::free(seedA);
-  std::free(seedSE);
-  std::free(pkey);
-  std::free(skey);
-  std::free(msg);
-  std::free(enc);
-  std::free(dec);
 }
 
 }
