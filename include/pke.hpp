@@ -60,24 +60,25 @@ keygen(std::span<const uint8_t, (len_seed_A + 7) / 8> seedA,
     hasher.read(dig.data(), dig.size());
   }
 
-  constexpr size_t off = (n * n_bar * len_χ + 7) / 8;
+  constexpr size_t doff = (n * n_bar * len_χ + 7) / 8;
 
-  std::span<uint8_t, dig.size()> dspan{ dig };
-  auto sspan0 = dspan.template subspan<0, off>();
-  auto sspan1 = dspan.template subspan<off, dspan.size() - off>();
+  std::span<uint8_t, dig.size()> _dig{ dig };
+  auto _dig0 = _dig.template subspan<0, doff>();
+  auto _dig1 = _dig.template subspan<doff, _dig.size() - doff>();
 
   using namespace sampling;
 
-  auto S_transposed = sample_matrix<n, n_bar, n, len_χ, q, b>(sspan0);
-  auto E = sample_matrix<n, n, n_bar, len_χ, q, b>(sspan1);
+  auto S_transposed = sample_matrix<n, n_bar, n, len_χ, q, b>(_dig0);
+  auto E = sample_matrix<n, n, n_bar, len_χ, q, b>(_dig1);
 
   auto S = S_transposed.transpose();
   auto B = A * S + E;
 
-  constexpr size_t rm_pk_bytes = pkey.size() - seedA.size();
+  constexpr size_t pkoff = seedA.size();
+  auto _pkey = pkey.template subspan<pkoff, pkey.size() - pkoff>();
 
   std::memcpy(pkey.data(), seedA.data(), seedA.size());
-  packing::pack(B, pkey.template subspan<seedA.size(), rm_pk_bytes>());
+  packing::pack(B, _pkey);
   packing::pack(S_transposed, skey);
 }
 
@@ -110,6 +111,9 @@ encrypt(
                                                         b))
 {
   auto seedA = pkey.template subspan<0, (lseed_A + 7) / 8>();
+  constexpr size_t pkoff = seedA.size();
+  auto _pkey = pkey.template subspan<pkoff, pkey.size() - pkoff>();
+
   auto A = matrix::matrix<n, n, q>::template generate<lseed_A>(seedA);
 
   std::array<uint8_t, 1 + seedSE.size()> buf{};
@@ -133,32 +137,31 @@ encrypt(
   constexpr size_t off0 = (m_bar * n * len_χ + 7) / 8;
   constexpr size_t off1 = off0 + (m_bar * n * len_χ + 7) / 8;
 
-  std::span<uint8_t, dig.size()> dspan{ dig };
-  auto sspan0 = dspan.template subspan<0, off0>();
-  auto sspan1 = dspan.template subspan<off0, off1 - off0>();
-  auto sspan2 = dspan.template subspan<off1, dspan.size() - off1>();
+  std::span<uint8_t, dig.size()> _dig{ dig };
+  auto _dig0 = _dig.template subspan<0, off0>();
+  auto _dig1 = _dig.template subspan<off0, off1 - off0>();
+  auto _dig2 = _dig.template subspan<off1, _dig.size() - off1>();
 
   using namespace sampling;
 
-  auto S_prime = sample_matrix<n, m_bar, n, len_χ, q, b>(sspan0);
-  auto E_prime = sample_matrix<n, m_bar, n, len_χ, q, b>(sspan1);
-  auto E_dprime = sample_matrix<n, m_bar, n_bar, len_χ, q, b>(sspan2);
+  auto S_prime = sample_matrix<n, m_bar, n, len_χ, q, b>(_dig0);
+  auto E_prime = sample_matrix<n, m_bar, n, len_χ, q, b>(_dig1);
+  auto E_dprime = sample_matrix<n, m_bar, n_bar, len_χ, q, b>(_dig2);
 
   auto B_prime = S_prime * A + E_prime;
 
-  constexpr size_t rm_pk_bytes = pkey.size() - seedA.size();
-  auto pkey_sspan = pkey.template subspan<seedA.size(), rm_pk_bytes>();
-  auto B = packing::unpack<n, n_bar, q>(pkey_sspan);
+  auto B = packing::unpack<n, n_bar, q>(_pkey);
+  auto V = S_prime * B + E_dprime; // = C1
 
-  auto V = S_prime * B + E_dprime;
-
-  auto encoded = encoding::encode<m_bar, n_bar, q, b>(msg);
-  auto C2 = V + encoded;
+  auto M = encoding::encode<m_bar, n_bar, q, b>(msg);
+  auto C2 = V + M;
 
   constexpr size_t coff = (m_bar * n * frodo_utils::log2(q) + 7) / 8;
+  auto _enc0 = enc.template subspan<0, coff>();
+  auto _enc1 = enc.template subspan<coff, enc.size() - coff>();
 
-  packing::pack(B_prime, enc.template subspan<0, coff>());
-  packing::pack(C2, enc.template subspan<coff, enc.size() - coff>());
+  packing::pack(B_prime, _enc0);
+  packing::pack(C2, _enc1);
 }
 
 // Given a cipher text and Frodo PKE secret key of respective public key, this
@@ -182,15 +185,13 @@ decrypt(
   auto S = S_transposed.transpose();
 
   constexpr size_t coff = (m_bar * n * frodo_utils::log2(q) + 7) / 8;
+  auto _enc0 = enc.template subspan<0, coff>();
+  auto _enc1 = enc.template subspan<coff, enc.size() - coff>();
 
-  auto sspan0 = enc.template subspan<0, coff>();
-  auto sspan1 = enc.template subspan<coff, enc.size() - coff>();
-
-  auto C1 = packing::unpack<m_bar, n, q>(sspan0);
-  auto C2 = packing::unpack<m_bar, n_bar, q>(sspan1);
+  auto C1 = packing::unpack<m_bar, n, q>(_enc0);
+  auto C2 = packing::unpack<m_bar, n_bar, q>(_enc1);
 
   auto M = C2 - C1 * S;
-
   encoding::decode<m_bar, n_bar, q, b>(M, msg);
 }
 
