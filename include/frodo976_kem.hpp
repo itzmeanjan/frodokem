@@ -2,7 +2,7 @@
 #include "kem.hpp"
 
 // Frodo-976 Key Encapsulation Mechanism
-namespace frodo640_kem {
+namespace frodo976_kem {
 
 // See column 1, 3 of table 4 of FrodoKEM specification.
 constexpr size_t D = 16;
