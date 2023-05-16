@@ -76,6 +76,18 @@ kem_sec_key_len(const size_t n,
   return byte_len;
 }
 
+// Compile-time computable byte length of Frodo KEM cipher text.
+constexpr size_t
+kem_cipher_text_len(const size_t n,
+                    const size_t m_bar,
+                    const size_t n_bar,
+                    const uint32_t Q)
+{
+  const size_t c1 = (m_bar * n * log2(Q) + 7) / 8;
+  const size_t c2 = (m_bar * n_bar * log2(Q) + 7) / 8;
+  return c1 + c2;
+}
+
 // Given a bytearray of length N, this function converts it to human readable
 // hex string of length N << 1 | N >= 0
 inline const std::string
