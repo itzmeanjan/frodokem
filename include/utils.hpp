@@ -52,6 +52,30 @@ pke_cipher_text_len(const size_t n,
   return c1 + c2;
 }
 
+// Compile-time computable byte length of Frodo KEM public key.
+constexpr size_t
+kem_pub_key_len(const size_t n,
+                const size_t n_bar,
+                const size_t len_seed_A,
+                const uint32_t Q)
+{
+  return pke_pub_key_len(n, n_bar, len_seed_A, Q);
+}
+
+// Compile-time computable byte length of Frodo KEM secret key.
+constexpr size_t
+kem_sec_key_len(const size_t n,
+                const size_t n_bar,
+                const size_t len_s,
+                const size_t len_seed_A,
+                const size_t len_pkh,
+                const uint32_t Q)
+{
+  const size_t bit_len = len_s + len_seed_A + 2 * log2(Q) * n * n_bar + len_pkh;
+  const size_t byte_len = (bit_len + 7) / 8;
+  return byte_len;
+}
+
 // Given a bytearray of length N, this function converts it to human readable
 // hex string of length N << 1 | N >= 0
 inline const std::string
