@@ -155,10 +155,10 @@ template<const size_t n,
          const uint32_t q,
          const size_t b>
 inline void
-encapsulate(std::span<const uint8_t, (len_μ + 7) / 8> μ,
-            std::span<const uint8_t, kem_pub_key_len(n, n̄, lseed_A, q)> pkey,
-            std::span<uint8_t, kem_cipher_text_len(n, m̄, n̄, q)> enc,
-            std::array<uint8_t, (len_ss + 7) / 8> ss)
+encaps(std::span<const uint8_t, (len_μ + 7) / 8> μ,
+       std::span<const uint8_t, kem_pub_key_len(n, n̄, lseed_A, q)> pkey,
+       std::span<uint8_t, kem_cipher_text_len(n, m̄, n̄, q)> enc,
+       std::array<uint8_t, (len_ss + 7) / 8> ss)
 {
   std::array<uint8_t, (len_pkh + 7) / 8> pkh{};
 
