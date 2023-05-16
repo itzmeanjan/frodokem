@@ -83,9 +83,7 @@ kem_cipher_text_len(const size_t n,
                     const size_t n_bar,
                     const uint32_t Q)
 {
-  const size_t c1 = (m_bar * n * log2(Q) + 7) / 8;
-  const size_t c2 = (m_bar * n_bar * log2(Q) + 7) / 8;
-  return c1 + c2;
+  return pke_cipher_text_len(n, m_bar, n_bar, Q);
 }
 
 // Given a bytearray of length N, this function converts it to human readable
