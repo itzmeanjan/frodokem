@@ -53,9 +53,21 @@ inline void
 encaps(std::span<const uint8_t, (lμ + 7) / 8> μ,
        std::span<const uint8_t, PUB_KEY_LEN> pkey,
        std::span<uint8_t, CIPHER_LEN> enc,
-       std::array<uint8_t, (lss + 7) / 8> ss)
+       std::span<uint8_t, (lss + 7) / 8> ss)
 {
   kem::encaps<n, m̄, n̄, lA, lSE, lss, lk, lμ, lpkh, lχ, Q, B>(μ, pkey, enc, ss);
+}
+
+// Given Frodo-976 KEM secret key, which is associated with the public key,
+// using which the cipher text was computed and the cipher text as input, this
+// routine can be used for decrypting the cipher text, recovering 24 -bytes
+// shared secret.
+inline void
+decaps(std::span<const uint8_t, SEC_KEY_LEN> skey,
+       std::span<const uint8_t, CIPHER_LEN> enc,
+       std::span<uint8_t, (lss + 7) / 8> ss)
+{
+  kem::decaps<n, m̄, n̄, lA, lSE, ls, lss, lk, lμ, lpkh, lχ, Q, B>(skey, enc, ss);
 }
 
 }
