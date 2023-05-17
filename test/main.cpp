@@ -46,5 +46,49 @@ main()
   test_frodo::test_pke<1344, 256, 8, 8, 128, 256, 16, 1u << 16, 4>();
   std::cout << "[test] Frodo Public Key Encryption\n";
 
+  test_frodo::test_kem<640,
+                       8,
+                       8,
+                       128,
+                       128,
+                       128,
+                       128,
+                       128,
+                       128,
+                       128,
+                       128,
+                       16,
+                       1u << 15,
+                       2>();
+  test_frodo::test_kem<976,
+                       8,
+                       8,
+                       128,
+                       192,
+                       192,
+                       128,
+                       192,
+                       192,
+                       192,
+                       192,
+                       16,
+                       1u << 16,
+                       3>();
+  test_frodo::test_kem<1344,
+                       8,
+                       8,
+                       128,
+                       256,
+                       256,
+                       128,
+                       256,
+                       256,
+                       256,
+                       256,
+                       16,
+                       1u << 16,
+                       4>();
+  std::cout << "[test] Frodo Key Encapsulation Mechanism\n";
+
   return 0;
 }
