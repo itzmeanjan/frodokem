@@ -134,18 +134,15 @@ public:
   }
 
   // Given two matrices A, B of same dimension, this routine can be used for
-  // constant-time equality test between A and B s.t. it returns truth value (
-  // i.e. value of type T having all of its bits set to 1 ) in case A == B or it
-  // returns false value ( = 0 value of type T ).
-  template<typename T>
-  inline constexpr T ct_equal(const matrix<rows, cols, Q>& rhs) const
-    requires(std::is_unsigned_v<T>)
+  // constant-time equality test between A and B s.t. it returns truth value ( =
+  // 0xffffffff ) in case A == B or it returns false value ( = 0x00 ).
+  inline constexpr uint32_t ct_equal(const matrix<rows, cols, Q>& rhs) const
   {
-    T res = static_cast<T>(-1);
+    uint32_t res = -1u;
 
     for (size_t i = 0; i < this->element_count(); i++) {
-      res &= subtle::ct_eq<uint32_t, T>(this->elements[i].get_value(),
-                                        rhs.elements[i].get_value());
+      res &= subtle::ct_eq<uint32_t, uint32_t>(this->elements[i].get_value(),
+                                               rhs.elements[i].get_value());
     }
 
     return res;

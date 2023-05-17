@@ -9,6 +9,7 @@
 #include "utils.hpp"
 #include "zq.hpp"
 #include <array>
+#include <cstdint>
 #include <cstring>
 #include <span>
 
@@ -373,9 +374,9 @@ decaps(std::span<const uint8_t,
 
   // Constant-time implementation of step 16
   // --- begins ---
-  const auto br0 = B_prime.template ct_equal<uint32_t>(B_dprime);
-  const auto br1 = C.template ct_equal<uint32_t>(C_prime);
-  const auto br = br0 & br1;
+  const uint32_t br0 = B_prime.template ct_equal(B_dprime);
+  const uint32_t br1 = C.template ct_equal(C_prime);
+  const uint32_t br = br0 & br1;
 
   static_assert(len_k == len_s,
                 "See step 16 of algorithm 14 and table 4 of specification !");
