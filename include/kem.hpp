@@ -9,7 +9,6 @@
 #include "utils.hpp"
 #include "zq.hpp"
 #include <array>
-#include <cstdint>
 #include <cstring>
 #include <span>
 
@@ -309,7 +308,7 @@ decaps(std::span<const uint8_t,
 
   // = pkh
   constexpr size_t soff3 = soff2 + skey3.size();
-  auto skey4 = skey.template subspan<soff3, (len_pkh + 7) / 8>();
+  auto skey4 = skey.template subspan<soff3, skey.size() - soff3>();
 
   auto M = C - B_prime * S;
 
@@ -338,7 +337,7 @@ decaps(std::span<const uint8_t,
   std::array<uint8_t, ((2 * m̄ * n + m̄ * n̄) * len_χ + 7) / 8> dig{};
 
   buf[0] = 0x96;
-  std::memcpy(buf.data() + 1, rand_bytes.data(), (lseed_SE + 7) / 8);
+  std::memcpy(buf.data() + 1, rand_bytes.data(), buf.size() - 1);
 
   if constexpr (n == 640) {
     shake128::shake128 hasher;
@@ -370,7 +369,9 @@ decaps(std::span<const uint8_t,
 
   auto B = packing::unpack<n, n̄, q>(skey2);
   auto V = S_prime * B + E_dprime;
-  auto C_prime = V + M;
+
+  auto M_prime = encoding::encode<m̄, n̄, q, b>(μ_prime);
+  auto C_prime = V + M_prime;
 
   // Constant-time implementation of step 16
   // --- begins ---
