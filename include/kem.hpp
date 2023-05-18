@@ -375,8 +375,8 @@ decaps(std::span<const uint8_t,
 
   // Constant-time implementation of step 16
   // --- begins ---
-  const uint32_t br0 = B_prime.template ct_equal(B_dprime);
-  const uint32_t br1 = C.template ct_equal(C_prime);
+  const uint32_t br0 = B_prime.ct_equal(B_dprime);
+  const uint32_t br1 = C.ct_equal(C_prime);
   const uint32_t br = br0 & br1;
 
   static_assert(len_k == len_s,
