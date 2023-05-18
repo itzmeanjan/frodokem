@@ -1,9 +1,12 @@
 #pragma once
 #include "prng.hpp"
+#include "subtle.hpp"
 #include "zq.hpp"
 #include <algorithm>
 #include <array>
+#include <cstdint>
 #include <span>
+#include <type_traits>
 
 // Operations on Matrices over Zq
 namespace matrix {
@@ -128,6 +131,21 @@ public:
   inline constexpr bool operator==(const matrix<rows, cols, Q>& rhs) const
   {
     return std::ranges::equal(this->elements, rhs.elements);
+  }
+
+  // Given two matrices A, B of same dimension, this routine can be used for
+  // constant-time equality test between A and B s.t. it returns truth value ( =
+  // 0xffffffff ) in case A == B or it returns false value ( = 0x00 ).
+  inline constexpr uint32_t ct_equal(const matrix<rows, cols, Q>& rhs) const
+  {
+    uint32_t res = -1u;
+
+    for (size_t i = 0; i < this->element_count(); i++) {
+      res &= subtle::ct_eq<uint32_t, uint32_t>(this->elements[i].get_value(),
+                                               rhs.elements[i].get_value());
+    }
+
+    return res;
   }
 
   // Given a seed of length len_seed_A -bits, this routine can be used for
