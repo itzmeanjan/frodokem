@@ -1,9 +1,13 @@
 #pragma once
+#include <array>
 #include <bit>
+#include <cassert>
+#include <charconv>
 #include <cstddef>
 #include <cstdint>
 #include <iomanip>
 #include <sstream>
+#include <string_view>
 #include <type_traits>
 
 // Some utility functions, required for FrodoKEM
@@ -99,6 +103,32 @@ to_hex(const uint8_t* const bytes, const size_t len)
   }
 
   return ss.str();
+}
+
+// Given a hex encoded string of length 2*L, this routine can be used for
+// parsing it as a byte array of length L.
+template<const size_t L>
+inline std::array<uint8_t, L>
+from_hex(std::string_view bytes)
+{
+  const size_t blen = bytes.length();
+
+  assert(blen % 2 == 0);
+  assert(blen / 2 == L);
+
+  std::array<uint8_t, L> res{};
+
+  for (size_t i = 0; i < L; i++) {
+    const size_t off = i * 2;
+
+    uint8_t byte = 0;
+    auto sstr = bytes.substr(off, 2);
+    std::from_chars(sstr.data(), sstr.data() + 2, byte, 16);
+
+    res[i] = byte;
+  }
+
+  return res;
 }
 
 }
