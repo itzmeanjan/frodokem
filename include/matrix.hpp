@@ -197,6 +197,44 @@ public:
 
     return mat;
   }
+
+  // Given a matrix M of dimension m x n, this routine can be used for
+  // serializing each of its elements as two little-endian bytes and
+  // concatenating them in order to compute a byte array of length m * n * 2.
+  inline void write_as_le_bytes(std::span<uint8_t, rows * cols * 2> bytes) const
+  {
+    for (size_t i = 0; i < this->element_count(); i++) {
+      const size_t boff = i * 2;
+
+      const auto word = static_cast<uint16_t>(this->elements[i].get_value());
+      bytes[boff + 0] = (word >> 0) & 0xff;
+      bytes[boff + 1] = (word >> 8) & 0xff;
+    }
+  }
+
+  // Given a byte array of length m * n * 2, this routine can be used for
+  // deserializing it as a matrix of dimension m x n s.t. each matrix element is
+  // computed by interpreting two consecutive bytes in little-endian order.
+  inline static matrix<rows, cols, Q> read_from_le_bytes(
+    std::span<const uint8_t, rows * cols * 2> bytes)
+  {
+    constexpr size_t blen = bytes.size();
+    matrix<rows, cols, Q> res{};
+
+    size_t boff = 0;
+    size_t moff = 0;
+
+    while (boff < blen) {
+      const uint16_t word = (static_cast<uint16_t>(bytes[boff + 1]) << 8) |
+                            (static_cast<uint16_t>(bytes[boff + 0]) << 0);
+      res[moff] = zq::zq_t<Q>(static_cast<uint32_t>(word));
+
+      boff += 2;
+      moff += 1;
+    }
+
+    return res;
+  }
 };
 
 }
