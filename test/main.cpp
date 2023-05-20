@@ -90,5 +90,10 @@ main()
                        4>();
   std::cout << "[test] Frodo Key Encapsulation Mechanism\n";
 
+  test_frodo::test_frodo640_kem_kat();
+  test_frodo::test_frodo976_kem_kat();
+  test_frodo::test_frodo1344_kem_kat();
+  std::cout << "[test] Frodo KEM Known Answer Tests\n";
+
   return 0;
 }
