@@ -24,7 +24,7 @@ constexpr size_t lχ = 16;    // = len_χ
 // = 9616 -bytes public key
 constexpr auto PUB_KEY_LEN = kem::kem_pub_key_len(n, n̄, lA, Q);
 
-// = 19248 -bytes secret key
+// = 19888 -bytes secret key
 constexpr auto SEC_KEY_LEN = kem::kem_sec_key_len(n, n̄, ls, lA, lpkh, Q);
 
 // = 9720 -bytes cipher text
