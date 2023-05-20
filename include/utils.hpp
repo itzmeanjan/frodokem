@@ -75,9 +75,12 @@ kem_sec_key_len(const size_t n,
                 const size_t len_pkh,
                 const uint32_t Q)
 {
-  const size_t bit_len = len_s + len_seed_A + 2 * log2(Q) * n * n_bar + len_pkh;
-  const size_t byte_len = (bit_len + 7) / 8;
-  return byte_len;
+  const size_t t0 = len_s / 8;
+  const size_t t1 = kem_pub_key_len(n, n_bar, len_seed_A, Q);
+  const size_t t2 = n * n_bar * 2;
+  const size_t t3 = len_pkh / 8;
+
+  return t0 + t1 + t2 + t3;
 }
 
 // Compile-time computable byte length of Frodo KEM cipher text.
