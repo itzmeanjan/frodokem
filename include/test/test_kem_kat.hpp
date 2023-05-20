@@ -27,7 +27,7 @@ test_frodo640_kem_kat()
   const std::string kat_file = "./kats/FrodoKEM640_KAT.txt";
   std::fstream file(kat_file);
 
-  while (file.is_open()) {
+  while (true) {
     std::string s;
 
     if (!std::getline(file, s).eof()) {
@@ -59,9 +59,9 @@ test_frodo640_kem_kat()
       auto __z = _z.substr(_z.find("="sv) + 2, _z.size());
       auto ___z = utils::from_hex<16>(__z);
 
-      // auto _pkey = std::string_view(pkey);
-      // auto __pkey = _pkey.substr(_pkey.find("="sv) + 2, _pkey.size());
-      // auto ___pkey = utils::from_hex<frodo640_kem::PUB_KEY_LEN>(__pkey);
+      auto _pkey = std::string_view(pkey);
+      auto __pkey = _pkey.substr(_pkey.find("="sv) + 2, _pkey.size());
+      auto ___pkey = utils::from_hex<frodo640_kem::PUB_KEY_LEN>(__pkey);
 
       // auto _skey = std::string_view(skey);
       // auto __skey = _skey.substr(_skey.find("="sv) + 2, _skey.size());
@@ -90,6 +90,7 @@ test_frodo640_kem_kat()
       frodo640_kem::encaps(___μ, pubkey, ctxt, shrd_sec0);
       frodo640_kem::decaps(seckey, ctxt, shrd_sec1);
 
+      assert(std::ranges::equal(___pkey, pubkey));
       assert(std::ranges::equal(___ct, ctxt));
       assert(std::ranges::equal(___ss, shrd_sec0));
       assert(std::ranges::equal(shrd_sec0, shrd_sec1));
