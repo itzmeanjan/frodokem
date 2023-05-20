@@ -128,9 +128,8 @@ keygen(
   std::memcpy(skey1.data(), pkey.data(), skey1.size());
 
   constexpr size_t skoff1 = skoff0 + skey1.size();
-  constexpr size_t packed_s_len = (n̄ * n * log2(q) + 7) / 8;
-  auto skey2 = skey.template subspan<skoff1, packed_s_len>();
-  packing::pack(S_transposed, skey2);
+  auto skey2 = skey.template subspan<skoff1, n̄ * n * 2>();
+  S_transposed.write_as_le_bytes(skey2);
 
   constexpr size_t skoff2 = skoff1 + skey2.size();
   auto skey3 = skey.template subspan<skoff2, pkh.size()>();
@@ -302,8 +301,8 @@ decaps(std::span<const uint8_t,
 
   // = S_transposed
   constexpr size_t soff2 = soff1 + skey2.size();
-  auto skey3 = skey.template subspan<soff2, (n̄ * n * log2(q) + 7) / 8>();
-  auto S_transposed = packing::unpack<n̄, n, q>(skey3);
+  auto skey3 = skey.template subspan<soff2, n̄ * n * 2>();
+  auto S_transposed = matrix::matrix<n̄, n, q>::read_from_le_bytes(skey3);
   auto S = S_transposed.transpose();
 
   // = pkh
