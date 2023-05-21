@@ -18,7 +18,7 @@ namespace test_frodo {
 //
 // In other words, following test ensures that implementation of algorithm 1, 2
 // ( of FrodoKEM specification ) is correct for various parameters.
-template<const size_t m, const size_t n, const uint32_t Q, const size_t B>
+template<const size_t m, const size_t n, const size_t D, const size_t B>
 void
 test_matrix_encode_decode()
 {
@@ -31,8 +31,8 @@ test_matrix_encode_decode()
   prng::prng_t prng;
   prng.read(org_bytes.data(), byte_len);
 
-  auto encoded = encoding::encode<m, n, Q, B>(org_bytes);
-  encoding::decode<m, n, Q, B>(encoded, fin_bytes);
+  auto encoded = encoding::encode<m, n, D, B>(org_bytes);
+  encoding::decode<m, n, D, B>(encoded, fin_bytes);
 
   assert(std::ranges::equal(org_bytes, fin_bytes));
 }
