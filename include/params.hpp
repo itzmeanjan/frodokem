@@ -6,12 +6,11 @@
 namespace frodo_params {
 
 // Compile-time executable check for ensuring that FrodoKEM's parameter i.e.
-// integer modulus Q has correct value.
+// integer modulus Q ( = 2^D ) has correct value.
 constexpr bool
-check_q(const uint32_t q)
+check_d(const size_t d)
 {
-  return ((q & (q - 1)) == 0)  // q must be power of 2
-         && (q <= (1u << 16)); // and it must be <= 2^16
+  return d <= 16;
 }
 
 // Compile-time executable check for ensuring that FrodoKEM's parameter B only
