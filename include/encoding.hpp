@@ -12,16 +12,16 @@ namespace encoding {
 // integer k ∈ [0, 2^B), which is encoded as an element of Zq s.t. q = 2^D and B
 // <= D using `ec()` function, returning a matrix of dimension m x n over Zq,
 // following algorithm 1 of FrodoKEM specification.
-template<const size_t m, const size_t n, const uint32_t Q, const size_t B>
-inline constexpr matrix::matrix<m, n, Q>
+template<const size_t m, const size_t n, const size_t D, const size_t B>
+inline constexpr matrix::matrix<m, n, D>
 encode(std::span<const uint8_t, (m * n * B + 7) / 8> arr)
-  requires((m == n) && frodo_params::check_q(Q) && frodo_params::check_b(B))
+  requires((m == n) && frodo_params::check_b(B) && (B <= D))
 {
   // alias, so that I've to type lesser !
-  using Zq = zq::zq_t<Q>;
+  using Zq = zq::zq_t<D>;
 
   constexpr size_t byte_len = arr.size();
-  matrix::matrix<m, n, Q> mat{};
+  matrix::matrix<m, n, D> mat{};
 
   if constexpr (B == 2) {
     constexpr uint8_t mask = 0b11;
@@ -84,14 +84,15 @@ encode(std::span<const uint8_t, (m * n * B + 7) / 8> arr)
 // the B most significant bits of each matrix entry, by applying `dc()`
 // function, returning a byte array of length (m x n x B + 7)/ 8 -bytes,
 // following algorithm 2 of FrodoKEM specification.
-template<const size_t m, const size_t n, const uint32_t Q, const size_t B>
+template<const size_t m, const size_t n, const size_t D, const size_t B>
 inline constexpr void
-decode(const matrix::matrix<m, n, Q>& mat,
+decode(const matrix::matrix<m, n, D>& mat,
        std::span<uint8_t, (m * n * B + 7) / 8> arr)
-  requires((m == n) && frodo_params::check_q(Q) && frodo_params::check_b(B))
+  requires((m == n) && frodo_params::check_d(D) && frodo_params::check_b(B) &&
+           (B <= D))
 {
   if constexpr (B == 2) {
-    constexpr uint32_t mask = 0b11u;
+    constexpr uint16_t mask = 0b11;
 
     size_t moff = 0;
     size_t boff = 0;
@@ -106,9 +107,9 @@ decode(const matrix::matrix<m, n, Q>& mat,
       boff += 1;
     }
   } else if constexpr (B == 3) {
-    constexpr uint32_t mask3 = 0b111u;
-    constexpr uint32_t mask2 = 0b11u;
-    constexpr uint32_t mask1 = 0b1u;
+    constexpr uint16_t mask3 = 0b111;
+    constexpr uint16_t mask2 = mask3 >> 1;
+    constexpr uint16_t mask1 = mask2 >> 1;
 
     size_t moff = 0;
     size_t boff = 0;
@@ -135,7 +136,7 @@ decode(const matrix::matrix<m, n, Q>& mat,
       boff += 3;
     }
   } else if constexpr (B == 4) {
-    constexpr uint32_t mask = 0b1111u;
+    constexpr uint16_t mask = 0b1111;
 
     size_t moff = 0;
     size_t boff = 0;

@@ -34,9 +34,9 @@ frodo640_kem_keygen(benchmark::State& state)
 
   prng::prng_t prng;
 
-  prng.read(_s.data(), _s.size());
-  prng.read(_seedSE.data(), _seedSE.size());
-  prng.read(_z.data(), _z.size());
+  prng.read(_s);
+  prng.read(_seedSE);
+  prng.read(_z);
 
   for (auto _ : state) {
     frodo640_kem::keygen(_s, _seedSE, _z, _pkey, _skey);
@@ -82,13 +82,13 @@ frodo640_kem_encaps(benchmark::State& state)
 
   prng::prng_t prng;
 
-  prng.read(_s.data(), _s.size());
-  prng.read(_seedSE.data(), _seedSE.size());
-  prng.read(_z.data(), _z.size());
+  prng.read(_s);
+  prng.read(_seedSE);
+  prng.read(_z);
 
   frodo640_kem::keygen(_s, _seedSE, _z, _pkey, _skey);
 
-  prng.read(_μ.data(), _μ.size());
+  prng.read(_μ);
 
   for (auto _ : state) {
     frodo640_kem::encaps(_μ, _pkey, _cipher, _ss);
@@ -135,10 +135,10 @@ frodo640_kem_decaps(benchmark::State& state)
 
   prng::prng_t prng;
 
-  prng.read(_s.data(), _s.size());
-  prng.read(_seedSE.data(), _seedSE.size());
-  prng.read(_z.data(), _z.size());
-  prng.read(_μ.data(), _μ.size());
+  prng.read(_s);
+  prng.read(_seedSE);
+  prng.read(_z);
+  prng.read(_μ);
 
   frodo640_kem::keygen(_s, _seedSE, _z, _pkey, _skey);
   frodo640_kem::encaps(_μ, _pkey, _cipher, _ss0);
@@ -180,9 +180,9 @@ frodo976_kem_keygen(benchmark::State& state)
 
   prng::prng_t prng;
 
-  prng.read(_s.data(), _s.size());
-  prng.read(_seedSE.data(), _seedSE.size());
-  prng.read(_z.data(), _z.size());
+  prng.read(_s);
+  prng.read(_seedSE);
+  prng.read(_z);
 
   for (auto _ : state) {
     frodo976_kem::keygen(_s, _seedSE, _z, _pkey, _skey);
@@ -228,13 +228,13 @@ frodo976_kem_encaps(benchmark::State& state)
 
   prng::prng_t prng;
 
-  prng.read(_s.data(), _s.size());
-  prng.read(_seedSE.data(), _seedSE.size());
-  prng.read(_z.data(), _z.size());
+  prng.read(_s);
+  prng.read(_seedSE);
+  prng.read(_z);
 
   frodo976_kem::keygen(_s, _seedSE, _z, _pkey, _skey);
 
-  prng.read(_μ.data(), _μ.size());
+  prng.read(_μ);
 
   for (auto _ : state) {
     frodo976_kem::encaps(_μ, _pkey, _cipher, _ss);
@@ -281,10 +281,10 @@ frodo976_kem_decaps(benchmark::State& state)
 
   prng::prng_t prng;
 
-  prng.read(_s.data(), _s.size());
-  prng.read(_seedSE.data(), _seedSE.size());
-  prng.read(_z.data(), _z.size());
-  prng.read(_μ.data(), _μ.size());
+  prng.read(_s);
+  prng.read(_seedSE);
+  prng.read(_z);
+  prng.read(_μ);
 
   frodo976_kem::keygen(_s, _seedSE, _z, _pkey, _skey);
   frodo976_kem::encaps(_μ, _pkey, _cipher, _ss0);
@@ -326,9 +326,9 @@ frodo1344_kem_keygen(benchmark::State& state)
 
   prng::prng_t prng;
 
-  prng.read(_s.data(), _s.size());
-  prng.read(_seedSE.data(), _seedSE.size());
-  prng.read(_z.data(), _z.size());
+  prng.read(_s);
+  prng.read(_seedSE);
+  prng.read(_z);
 
   for (auto _ : state) {
     frodo1344_kem::keygen(_s, _seedSE, _z, _pkey, _skey);
@@ -374,13 +374,13 @@ frodo1344_kem_encaps(benchmark::State& state)
 
   prng::prng_t prng;
 
-  prng.read(_s.data(), _s.size());
-  prng.read(_seedSE.data(), _seedSE.size());
-  prng.read(_z.data(), _z.size());
+  prng.read(_s);
+  prng.read(_seedSE);
+  prng.read(_z);
 
   frodo1344_kem::keygen(_s, _seedSE, _z, _pkey, _skey);
 
-  prng.read(_μ.data(), _μ.size());
+  prng.read(_μ);
 
   for (auto _ : state) {
     frodo1344_kem::encaps(_μ, _pkey, _cipher, _ss);
@@ -427,10 +427,10 @@ frodo1344_kem_decaps(benchmark::State& state)
 
   prng::prng_t prng;
 
-  prng.read(_s.data(), _s.size());
-  prng.read(_seedSE.data(), _seedSE.size());
-  prng.read(_z.data(), _z.size());
-  prng.read(_μ.data(), _μ.size());
+  prng.read(_s);
+  prng.read(_seedSE);
+  prng.read(_z);
+  prng.read(_μ);
 
   frodo1344_kem::keygen(_s, _seedSE, _z, _pkey, _skey);
   frodo1344_kem::encaps(_μ, _pkey, _cipher, _ss0);

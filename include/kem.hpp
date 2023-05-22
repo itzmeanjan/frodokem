@@ -2,6 +2,7 @@
 #include "encoding.hpp"
 #include "matrix.hpp"
 #include "packing.hpp"
+#include "params.hpp"
 #include "sampling.hpp"
 #include "shake128.hpp"
 #include "shake256.hpp"
@@ -34,15 +35,25 @@ template<const size_t n,
          const size_t len_z,
          const size_t len_pkh,
          const size_t len_χ,
-         const uint32_t q,
+         const size_t d,
          const size_t b>
 inline void
 keygen(
   std::span<const uint8_t, (len_s + 7) / 8> s,
   std::span<const uint8_t, (len_seed_SE + 7) / 8> seedSE,
   std::span<const uint8_t, (len_z + 7) / 8> z,
-  std::span<uint8_t, kem_pub_key_len(n, n̄, len_seed_A, q)> pkey,
-  std::span<uint8_t, kem_sec_key_len(n, n̄, len_s, len_seed_A, len_pkh, q)> skey)
+  std::span<uint8_t, kem_pub_key_len(n, n̄, len_seed_A, d)> pkey,
+  std::span<uint8_t, kem_sec_key_len(n, n̄, len_s, len_seed_A, len_pkh, d)> skey)
+  requires(frodo_params::check_frodo_keygen_params(n,
+                                                   n̄,
+                                                   len_seed_A,
+                                                   len_seed_SE,
+                                                   len_s,
+                                                   len_z,
+                                                   len_pkh,
+                                                   len_χ,
+                                                   d,
+                                                   b))
 {
   std::array<uint8_t, (len_seed_A + 7) / 8> seedA{};
 
@@ -58,7 +69,7 @@ keygen(
     hasher.read(seedA.data(), seedA.size());
   }
 
-  auto A = matrix::matrix<n, n, q>::template generate<len_seed_A>(seedA);
+  auto A = matrix::matrix<n, n, d>::template generate<len_seed_A>(seedA);
 
   std::array<uint8_t, 1 + seedSE.size()> buf{};
   std::array<uint8_t, (2 * n * n̄ * len_χ + 7) / 8> dig{};
@@ -82,15 +93,15 @@ keygen(
 
   constexpr size_t doff = (n * n̄ * len_χ + 7) / 8;
   auto _dig0 = _dig.template subspan<0, doff>();
-  auto S_transposed = sampling::sample_matrix<n, n̄, n, len_χ, q, b>(_dig0);
+  auto S_transposed = sampling::sample_matrix<n, n̄, n, len_χ, d>(_dig0);
 
   auto _dig1 = _dig.template subspan<doff, _dig.size() - doff>();
-  auto E = sampling::sample_matrix<n, n, n̄, len_χ, q, b>(_dig1);
+  auto E = sampling::sample_matrix<n, n, n̄, len_χ, d>(_dig1);
 
   auto S = S_transposed.transpose();
   auto B = A * S + E;
 
-  std::array<uint8_t, (n * n̄ * log2(q) + 7) / 8> packed_b{};
+  std::array<uint8_t, (n * n̄ * d + 7) / 8> packed_b{};
   packing::pack(B, packed_b);
 
   std::array<uint8_t, (len_pkh + 7) / 8> pkh{};
@@ -128,9 +139,8 @@ keygen(
   std::memcpy(skey1.data(), pkey.data(), skey1.size());
 
   constexpr size_t skoff1 = skoff0 + skey1.size();
-  constexpr size_t packed_s_len = (n̄ * n * log2(q) + 7) / 8;
-  auto skey2 = skey.template subspan<skoff1, packed_s_len>();
-  packing::pack(S_transposed, skey2);
+  auto skey2 = skey.template subspan<skoff1, n̄ * n * 2>();
+  S_transposed.write_as_le_bytes(skey2);
 
   constexpr size_t skoff2 = skoff1 + skey2.size();
   auto skey3 = skey.template subspan<skoff2, pkh.size()>();
@@ -152,13 +162,25 @@ template<const size_t n,
          const size_t len_μ,
          const size_t len_pkh,
          const size_t len_χ,
-         const uint32_t q,
+         const size_t d,
          const size_t b>
 inline void
 encaps(std::span<const uint8_t, (len_μ + 7) / 8> μ,
-       std::span<const uint8_t, kem_pub_key_len(n, n̄, lseed_A, q)> pkey,
-       std::span<uint8_t, kem_cipher_text_len(n, m̄, n̄, q)> enc,
+       std::span<const uint8_t, kem_pub_key_len(n, n̄, lseed_A, d)> pkey,
+       std::span<uint8_t, kem_cipher_text_len(n, m̄, n̄, d)> enc,
        std::span<uint8_t, (len_ss + 7) / 8> ss)
+  requires(frodo_params::check_frodo_encaps_params(n,
+                                                   m̄,
+                                                   n̄,
+                                                   lseed_A,
+                                                   lseed_SE,
+                                                   len_ss,
+                                                   len_k,
+                                                   len_μ,
+                                                   len_pkh,
+                                                   len_χ,
+                                                   d,
+                                                   b))
 {
   std::array<uint8_t, (len_pkh + 7) / 8> pkh{};
 
@@ -214,30 +236,30 @@ encaps(std::span<const uint8_t, (len_μ + 7) / 8> μ,
 
   constexpr size_t doff0 = (m̄ * n * len_χ + 7) / 8;
   auto _dig0 = _dig.template subspan<0, doff0>();
-  auto S_prime = sampling::sample_matrix<n, m̄, n, len_χ, q, b>(_dig0);
+  auto S_prime = sampling::sample_matrix<n, m̄, n, len_χ, d>(_dig0);
 
   constexpr size_t doff1 = doff0 + (m̄ * n * len_χ + 7) / 8;
   auto _dig1 = _dig.template subspan<doff0, doff1 - doff0>();
-  auto E_prime = sampling::sample_matrix<n, m̄, n, len_χ, q, b>(_dig1);
+  auto E_prime = sampling::sample_matrix<n, m̄, n, len_χ, d>(_dig1);
 
   auto pkey0 = pkey.template subspan<0, (lseed_A + 7) / 8>();
-  auto A = matrix::matrix<n, n, q>::template generate<lseed_A>(pkey0);
+  auto A = matrix::matrix<n, n, d>::template generate<lseed_A>(pkey0);
 
   auto B_prime = S_prime * A + E_prime;
 
   auto _dig2 = _dig.template subspan<doff1, _dig.size() - doff1>();
-  auto E_dprime = sampling::sample_matrix<n, m̄, n̄, len_χ, q, b>(_dig2);
+  auto E_dprime = sampling::sample_matrix<n, m̄, n̄, len_χ, d>(_dig2);
 
   constexpr size_t pkoff = pkey0.size();
   auto pkey1 = pkey.template subspan<pkoff, pkey.size() - pkoff>();
-  auto B = packing::unpack<n, n̄, q>(pkey1);
+  auto B = packing::unpack<n, n̄, d>(pkey1);
 
   auto V = S_prime * B + E_dprime;
 
-  auto M = encoding::encode<m̄, n̄, q, b>(μ);
+  auto M = encoding::encode<m̄, n̄, d, b>(μ);
   auto C = V + M;
 
-  auto enc0 = enc.template subspan<0, (m̄ * n * log2(q) + 7) / 8>();
+  auto enc0 = enc.template subspan<0, (m̄ * n * d + 7) / 8>();
   packing::pack(B_prime, enc0);
 
   auto enc1 = enc.template subspan<enc0.size(), enc.size() - enc0.size()>();
@@ -275,19 +297,32 @@ template<const size_t n,
          const size_t len_μ,
          const size_t len_pkh,
          const size_t len_χ,
-         const uint32_t q,
+         const size_t d,
          const size_t b>
 inline void
 decaps(std::span<const uint8_t,
-                 kem_sec_key_len(n, n̄, len_s, lseed_A, len_pkh, q)> skey,
-       std::span<const uint8_t, kem_cipher_text_len(n, m̄, n̄, q)> enc,
+                 kem_sec_key_len(n, n̄, len_s, lseed_A, len_pkh, d)> skey,
+       std::span<const uint8_t, kem_cipher_text_len(n, m̄, n̄, d)> enc,
        std::span<uint8_t, (len_ss + 7) / 8> ss)
+  requires(frodo_params::check_frodo_decaps_params(n,
+                                                   m̄,
+                                                   n̄,
+                                                   lseed_A,
+                                                   lseed_SE,
+                                                   len_s,
+                                                   len_ss,
+                                                   len_k,
+                                                   len_μ,
+                                                   len_pkh,
+                                                   len_χ,
+                                                   d,
+                                                   b))
 {
-  auto enc0 = enc.template subspan<0, (m̄ * n * log2(q) + 7) / 8>();
-  auto B_prime = packing::unpack<m̄, n, q>(enc0);
+  auto enc0 = enc.template subspan<0, (m̄ * n * d + 7) / 8>();
+  auto B_prime = packing::unpack<m̄, n, d>(enc0);
 
   auto enc1 = enc.template subspan<enc0.size(), enc.size() - enc0.size()>();
-  auto C = packing::unpack<m̄, n̄, q>(enc1);
+  auto C = packing::unpack<m̄, n̄, d>(enc1);
 
   // = s
   auto skey0 = skey.template subspan<0, (len_s + 7) / 8>();
@@ -298,12 +333,12 @@ decaps(std::span<const uint8_t,
 
   // = b
   constexpr size_t soff1 = soff0 + skey1.size();
-  auto skey2 = skey.template subspan<soff1, (n * n̄ * log2(q) + 7) / 8>();
+  auto skey2 = skey.template subspan<soff1, (n * n̄ * d + 7) / 8>();
 
   // = S_transposed
   constexpr size_t soff2 = soff1 + skey2.size();
-  auto skey3 = skey.template subspan<soff2, (n̄ * n * log2(q) + 7) / 8>();
-  auto S_transposed = packing::unpack<n̄, n, q>(skey3);
+  auto skey3 = skey.template subspan<soff2, n̄ * n * 2>();
+  auto S_transposed = matrix::matrix<n̄, n, d>::read_from_le_bytes(skey3);
   auto S = S_transposed.transpose();
 
   // = pkh
@@ -313,7 +348,7 @@ decaps(std::span<const uint8_t,
   auto M = C - B_prime * S;
 
   std::array<uint8_t, (len_μ + 7) / 8> μ_prime{};
-  encoding::decode<m̄, n̄, q, b>(M, μ_prime);
+  encoding::decode<m̄, n̄, d, b>(M, μ_prime);
 
   std::array<uint8_t, (lseed_SE + len_k + 7) / 8> rand_bytes{};
 
@@ -355,22 +390,22 @@ decaps(std::span<const uint8_t,
 
   constexpr size_t doff0 = (m̄ * n * len_χ + 7) / 8;
   auto _dig0 = _dig.template subspan<0, doff0>();
-  auto S_prime = sampling::sample_matrix<n, m̄, n, len_χ, q, b>(_dig0);
+  auto S_prime = sampling::sample_matrix<n, m̄, n, len_χ, d>(_dig0);
 
   constexpr size_t doff1 = doff0 + (m̄ * n * len_χ + 7) / 8;
   auto _dig1 = _dig.template subspan<doff0, doff1 - doff0>();
-  auto E_prime = sampling::sample_matrix<n, m̄, n, len_χ, q, b>(_dig1);
+  auto E_prime = sampling::sample_matrix<n, m̄, n, len_χ, d>(_dig1);
 
-  auto A = matrix::matrix<n, n, q>::template generate<lseed_A>(skey1);
+  auto A = matrix::matrix<n, n, d>::template generate<lseed_A>(skey1);
   auto B_dprime = S_prime * A + E_prime;
 
   auto _dig2 = _dig.template subspan<doff1, _dig.size() - doff1>();
-  auto E_dprime = sampling::sample_matrix<n, m̄, n̄, len_χ, q, b>(_dig2);
+  auto E_dprime = sampling::sample_matrix<n, m̄, n̄, len_χ, d>(_dig2);
 
-  auto B = packing::unpack<n, n̄, q>(skey2);
+  auto B = packing::unpack<n, n̄, d>(skey2);
   auto V = S_prime * B + E_dprime;
 
-  auto M_prime = encoding::encode<m̄, n̄, q, b>(μ_prime);
+  auto M_prime = encoding::encode<m̄, n̄, d, b>(μ_prime);
   auto C_prime = V + M_prime;
 
   // Constant-time implementation of step 16

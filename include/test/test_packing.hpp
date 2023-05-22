@@ -19,21 +19,20 @@ namespace test_frodo {
 //
 // In other words, following test ensures that algorithm 3, 4 ( of FrodoKEM
 // specification ) is correctly implemented.
-template<const size_t n1, const size_t n2, const uint32_t Q>
+template<const size_t n1, const size_t n2, const size_t D>
 void
 test_matrix_pack_unpack()
 {
-  constexpr size_t D = frodo_utils::log2(Q);
   constexpr size_t bit_len = n1 * n2 * D;
   constexpr size_t byte_len = (bit_len + 7) / 8;
 
   prng::prng_t prng;
 
-  matrix::matrix<n1, n2, Q> mat{};
+  auto mat = matrix::matrix<n1, n2, D>::random(prng);
   std::array<uint8_t, byte_len> packed{};
 
-  packing::pack<n1, n2, Q>(mat, packed);
-  auto unpacked = packing::unpack<n1, n2, Q>(packed);
+  packing::pack<n1, n2, D>(mat, packed);
+  auto unpacked = packing::unpack<n1, n2, D>(packed);
 
   assert(mat == unpacked);
 }

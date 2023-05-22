@@ -29,16 +29,16 @@ template<const size_t n,
          const size_t lμ,
          const size_t lpkh,
          const size_t lχ,
-         const uint32_t q,
+         const size_t d,
          const size_t b>
 void
 test_kem()
 {
   namespace utils = frodo_utils;
 
-  constexpr size_t pklen = utils::kem_pub_key_len(n, n̄, lA, q);
-  constexpr size_t sklen = utils::kem_sec_key_len(n, n̄, ls, lA, lpkh, q);
-  constexpr size_t ctlen = utils::kem_cipher_text_len(n, m̄, n̄, q);
+  constexpr size_t pklen = utils::kem_pub_key_len(n, n̄, lA, d);
+  constexpr size_t sklen = utils::kem_sec_key_len(n, n̄, ls, lA, lpkh, d);
+  constexpr size_t ctlen = utils::kem_cipher_text_len(n, m̄, n̄, d);
 
   std::vector<uint8_t> s(ls / 8, 0);
   std::vector<uint8_t> seedSE(lSE / 8, 0);
@@ -62,16 +62,16 @@ test_kem()
 
   prng::prng_t prng;
 
-  prng.read(_s.data(), _s.size());
-  prng.read(_seedSE.data(), _seedSE.size());
-  prng.read(_z.data(), _z.size());
-  prng.read(_μ.data(), _μ.size());
+  prng.read(_s);
+  prng.read(_seedSE);
+  prng.read(_z);
+  prng.read(_μ);
 
   using namespace kem;
 
-  keygen<n, n̄, lA, lSE, ls, lz, lpkh, lχ, q, b>(_s, _seedSE, _z, _pkey, _skey);
-  encaps<n, m̄, n̄, lA, lSE, lss, lk, lμ, lpkh, lχ, q, b>(_μ, _pkey, _enc, _ss0);
-  decaps<n, m̄, n̄, lA, lSE, ls, lss, lk, lμ, lpkh, lχ, q, b>(_skey, _enc, _ss1);
+  keygen<n, n̄, lA, lSE, ls, lz, lpkh, lχ, d, b>(_s, _seedSE, _z, _pkey, _skey);
+  encaps<n, m̄, n̄, lA, lSE, lss, lk, lμ, lpkh, lχ, d, b>(_μ, _pkey, _enc, _ss0);
+  decaps<n, m̄, n̄, lA, lSE, ls, lss, lk, lμ, lpkh, lχ, d, b>(_skey, _enc, _ss1);
 
   assert(std::ranges::equal(ss0, ss1));
 }
