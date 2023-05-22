@@ -85,7 +85,7 @@ sample(const uint16_t r)
   // Inspired from
   // https://github.com/microsoft/PQCrypto-LWEKE/blob/d7037ccb/src/noise.c#L26-L27
   const uint16_t r0 = r & 0b1;
-  return zq::zq_t<B>(((-r0) ^ e) + r0);
+  return zq::zq_t<D>(((-r0) ^ e) + r0);
 }
 
 // Given a bit string of length n1 x n2 x len_χ -bits ( r ) and a CDF table Tχ,
