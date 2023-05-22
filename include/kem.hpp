@@ -93,10 +93,10 @@ keygen(
 
   constexpr size_t doff = (n * n̄ * len_χ + 7) / 8;
   auto _dig0 = _dig.template subspan<0, doff>();
-  auto S_transposed = sampling::sample_matrix<n, n̄, n, len_χ, d, b>(_dig0);
+  auto S_transposed = sampling::sample_matrix<n, n̄, n, len_χ, d>(_dig0);
 
   auto _dig1 = _dig.template subspan<doff, _dig.size() - doff>();
-  auto E = sampling::sample_matrix<n, n, n̄, len_χ, d, b>(_dig1);
+  auto E = sampling::sample_matrix<n, n, n̄, len_χ, d>(_dig1);
 
   auto S = S_transposed.transpose();
   auto B = A * S + E;
@@ -236,11 +236,11 @@ encaps(std::span<const uint8_t, (len_μ + 7) / 8> μ,
 
   constexpr size_t doff0 = (m̄ * n * len_χ + 7) / 8;
   auto _dig0 = _dig.template subspan<0, doff0>();
-  auto S_prime = sampling::sample_matrix<n, m̄, n, len_χ, d, b>(_dig0);
+  auto S_prime = sampling::sample_matrix<n, m̄, n, len_χ, d>(_dig0);
 
   constexpr size_t doff1 = doff0 + (m̄ * n * len_χ + 7) / 8;
   auto _dig1 = _dig.template subspan<doff0, doff1 - doff0>();
-  auto E_prime = sampling::sample_matrix<n, m̄, n, len_χ, d, b>(_dig1);
+  auto E_prime = sampling::sample_matrix<n, m̄, n, len_χ, d>(_dig1);
 
   auto pkey0 = pkey.template subspan<0, (lseed_A + 7) / 8>();
   auto A = matrix::matrix<n, n, d>::template generate<lseed_A>(pkey0);
@@ -248,7 +248,7 @@ encaps(std::span<const uint8_t, (len_μ + 7) / 8> μ,
   auto B_prime = S_prime * A + E_prime;
 
   auto _dig2 = _dig.template subspan<doff1, _dig.size() - doff1>();
-  auto E_dprime = sampling::sample_matrix<n, m̄, n̄, len_χ, d, b>(_dig2);
+  auto E_dprime = sampling::sample_matrix<n, m̄, n̄, len_χ, d>(_dig2);
 
   constexpr size_t pkoff = pkey0.size();
   auto pkey1 = pkey.template subspan<pkoff, pkey.size() - pkoff>();
@@ -390,17 +390,17 @@ decaps(std::span<const uint8_t,
 
   constexpr size_t doff0 = (m̄ * n * len_χ + 7) / 8;
   auto _dig0 = _dig.template subspan<0, doff0>();
-  auto S_prime = sampling::sample_matrix<n, m̄, n, len_χ, d, b>(_dig0);
+  auto S_prime = sampling::sample_matrix<n, m̄, n, len_χ, d>(_dig0);
 
   constexpr size_t doff1 = doff0 + (m̄ * n * len_χ + 7) / 8;
   auto _dig1 = _dig.template subspan<doff0, doff1 - doff0>();
-  auto E_prime = sampling::sample_matrix<n, m̄, n, len_χ, d, b>(_dig1);
+  auto E_prime = sampling::sample_matrix<n, m̄, n, len_χ, d>(_dig1);
 
   auto A = matrix::matrix<n, n, d>::template generate<lseed_A>(skey1);
   auto B_dprime = S_prime * A + E_prime;
 
   auto _dig2 = _dig.template subspan<doff1, _dig.size() - doff1>();
-  auto E_dprime = sampling::sample_matrix<n, m̄, n̄, len_χ, d, b>(_dig2);
+  auto E_dprime = sampling::sample_matrix<n, m̄, n̄, len_χ, d>(_dig2);
 
   auto B = packing::unpack<n, n̄, d>(skey2);
   auto V = S_prime * B + E_dprime;

@@ -64,15 +64,9 @@ constexpr auto Frodo1344_Tχ = compute_cdf(Frodo1344_χ);
 // compilers are free to optimize, so it can be better idea to inspect generated
 // assembly rather than just trusting that this implementation will always be
 // constant-time on all targets.
-template<const size_t len_χ,
-         const size_t D,
-         const size_t B,
-         const size_t L,
-         const std::array<uint16_t, L> Tχ>
+template<const size_t D, const size_t L, const std::array<uint16_t, L> Tχ>
 inline constexpr zq::zq_t<D>
 sample(const uint16_t r)
-  requires(frodo_params::check_len_χ(len_χ) && frodo_params::check_d(D) &&
-           frodo_params::check_b(B))
 {
   const uint16_t t = r >> 1;
   uint16_t e = 0;
@@ -98,10 +92,10 @@ template<const size_t n,
          const size_t n1,
          const size_t n2,
          const size_t len_χ,
-         const size_t D,
-         const size_t B>
+         const size_t D>
 inline constexpr matrix::matrix<n1, n2, D>
 sample_matrix(std::span<const uint8_t, (n1 * n2 * len_χ + 7) / 8> r)
+  requires(frodo_params::check_len_χ(len_χ))
 {
   matrix::matrix<n1, n2, D> e{};
 
@@ -113,11 +107,11 @@ sample_matrix(std::span<const uint8_t, (n1 * n2 * len_χ + 7) / 8> r)
                          (static_cast<uint16_t>(r[boff + 0]) << 0);
 
     if constexpr (n == 640) {
-      e[moff] = sample<len_χ, D, B, 13, Frodo640_Tχ>(tmp);
+      e[moff] = sample<D, 13, Frodo640_Tχ>(tmp);
     } else if constexpr (n == 976) {
-      e[moff] = sample<len_χ, D, B, 11, Frodo976_Tχ>(tmp);
+      e[moff] = sample<D, 11, Frodo976_Tχ>(tmp);
     } else if constexpr (n == 1344) {
-      e[moff] = sample<len_χ, D, B, 7, Frodo1344_Tχ>(tmp);
+      e[moff] = sample<D, 7, Frodo1344_Tχ>(tmp);
     }
 
     moff += 1;

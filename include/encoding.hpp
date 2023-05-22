@@ -15,8 +15,7 @@ namespace encoding {
 template<const size_t m, const size_t n, const size_t D, const size_t B>
 inline constexpr matrix::matrix<m, n, D>
 encode(std::span<const uint8_t, (m * n * B + 7) / 8> arr)
-  requires((m == n) && frodo_params::check_d(D) && frodo_params::check_b(B) &&
-           (B <= D))
+  requires((m == n) && frodo_params::check_b(B) && (B <= D))
 {
   // alias, so that I've to type lesser !
   using Zq = zq::zq_t<D>;
