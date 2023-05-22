@@ -2,6 +2,7 @@
 #include "encoding.hpp"
 #include "matrix.hpp"
 #include "packing.hpp"
+#include "params.hpp"
 #include "sampling.hpp"
 #include "shake128.hpp"
 #include "shake256.hpp"
@@ -43,6 +44,16 @@ keygen(
   std::span<const uint8_t, (len_z + 7) / 8> z,
   std::span<uint8_t, kem_pub_key_len(n, n̄, len_seed_A, d)> pkey,
   std::span<uint8_t, kem_sec_key_len(n, n̄, len_s, len_seed_A, len_pkh, d)> skey)
+  requires(frodo_params::check_frodo_keygen_params(n,
+                                                   n̄,
+                                                   len_seed_A,
+                                                   len_seed_SE,
+                                                   len_s,
+                                                   len_z,
+                                                   len_pkh,
+                                                   len_χ,
+                                                   d,
+                                                   b))
 {
   std::array<uint8_t, (len_seed_A + 7) / 8> seedA{};
 
@@ -158,6 +169,18 @@ encaps(std::span<const uint8_t, (len_μ + 7) / 8> μ,
        std::span<const uint8_t, kem_pub_key_len(n, n̄, lseed_A, d)> pkey,
        std::span<uint8_t, kem_cipher_text_len(n, m̄, n̄, d)> enc,
        std::span<uint8_t, (len_ss + 7) / 8> ss)
+  requires(frodo_params::check_frodo_encaps_params(n,
+                                                   m̄,
+                                                   n̄,
+                                                   lseed_A,
+                                                   lseed_SE,
+                                                   len_ss,
+                                                   len_k,
+                                                   len_μ,
+                                                   len_pkh,
+                                                   len_χ,
+                                                   d,
+                                                   b))
 {
   std::array<uint8_t, (len_pkh + 7) / 8> pkh{};
 
@@ -281,6 +304,19 @@ decaps(std::span<const uint8_t,
                  kem_sec_key_len(n, n̄, len_s, lseed_A, len_pkh, d)> skey,
        std::span<const uint8_t, kem_cipher_text_len(n, m̄, n̄, d)> enc,
        std::span<uint8_t, (len_ss + 7) / 8> ss)
+  requires(frodo_params::check_frodo_decaps_params(n,
+                                                   m̄,
+                                                   n̄,
+                                                   lseed_A,
+                                                   lseed_SE,
+                                                   len_s,
+                                                   len_ss,
+                                                   len_k,
+                                                   len_μ,
+                                                   len_pkh,
+                                                   len_χ,
+                                                   d,
+                                                   b))
 {
   auto enc0 = enc.template subspan<0, (m̄ * n * d + 7) / 8>();
   auto B_prime = packing::unpack<m̄, n, d>(enc0);
