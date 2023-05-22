@@ -18,7 +18,7 @@ bench/a.out: bench/main.cpp include/*.hpp include/bench/*.hpp sha3/include/*.hpp
 benchmark: bench/a.out
 	# Don't forget to put all CPU cores on performance mode before running benchmarks,
 	# follow https://github.com/google/benchmark/blob/2dd015df/docs/reducing_variance.md
-	./$< --benchmark_time_unit=us --benchmark_counters_tabular=true
+	./$< --benchmark_time_unit=ms --benchmark_counters_tabular=true
 
 clean:
 	find . -name '*.out' -o -name '*.o' -o -name '*.so' -o -name '*.gch' | xargs rm -rf
