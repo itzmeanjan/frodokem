@@ -102,7 +102,7 @@ public:
   {
     uint16_t res = 0;
     // note, no specific endianness is preferred here !
-    prng.read(reinterpret_cast<uint8_t*>(&res), sizeof(res));
+    prng.read(std::span{ reinterpret_cast<uint8_t*>(&res), 2 });
 
     return zq_t(res);
   }

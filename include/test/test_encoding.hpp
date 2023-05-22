@@ -29,7 +29,7 @@ test_matrix_encode_decode()
   std::array<uint8_t, byte_len> fin_bytes{};
 
   prng::prng_t prng;
-  prng.read(org_bytes.data(), byte_len);
+  prng.read(org_bytes);
 
   auto encoded = encoding::encode<m, n, D, B>(org_bytes);
   encoding::decode<m, n, D, B>(encoded, fin_bytes);

@@ -62,10 +62,10 @@ test_kem()
 
   prng::prng_t prng;
 
-  prng.read(_s.data(), _s.size());
-  prng.read(_seedSE.data(), _seedSE.size());
-  prng.read(_z.data(), _z.size());
-  prng.read(_μ.data(), _μ.size());
+  prng.read(_s);
+  prng.read(_seedSE);
+  prng.read(_z);
+  prng.read(_μ);
 
   using namespace kem;
 

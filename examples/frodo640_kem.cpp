@@ -41,10 +41,10 @@ main()
 
   prng::prng_t prng;
 
-  prng.read(_s.data(), _s.size());
-  prng.read(_seedSE.data(), _seedSE.size());
-  prng.read(_z.data(), _z.size());
-  prng.read(_μ.data(), _μ.size());
+  prng.read(_s);
+  prng.read(_seedSE);
+  prng.read(_z);
+  prng.read(_μ);
 
   frodo640_kem::keygen(_s, _seedSE, _z, _pkey, _skey);
   frodo640_kem::encaps(_μ, _pkey, _cipher, _ss0);

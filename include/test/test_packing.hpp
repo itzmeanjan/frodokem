@@ -28,7 +28,7 @@ test_matrix_pack_unpack()
 
   prng::prng_t prng;
 
-  matrix::matrix<n1, n2, D> mat{};
+  auto mat = matrix::matrix<n1, n2, D>::random(prng);
   std::array<uint8_t, byte_len> packed{};
 
   packing::pack<n1, n2, D>(mat, packed);
