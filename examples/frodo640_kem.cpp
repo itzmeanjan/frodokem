@@ -57,11 +57,10 @@ main()
     using namespace frodo_utils;
 
     std::cout << "Frodo-640 KEM\n\n";
-    std::cout << "Public Key    : " << to_hex(pkey.data(), pkey.size()) << "\n";
-    std::cout << "Secret Key    : " << to_hex(skey.data(), skey.size()) << "\n";
-    std::cout << "Cipher Text   : " << to_hex(cipher.data(), cipher.size())
-              << "\n";
-    std::cout << "Shared Secret : " << to_hex(ss0.data(), ss0.size()) << "\n";
+    std::cout << "Public Key    : " << to_hex(_pkey) << "\n";
+    std::cout << "Secret Key    : " << to_hex(_skey) << "\n";
+    std::cout << "Cipher Text   : " << to_hex(_cipher) << "\n";
+    std::cout << "Shared Secret : " << to_hex(_ss0) << "\n";
   }
 
   return 0;
