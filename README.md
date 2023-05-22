@@ -95,71 +95,53 @@ make benchmark
 ### On 12th Gen Intel(R) Core(TM) i7-1260P [ Compiled with GCC ]
 
 ```bash
-2023-05-18T12:12:19+04:00
+2023-05-22T16:47:47+04:00
 Running ./bench/a.out
-Run on (16 X 4609.15 MHz CPU s)
+Run on (16 X 1870.59 MHz CPU s)
 CPU Caches:
   L1 Data 48 KiB (x8)
   L1 Instruction 32 KiB (x8)
   L2 Unified 1280 KiB (x8)
   L3 Unified 18432 KiB (x1)
-Load Average: 0.28, 0.28, 0.49
-----------------------------------------------------------------------------------------------
-Benchmark                                   Time             CPU   Iterations items_per_second
-----------------------------------------------------------------------------------------------
-bench_frodo::frodo640_pke_keygen         1666 us         1666 us          419        600.305/s
-bench_frodo::frodo640_pke_encrypt        1850 us         1850 us          380        540.545/s
-bench_frodo::frodo640_pke_decrypt        7.66 us         7.66 us        90980       130.556k/s
-bench_frodo::frodo976_pke_keygen         3652 us         3652 us          191        273.831/s
-bench_frodo::frodo976_pke_encrypt        3976 us         3975 us          175        251.564/s
-bench_frodo::frodo976_pke_decrypt        7.84 us         7.84 us        89090       127.538k/s
-bench_frodo::frodo1344_pke_keygen        6670 us         6670 us          103        149.932/s
-bench_frodo::frodo1344_pke_encrypt       8208 us         8208 us           83        121.834/s
-bench_frodo::frodo1344_pke_decrypt       10.9 us         10.9 us        64002       91.6702k/s
-bench_frodo::frodo640_kem_keygen         1684 us         1684 us          416        593.871/s
-bench_frodo::frodo640_kem_encaps         1881 us         1880 us          373        531.781/s
-bench_frodo::frodo640_kem_decaps         1867 us         1867 us          375        535.599/s
-bench_frodo::frodo976_kem_keygen         3702 us         3702 us          189        270.104/s
-bench_frodo::frodo976_kem_encaps         4037 us         4037 us          173         247.73/s
-bench_frodo::frodo976_kem_decaps         4016 us         4016 us          174        248.999/s
-bench_frodo::frodo1344_kem_keygen        6705 us         6704 us          102        149.154/s
-bench_frodo::frodo1344_kem_encaps        8250 us         8249 us           84        121.226/s
-bench_frodo::frodo1344_kem_decaps        8245 us         8245 us           85        121.285/s
+Load Average: 0.17, 0.37, 0.58
+---------------------------------------------------------------------------------------------
+Benchmark                                  Time             CPU   Iterations items_per_second
+---------------------------------------------------------------------------------------------
+bench_frodo::frodo640_kem_keygen        1.53 ms         1.53 ms          454        654.039/s
+bench_frodo::frodo640_kem_encaps        1.59 ms         1.59 ms          436        628.136/s
+bench_frodo::frodo640_kem_decaps        1.54 ms         1.54 ms          451         648.49/s
+bench_frodo::frodo976_kem_keygen        3.35 ms         3.35 ms          209        298.606/s
+bench_frodo::frodo976_kem_encaps        3.43 ms         3.43 ms          205        291.893/s
+bench_frodo::frodo976_kem_decaps        3.36 ms         3.36 ms          208        297.976/s
+bench_frodo::frodo1344_kem_keygen       6.11 ms         6.11 ms          114         163.67/s
+bench_frodo::frodo1344_kem_encaps       6.70 ms         6.70 ms          103        149.224/s
+bench_frodo::frodo1344_kem_decaps       6.49 ms         6.49 ms          107        154.017/s
 ```
 
 ### On 12th Gen Intel(R) Core(TM) i7-1260P [ Compiled with Clang ]
 
 ```bash
-2023-05-18T12:14:03+04:00
+2023-05-22T16:48:28+04:00
 Running ./bench/a.out
-Run on (16 X 3193.53 MHz CPU s)
+Run on (16 X 3427.37 MHz CPU s)
 CPU Caches:
   L1 Data 48 KiB (x8)
   L1 Instruction 32 KiB (x8)
   L2 Unified 1280 KiB (x8)
   L3 Unified 18432 KiB (x1)
-Load Average: 0.45, 0.36, 0.50
-----------------------------------------------------------------------------------------------
-Benchmark                                   Time             CPU   Iterations items_per_second
-----------------------------------------------------------------------------------------------
-bench_frodo::frodo640_pke_keygen         2160 us         2160 us          323        462.882/s
-bench_frodo::frodo640_pke_encrypt        2828 us         2828 us          247          353.6/s
-bench_frodo::frodo640_pke_decrypt        19.5 us         19.5 us        35888       51.3632k/s
-bench_frodo::frodo976_pke_keygen         5116 us         5116 us          135        195.459/s
-bench_frodo::frodo976_pke_encrypt        5889 us         5889 us          118        169.811/s
-bench_frodo::frodo976_pke_decrypt        23.4 us         23.4 us        29916       42.7343k/s
-bench_frodo::frodo1344_pke_keygen        9948 us         9948 us           70        100.525/s
-bench_frodo::frodo1344_pke_encrypt      13510 us        13509 us           52        74.0266/s
-bench_frodo::frodo1344_pke_decrypt       32.9 us         32.9 us        21272       30.4116k/s
-bench_frodo::frodo640_kem_keygen         2153 us         2153 us          324        464.469/s
-bench_frodo::frodo640_kem_encaps         2842 us         2842 us          247        351.892/s
-bench_frodo::frodo640_kem_decaps         2835 us         2835 us          247        352.745/s
-bench_frodo::frodo976_kem_keygen         5133 us         5133 us          135        194.827/s
-bench_frodo::frodo976_kem_encaps         6047 us         6047 us          118        165.376/s
-bench_frodo::frodo976_kem_decaps         6070 us         6070 us          115        164.741/s
-bench_frodo::frodo1344_kem_keygen       10031 us        10031 us           69        99.6919/s
-bench_frodo::frodo1344_kem_encaps       13709 us        13708 us           50        72.9508/s
-bench_frodo::frodo1344_kem_decaps       13759 us        13758 us           51        72.6838/s
+Load Average: 0.26, 0.37, 0.57
+---------------------------------------------------------------------------------------------
+Benchmark                                  Time             CPU   Iterations items_per_second
+---------------------------------------------------------------------------------------------
+bench_frodo::frodo640_kem_keygen        1.36 ms         1.36 ms          517        734.875/s
+bench_frodo::frodo640_kem_encaps        2.87 ms         2.87 ms          244        348.392/s
+bench_frodo::frodo640_kem_decaps        2.90 ms         2.90 ms          241         344.72/s
+bench_frodo::frodo976_kem_keygen        3.49 ms         3.49 ms          200        286.397/s
+bench_frodo::frodo976_kem_encaps        5.80 ms         5.80 ms          119        172.346/s
+bench_frodo::frodo976_kem_decaps        5.81 ms         5.81 ms          120        172.071/s
+bench_frodo::frodo1344_kem_keygen       6.46 ms         6.46 ms          108        154.883/s
+bench_frodo::frodo1344_kem_encaps       13.1 ms         13.1 ms           53        76.3986/s
+bench_frodo::frodo1344_kem_decaps       13.1 ms         13.1 ms           54        76.5792/s
 ```
 
 ## Usage
