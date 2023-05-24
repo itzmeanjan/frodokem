@@ -56,7 +56,7 @@ constexpr auto Frodo976_Tχ = compute_cdf(Frodo976_χ);
 // Zero-centred CDF used for sampling, in Frodo-976 KEM
 constexpr auto Frodo1344_Tχ = compute_cdf(Frodo1344_χ);
 
-// Given a random len_χ -bit wide value r and a CDF table Tχ, this routine
+// Given a random 16 -bit wide value r and a CDF table Tχ, this routine
 // can be used for sampling e ∈ Z from the distribution χ, following algorithm 5
 // of the FrodoKEM specification.
 //
@@ -82,20 +82,15 @@ sample(const uint16_t r)
   return zq::zq_t<D>(((-r0) ^ e) + r0);
 }
 
-// Given a bit string of length n1 x n2 x len_χ -bits ( r ) and a CDF table Tχ,
-// this routine can be used for sampling n1 x n2 -many elements ∈ Z, following
-// algorithm 6 of FrodoKEM specification.
+// Given a bit string of length n1 x n2 x 16 -bits ( r ), this routine can be
+// used for sampling an error matrix of dimension n1 x n2 s.t. all elements ∈ Z,
+// following algorithm 6 of FrodoKEM specification.
 //
-// - r is a byte array of length n1 x n2 x (len_χ/ 8) -bytes.
+// - r is a byte array of length n1 x n2 x (16/ 8) -bytes.
 // - e is a matrix of dimension n1 x n2, over Z.
-template<const size_t n,
-         const size_t n1,
-         const size_t n2,
-         const size_t len_χ,
-         const size_t D>
+template<const size_t n, const size_t n1, const size_t n2, const size_t D>
 inline constexpr matrix::matrix<n1, n2, D>
-sample_matrix(std::span<const uint8_t, (n1 * n2 * len_χ + 7) / 8> r)
-  requires(frodo_params::check_len_χ(len_χ))
+sample_matrix(std::span<const uint8_t, 16 * n1 * n2 / 8> r)
 {
   matrix::matrix<n1, n2, D> e{};
 
