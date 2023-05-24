@@ -126,42 +126,27 @@ keygen(std::span<const uint8_t, len_sec / 8> s,
   // --- done ---
 }
 
-// Given a uniformly random key μ and a Frodo KEM public key ( for which the
-// cipher text is going to be computed i.e. only corresponding private key can
-// be used for decrypting the cipher text ), this routine can be used for
-// computing a cipher text and a shared secret, following algorithm 13 of
-// FrodoKEM specification.
+// Given a uniformly random values μ and salt, along with a target Frodo KEM
+// public key ( for which the cipher text is going to be computed i.e. only
+// corresponding private key can be used for decrypting the cipher text ), this
+// routine can be used for computing a cipher text and a shared secret,
+// following algorithm definition in section 8.2 of FrodoKEM specification.
 template<const size_t n,
-         const size_t m̄,
          const size_t n̄,
-         const size_t lseed_A,
-         const size_t lseed_SE,
-         const size_t len_ss,
-         const size_t len_k,
-         const size_t len_μ,
-         const size_t len_pkh,
-         const size_t len_χ,
-         const size_t d,
-         const size_t b>
+         const size_t len_sec,
+         const size_t len_SE,
+         const size_t len_A,
+         const size_t len_salt,
+         const size_t B,
+         const size_t D>
 inline void
-encaps(std::span<const uint8_t, (len_μ + 7) / 8> μ,
-       std::span<const uint8_t, kem_pub_key_len(n, n̄, lseed_A, d)> pkey,
-       std::span<uint8_t, kem_cipher_text_len(n, m̄, n̄, d)> enc,
-       std::span<uint8_t, (len_ss + 7) / 8> ss)
-  requires(frodo_params::check_frodo_encaps_params(n,
-                                                   m̄,
-                                                   n̄,
-                                                   lseed_A,
-                                                   lseed_SE,
-                                                   len_ss,
-                                                   len_k,
-                                                   len_μ,
-                                                   len_pkh,
-                                                   len_χ,
-                                                   d,
-                                                   b))
+encaps(std::span<const uint8_t, len_sec / 8> μ,
+       std::span<const uint8_t, len_salt / 8> salt,
+       std::span<const uint8_t, kem_pub_key_len(n, n̄, len_A, D)> pkey,
+       std::span<uint8_t, kem_cipher_text_len(n, n̄, len_salt, D)> enc,
+       std::span<uint8_t, len_sec / 8> ss)
 {
-  std::array<uint8_t, (len_pkh + 7) / 8> pkh{};
+  std::array<uint8_t, len_sec / 8> pkh{};
 
   if constexpr (n == 640) {
     shake128::shake128 hasher;
@@ -175,13 +160,14 @@ encaps(std::span<const uint8_t, (len_μ + 7) / 8> μ,
     hasher.read(pkh.data(), pkh.size());
   }
 
-  std::array<uint8_t, (lseed_SE + len_k + 7) / 8> rand_bytes{};
+  std::array<uint8_t, (len_SE + len_sec) / 8> rand_bytes{};
 
   if constexpr (n == 640) {
     shake128::shake128<true> hasher;
 
     hasher.absorb(pkh.data(), pkh.size());
     hasher.absorb(μ.data(), μ.size());
+    hasher.absorb(salt.data(), salt.size());
     hasher.finalize();
     hasher.read(rand_bytes.data(), rand_bytes.size());
   } else if constexpr ((n == 976) || (n == 1344)) {
@@ -189,15 +175,16 @@ encaps(std::span<const uint8_t, (len_μ + 7) / 8> μ,
 
     hasher.absorb(pkh.data(), pkh.size());
     hasher.absorb(μ.data(), μ.size());
+    hasher.absorb(salt.data(), salt.size());
     hasher.finalize();
     hasher.read(rand_bytes.data(), rand_bytes.size());
   }
 
-  std::array<uint8_t, 1 + (lseed_SE + 7) / 8> buf{};
-  std::array<uint8_t, ((2 * m̄ * n + m̄ * n̄) * len_χ + 7) / 8> dig{};
+  std::array<uint8_t, 1 + len_SE / 8> buf{};
+  std::array<uint8_t, ((2 * n̄ * n + n̄ * n̄) * 16) / 8> dig{};
 
   buf[0] = 0x96;
-  std::memcpy(buf.data() + 1, rand_bytes.data(), (lseed_SE + 7) / 8);
+  std::memcpy(buf.data() + 1, rand_bytes.data(), len_SE / 8);
 
   if constexpr (n == 640) {
     shake128::shake128 hasher;
@@ -213,49 +200,53 @@ encaps(std::span<const uint8_t, (len_μ + 7) / 8> μ,
 
   std::span<uint8_t, dig.size()> _dig{ dig };
 
-  constexpr size_t doff0 = (m̄ * n * len_χ + 7) / 8;
+  constexpr size_t doff0 = (n̄ * n * 16) / 8;
   auto _dig0 = _dig.template subspan<0, doff0>();
-  auto S_prime = sampling::sample_matrix<n, m̄, n, len_χ, d>(_dig0);
+  auto S_prime = sampling::sample_matrix<n, n̄, n, D>(_dig0);
 
-  constexpr size_t doff1 = doff0 + (m̄ * n * len_χ + 7) / 8;
+  constexpr size_t doff1 = doff0 + (n̄ * n * 16) / 8;
   auto _dig1 = _dig.template subspan<doff0, doff1 - doff0>();
-  auto E_prime = sampling::sample_matrix<n, m̄, n, len_χ, d>(_dig1);
+  auto E_prime = sampling::sample_matrix<n, n̄, n, D>(_dig1);
 
-  auto pkey0 = pkey.template subspan<0, (lseed_A + 7) / 8>();
-  auto A = matrix::matrix<n, n, d>::template generate<lseed_A>(pkey0);
+  auto pkey0 = pkey.template subspan<0, len_A / 8>();
+  auto A = matrix::matrix<n, n, D>::template generate<len_A>(pkey0);
 
   auto B_prime = S_prime * A + E_prime;
 
   auto _dig2 = _dig.template subspan<doff1, _dig.size() - doff1>();
-  auto E_dprime = sampling::sample_matrix<n, m̄, n̄, len_χ, d>(_dig2);
+  auto E_dprime = sampling::sample_matrix<n, n̄, n̄, D>(_dig2);
 
   constexpr size_t pkoff = pkey0.size();
   auto pkey1 = pkey.template subspan<pkoff, pkey.size() - pkoff>();
-  auto B = packing::unpack<n, n̄, d>(pkey1);
+  auto B_mat = packing::unpack<n, n̄, D>(pkey1);
 
-  auto V = S_prime * B + E_dprime;
+  auto V = S_prime * B_mat + E_dprime;
 
-  auto M = encoding::encode<m̄, n̄, d, b>(μ);
+  auto M = encoding::encode<n̄, n̄, D, B>(μ);
   auto C = V + M;
 
-  auto enc0 = enc.template subspan<0, (m̄ * n * d + 7) / 8>();
+  auto enc0 = enc.template subspan<0, (n̄ * n * D) / 8>();
   packing::pack(B_prime, enc0);
 
-  auto enc1 = enc.template subspan<enc0.size(), enc.size() - enc0.size()>();
+  auto enc1 = enc.template subspan<enc0.size(), (n̄ * n̄ * D) / 8>();
   packing::pack(C, enc1);
+
+  constexpr size_t eoff = enc0.size() + enc1.size();
+  auto enc2 = enc.template subspan<eoff, salt.size()>();
+  std::memcpy(enc2.data(), salt.data(), salt.size());
 
   if constexpr (n == 640) {
     shake128::shake128<true> hasher;
 
     hasher.absorb(enc.data(), enc.size());
-    hasher.absorb(rand_bytes.data() + (lseed_SE + 7) / 8, (len_k + 7) / 8);
+    hasher.absorb(rand_bytes.data() + (len_SE / 8), len_sec / 8);
     hasher.finalize();
     hasher.read(ss.data(), ss.size());
   } else if constexpr ((n == 976) || (n == 1344)) {
     shake256::shake256<true> hasher;
 
     hasher.absorb(enc.data(), enc.size());
-    hasher.absorb(rand_bytes.data() + (lseed_SE + 7) / 8, (len_k + 7) / 8);
+    hasher.absorb(rand_bytes.data() + (len_SE / 8), len_sec / 8);
     hasher.finalize();
     hasher.read(ss.data(), ss.size());
   }
