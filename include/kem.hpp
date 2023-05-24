@@ -20,42 +20,28 @@ using namespace frodo_utils;
 
 // Given following three uniformly random sampled seeds
 //
-// - `s` of len_s -bits
-// - `seedSE` of len_seed_SE -bits
-// - `z` of len_z -bits
+// - `s` of len_sec -bits
+// - `seedSE` of len_SE -bits
+// - `z` of len_A -bits
 //
 // as input, this routine can be used for deterministically generating a new
-// Frodo KEM public/ private keypair, following algorithm 12 of FrodoKEM
-// specification.
+// Frodo KEM public/ private keypair, following algorithm definition in
+// section 8.1 of FrodoKEM specification.
 template<const size_t n,
          const size_t n̄,
-         const size_t len_seed_A,
-         const size_t len_seed_SE,
-         const size_t len_s,
-         const size_t len_z,
-         const size_t len_pkh,
-         const size_t len_χ,
-         const size_t d,
-         const size_t b>
+         const size_t len_sec,
+         const size_t len_SE,
+         const size_t len_A,
+         const size_t B,
+         const size_t D>
 inline void
-keygen(
-  std::span<const uint8_t, (len_s + 7) / 8> s,
-  std::span<const uint8_t, (len_seed_SE + 7) / 8> seedSE,
-  std::span<const uint8_t, (len_z + 7) / 8> z,
-  std::span<uint8_t, kem_pub_key_len(n, n̄, len_seed_A, d)> pkey,
-  std::span<uint8_t, kem_sec_key_len(n, n̄, len_s, len_seed_A, len_pkh, d)> skey)
-  requires(frodo_params::check_frodo_keygen_params(n,
-                                                   n̄,
-                                                   len_seed_A,
-                                                   len_seed_SE,
-                                                   len_s,
-                                                   len_z,
-                                                   len_pkh,
-                                                   len_χ,
-                                                   d,
-                                                   b))
+keygen(std::span<const uint8_t, len_sec / 8> s,
+       std::span<const uint8_t, len_SE / 8> seedSE,
+       std::span<const uint8_t, len_A / 8> z,
+       std::span<uint8_t, kem_pub_key_len(n, n̄, len_A, D)> pkey,
+       std::span<uint8_t, kem_sec_key_len(n, n̄, len_sec, len_A, D)> skey)
 {
-  std::array<uint8_t, (len_seed_A + 7) / 8> seedA{};
+  std::array<uint8_t, len_A / 8> seedA{};
 
   if constexpr (n == 640) {
     shake128::shake128 hasher;
@@ -69,10 +55,10 @@ keygen(
     hasher.read(seedA.data(), seedA.size());
   }
 
-  auto A = matrix::matrix<n, n, d>::template generate<len_seed_A>(seedA);
+  auto A = matrix::matrix<n, n, D>::template generate<len_A>(seedA);
 
   std::array<uint8_t, 1 + seedSE.size()> buf{};
-  std::array<uint8_t, (2 * n * n̄ * len_χ + 7) / 8> dig{};
+  std::array<uint8_t, (32 * n * n̄) / 8> dig{};
 
   buf[0] = 0x5f;
   std::memcpy(buf.data() + 1, seedSE.data(), seedSE.size());
@@ -91,46 +77,38 @@ keygen(
 
   std::span<uint8_t, dig.size()> _dig{ dig };
 
-  constexpr size_t doff = (n * n̄ * len_χ + 7) / 8;
-  auto _dig0 = _dig.template subspan<0, doff>();
-  auto S_transposed = sampling::sample_matrix<n, n̄, n, len_χ, d>(_dig0);
+  auto _dig0 = _dig.template subspan<0, 2 * n * n̄>();
+  auto S_transposed = sampling::sample_matrix<n, n̄, n, D>(_dig0);
 
-  auto _dig1 = _dig.template subspan<doff, _dig.size() - doff>();
-  auto E = sampling::sample_matrix<n, n, n̄, len_χ, d>(_dig1);
+  auto _dig1 = _dig.template subspan<_dig0.size(), 2 * n * n̄>();
+  auto E = sampling::sample_matrix<n, n, n̄, D>(_dig1);
 
   auto S = S_transposed.transpose();
-  auto B = A * S + E;
+  auto B_mat = A * S + E;
 
-  std::array<uint8_t, (n * n̄ * d + 7) / 8> packed_b{};
-  packing::pack(B, packed_b);
-
-  std::array<uint8_t, (len_pkh + 7) / 8> pkh{};
-
-  if constexpr (n == 640) {
-    shake128::shake128<true> hasher;
-
-    hasher.absorb(seedA.data(), seedA.size());
-    hasher.absorb(packed_b.data(), packed_b.size());
-    hasher.finalize();
-    hasher.read(pkh.data(), pkh.size());
-  } else if constexpr ((n == 976) || (n == 1344)) {
-    shake256::shake256<true> hasher;
-
-    hasher.absorb(seedA.data(), seedA.size());
-    hasher.absorb(packed_b.data(), packed_b.size());
-    hasher.finalize();
-    hasher.read(pkh.data(), pkh.size());
-  }
-
-  // serialize public key
+  // --- serialize public key ---
   auto pkey0 = pkey.template subspan<0, seedA.size()>();
   std::memcpy(pkey0.data(), seedA.data(), pkey0.size());
 
-  constexpr size_t pkoff = pkey0.size();
-  auto pkey1 = pkey.template subspan<pkoff, pkey.size() - pkoff>();
-  std::memcpy(pkey1.data(), packed_b.data(), pkey1.size());
+  auto pkey1 = pkey.template subspan<pkey0.size(), (D * n * n̄) / 8>();
+  packing::pack(B_mat, pkey1);
+  // --- done ---
 
-  // serialize secret key
+  std::array<uint8_t, len_sec / 8> pkh{};
+
+  if constexpr (n == 640) {
+    shake128::shake128 hasher;
+
+    hasher.hash(pkey.data(), pkey.size());
+    hasher.read(pkh.data(), pkh.size());
+  } else if constexpr ((n == 976) || (n == 1344)) {
+    shake256::shake256 hasher;
+
+    hasher.hash(pkey.data(), pkey.size());
+    hasher.read(pkh.data(), pkh.size());
+  }
+
+  // --- serialize secret key ---
   auto skey0 = skey.template subspan<0, s.size()>();
   std::memcpy(skey0.data(), s.data(), skey0.size());
 
@@ -145,6 +123,7 @@ keygen(
   constexpr size_t skoff2 = skoff1 + skey2.size();
   auto skey3 = skey.template subspan<skoff2, pkh.size()>();
   std::memcpy(skey3.data(), pkh.data(), pkh.size());
+  // --- done ---
 }
 
 // Given a uniformly random key μ and a Frodo KEM public key ( for which the
