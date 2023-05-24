@@ -1,8 +1,5 @@
 #pragma once
 #include "kem.hpp"
-#include "utils.hpp"
-#include <cstdint>
-#include <span>
 
 // eFrodo-640 Key Encapsulation Mechanism
 namespace efrodo640_kem {
@@ -29,7 +26,7 @@ constexpr auto CIPHER_LEN = kem::kem_cipher_text_len(n, n̄, len_salt, D);
 // Given 16 -bytes seed s ( secret part of private key ), 16 -bytes seed seedSE
 // ( used for sampling error matrices ) and 16 -bytes seed z ( used for deriving
 // pseudo-random seed seedA, which is used for generating matrix A ), this
-// routine can be used for deterministic generation of a eFrodo-640 public/
+// routine can be used for deterministic generation of an eFrodo-640 public/
 // private keypair, following algorithm described in section 8.1 of FrodoKEM
 // specification.
 inline void
@@ -43,7 +40,7 @@ keygen(std::span<const uint8_t, len_sec / 8> s,
 }
 
 // Given a 16 -bytes key μ ( which is actually encrypted using underlying PKE
-// scheme ) and a eFrodo-640 KEM public key, this routine can be used for
+// scheme ) and an eFrodo-640 KEM public key, this routine can be used for
 // computing a cipher text ( which can only be decrypted using corresponding
 // eFrodo-640 KEM private key ) and a 16 -bytes shared secret.
 inline void
