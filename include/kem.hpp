@@ -40,6 +40,8 @@ keygen(std::span<const uint8_t, len_sec / 8> s,
        std::span<const uint8_t, len_A / 8> z,
        std::span<uint8_t, kem_pub_key_len(n, n̄, len_A, D)> pkey,
        std::span<uint8_t, kem_sec_key_len(n, n̄, len_sec, len_A, D)> skey)
+  requires(
+    frodo_params::check_keygen_params(n, n̄, len_sec, len_SE, len_A, B, D))
 {
   std::array<uint8_t, len_A / 8> seedA{};
 
@@ -145,6 +147,14 @@ encaps(std::span<const uint8_t, len_sec / 8> μ,
        std::span<const uint8_t, kem_pub_key_len(n, n̄, len_A, D)> pkey,
        std::span<uint8_t, kem_cipher_text_len(n, n̄, len_salt, D)> enc,
        std::span<uint8_t, len_sec / 8> ss)
+  requires(frodo_params::check_encaps_params(n,
+                                             n̄,
+                                             len_sec,
+                                             len_SE,
+                                             len_A,
+                                             len_salt,
+                                             B,
+                                             D))
 {
   std::array<uint8_t, len_sec / 8> pkh{};
 
@@ -261,12 +271,20 @@ template<const size_t n,
          const size_t len_SE,
          const size_t len_A,
          const size_t len_salt,
-         const size_t D,
-         const size_t B>
+         const size_t B,
+         const size_t D>
 inline void
 decaps(std::span<const uint8_t, kem_sec_key_len(n, n̄, len_sec, len_A, D)> skey,
        std::span<const uint8_t, kem_cipher_text_len(n, n̄, len_salt, D)> enc,
        std::span<uint8_t, len_sec / 8> ss)
+  requires(frodo_params::check_decaps_params(n,
+                                             n̄,
+                                             len_sec,
+                                             len_SE,
+                                             len_A,
+                                             len_salt,
+                                             B,
+                                             D))
 {
   // Parse cipher text
   // = c1
