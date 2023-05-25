@@ -71,7 +71,7 @@ check_encaps_params(const size_t n,
           (len_A == 128) && (len_salt == 0) && (B == 3) &&
           (D == 16)) || // eFrodoKEM-976
          ((n == 976) && (n̄ == 8) && (len_sec == 192) && (len_SE == 384) &&
-          (len_A == 128) && (len_salt == 284) && (B == 3) &&
+          (len_A == 128) && (len_salt == 384) && (B == 3) &&
           (D == 16)) || // FrodoKEM-976
          ((n == 1344) && (n̄ == 8) && (len_sec == 256) && (len_SE == 256) &&
           (len_A == 128) && (len_salt == 0) && (B == 4) &&
@@ -92,8 +92,8 @@ check_decaps_params(const size_t n,
                     const size_t len_SE,
                     const size_t len_A,
                     const size_t len_salt,
-                    const size_t D,
-                    const size_t B)
+                    const size_t B,
+                    const size_t D)
 {
   return check_encaps_params(n, n̄, len_sec, len_SE, len_A, len_salt, B, D);
 }
