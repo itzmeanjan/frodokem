@@ -62,7 +62,7 @@ decaps(std::span<const uint8_t, SEC_KEY_LEN> skey,
        std::span<const uint8_t, CIPHER_LEN> enc,
        std::span<uint8_t, len_sec / 8> ss)
 {
-  kem::decaps<n, n̄, len_sec, len_SE, len_A, len_salt, D, B>(skey, enc, ss);
+  kem::decaps<n, n̄, len_sec, len_SE, len_A, len_salt, B, D>(skey, enc, ss);
 }
 
 }
