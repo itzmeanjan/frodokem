@@ -10,7 +10,8 @@ namespace packing {
 
 // Given a matrix of dimension n1 x n2 s.t. its elements ∈ Zq, this routine can
 // be used for packing the matrix into a bit string of length n1 x n2 x D -bits
-// s.t. Q = 1 << D, following algorithm 3 of FrodoKEM specification.
+// s.t. Q = 1 << D, following algorithm described in section 7.3 of FrodoKEM
+// specification.
 //
 // Note, we're dealing with byte oriented API, this routine packs matrix as a
 // byte array of length (n1 * n2 * D + 7) / 8.
@@ -101,7 +102,7 @@ pack(const matrix::matrix<n1, n2, D>& mat,
 // Given a bit string of length n1 x n2 x D -bits ( as a byte array of length
 // (n1 x n2 x D + 7) / 8 -bytes ), this routine can be used for unpacking
 // contiguous ( D -many ) bits into a n1 x n2 matrix over Zq s.t. q = 1 << D,
-// following algorithm 4 of FrodoKEM specification.
+// following algorithm described in section 7.3 of FrodoKEM specification.
 template<const size_t n1, const size_t n2, const size_t D>
 inline constexpr matrix::matrix<n1, n2, D>
 unpack(std::span<const uint8_t, (n1 * n2 * D + 7) / 8> arr)

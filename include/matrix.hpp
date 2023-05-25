@@ -150,7 +150,8 @@ public:
 
   // Given a seed of length len_seed_A -bits, this routine can be used for
   // deterministically generating a pseudorandom matrix of dimension n x n,
-  // using SHAKE128 XOF, following algorithm 8 of FrodoKEM specification.
+  // using SHAKE128 XOF, following algorithm described in section 7.6.2 of
+  // FrodoKEM specification.
   template<const size_t len_seed_A>
   inline static constexpr matrix<rows, cols, D> generate(
     std::span<const uint8_t, (len_seed_A + 7) / 8> seed)

@@ -10,26 +10,27 @@
 // Sampling from the error distribution
 namespace sampling {
 
-// Discrete, symmetric error distribution over Z, centered at 0, for Frodo-640,
-// as given on table 3 of FrodoKEM specification.
+// Discrete, symmetric error distribution over Z, centered at 0, for
+// {e}Frodo-640, as given on table A.3 of FrodoKEM specification.
 constexpr std::array<uint16_t, 13> Frodo640_χ = { 9288, 8720, 7216, 5264, 3384,
                                                   1918, 958,  422,  164,  56,
                                                   17,   4,    1 };
 
-// Discrete, symmetric error distribution over Z, centered at 0, for Frodo-976,
-// as given on table 3 of FrodoKEM specification.
+// Discrete, symmetric error distribution over Z, centered at 0, for
+// {e}Frodo-976, as given on table A.3 of FrodoKEM specification.
 constexpr std::array<uint16_t, 11> Frodo976_χ = { 11278, 10277, 7774, 4882,
                                                   2545,  1101,  396,  118,
                                                   29,    6,     1 };
 
-// Discrete, symmetric error distribution over Z, centered at 0, for Frodo-1344,
-// as given on table 3 of FrodoKEM specification.
+// Discrete, symmetric error distribution over Z, centered at 0, for
+// {e}Frodo-1344, as given on table A.3 of FrodoKEM specification.
 constexpr std::array<uint16_t, 7> Frodo1344_χ = { 18286, 14320, 6876, 2023,
                                                   364,   40,    2 };
 
-// Compile-time compute a zero-centred CDF, suitable for sampling using a
+// Compile-time compute a zero-centerd CDF, suitable for sampling using a
 // uniform random value, following equations provided in section 2.2.4 of
-// FrodoKEM specification.
+// FrodoKEM specification
+// https://frodokem.org/files/FrodoKEM-specification-20210604.pdf.
 //
 // You can find reference implementation @
 // https://github.com/microsoft/PQCrypto-LWEKE/blob/d7037ccb/python3/frodokem.py#L204-L213
@@ -47,18 +48,21 @@ compute_cdf(std::array<uint16_t, L> χ)
   return T_χ;
 }
 
-// Zero-centred CDF used for sampling, in Frodo-640 KEM
+// Zero-centered CDF used for sampling, in {e}Frodo-640 KEM. These compile-time
+// computed values must match second column of table A.4
 constexpr auto Frodo640_Tχ = compute_cdf(Frodo640_χ);
 
-// Zero-centred CDF used for sampling, in Frodo-976 KEM
+// Zero-centered CDF used for sampling, in {e}Frodo-976 KEM. These compile-time
+// computed values must match third column of table A.4
 constexpr auto Frodo976_Tχ = compute_cdf(Frodo976_χ);
 
-// Zero-centred CDF used for sampling, in Frodo-976 KEM
+// Zero-centered CDF used for sampling, in {e}Frodo-976 KEM. These compile-time
+// computed values must match fourth column of table A.4
 constexpr auto Frodo1344_Tχ = compute_cdf(Frodo1344_χ);
 
 // Given a random 16 -bit wide value r and a CDF table Tχ, this routine
-// can be used for sampling e ∈ Z from the distribution χ, following algorithm 5
-// of the FrodoKEM specification.
+// can be used for sampling e ∈ Z from the distribution χ, following algorithm
+// described in section 7.4 of the FrodoKEM specification.
 //
 // Note, this routine is implemented with constant-timeness in mind, but
 // compilers are free to optimize, so it can be better idea to inspect generated
@@ -84,7 +88,7 @@ sample(const uint16_t r)
 
 // Given a bit string of length n1 x n2 x 16 -bits ( r ), this routine can be
 // used for sampling an error matrix of dimension n1 x n2 s.t. all elements ∈ Z,
-// following algorithm 6 of FrodoKEM specification.
+// following algorithm described in section 7.5 of FrodoKEM specification.
 //
 // - r is a byte array of length n1 x n2 x (16/ 8) -bytes.
 // - e is a matrix of dimension n1 x n2, over Z.

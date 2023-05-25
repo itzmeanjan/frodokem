@@ -42,7 +42,8 @@ keygen(std::span<const uint8_t, len_sec / 8> s,
 // Given a 16 -bytes key μ ( which is actually encrypted using underlying PKE
 // scheme ) and an eFrodo-640 KEM public key, this routine can be used for
 // computing a cipher text ( which can only be decrypted using corresponding
-// eFrodo-640 KEM private key ) and a 16 -bytes shared secret.
+// eFrodo-640 KEM private key ) and a 16 -bytes shared secret, following
+// algorithm described in section 8.2 of FrodoKEM specification.
 inline void
 encaps(std::span<const uint8_t, len_sec / 8> μ,
        std::span<const uint8_t, PUB_KEY_LEN> pkey,
@@ -53,10 +54,11 @@ encaps(std::span<const uint8_t, len_sec / 8> μ,
     μ, std::span<uint8_t, len_salt / 8>{}, pkey, enc, ss);
 }
 
-// Given eFrodo-640 KEM secret key, which is associated with the public key,
+// Given an eFrodo-640 KEM secret key, which is associated with the public key,
 // using which the cipher text was computed and the cipher text as input, this
 // routine can be used for decrypting the cipher text, recovering 16 -bytes
-// shared secret.
+// shared secret, following algorithm described in section 8.3 of FrodoKEM
+// specification.
 inline void
 decaps(std::span<const uint8_t, SEC_KEY_LEN> skey,
        std::span<const uint8_t, CIPHER_LEN> enc,

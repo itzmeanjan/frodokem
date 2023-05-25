@@ -16,8 +16,9 @@ namespace test_frodo {
 //
 // works as expected.
 //
-// In other words, following test ensures that implementation of algorithm 1, 2
-// ( of FrodoKEM specification ) is correct for various parameters.
+// In other words, following test ensures that implementation of algorithm
+// description, in section 7.2 of FrodoKEM specification, is correct for various
+// parameters.
 template<const size_t m, const size_t n, const size_t D, const size_t B>
 void
 test_matrix_encode_decode()

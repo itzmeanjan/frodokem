@@ -14,7 +14,8 @@
 // Some utility functions, required for FrodoKEM
 namespace frodo_utils {
 
-// Compile-time computable byte length of Frodo KEM public key.
+// Compile-time computable byte length of Frodo KEM public key, following
+// description in section 8 of FrodoKEM specification.
 constexpr size_t
 kem_pub_key_len(const size_t n,
                 const size_t n̄,
@@ -24,7 +25,8 @@ kem_pub_key_len(const size_t n,
   return (len_A + D * n * n̄) / 8;
 }
 
-// Compile-time computable byte length of Frodo KEM secret key.
+// Compile-time computable byte length of Frodo KEM secret key, following
+// description in section 8 of FrodoKEM specification.
 constexpr size_t
 kem_sec_key_len(const size_t n,
                 const size_t n̄,
@@ -35,7 +37,8 @@ kem_sec_key_len(const size_t n,
   return (2 * len_sec + len_A + D * n * n̄ + 16 * n * n̄) / 8;
 }
 
-// Compile-time computable byte length of Frodo KEM cipher text.
+// Compile-time computable byte length of Frodo KEM cipher text, following
+// description in section 8 of FrodoKEM specification.
 constexpr size_t
 kem_cipher_text_len(const size_t n,
                     const size_t n̄,

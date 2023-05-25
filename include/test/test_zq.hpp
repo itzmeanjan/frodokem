@@ -13,7 +13,8 @@ namespace test_frodo {
 // works as expected.
 //
 // dc(ec(k)) = k ∀ k ∈ [0, 2^B) must hold !
-// See section 2.2.1 of FrodoKEM specification.
+// See section 2.2.1 of FrodoKEM specification
+// https://frodokem.org/files/FrodoKEM-specification-20210604.pdf.
 template<const size_t D, const size_t B>
 void
 test_zq_encode_decode()
@@ -30,8 +31,10 @@ test_zq_encode_decode()
 }
 
 // Ensure that this implementation satisfies lemma 2.18 of FrodoKEM
-// specification, which states the bounds on the size of errors that can be
-// handled by the decoding algorithm.
+// specification (
+// https://frodokem.org/files/FrodoKEM-specification-20210604.pdf ), which
+// states the bounds on the size of errors that can be handled by the decoding
+// algorithm.
 template<const size_t D, const size_t B>
 void
 test_lemma_2_18()

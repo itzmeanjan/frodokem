@@ -11,7 +11,7 @@ namespace encoding {
 // n x B + 7)/ 8 -bytes, this routine treats each B -bit wide sub-string as an
 // integer k ∈ [0, 2^B), which is encoded as an element of Zq s.t. q = 2^D and B
 // <= D using `ec()` function, returning a matrix of dimension m x n over Zq,
-// following algorithm 1 of FrodoKEM specification.
+// following algorithm described in section 7.2 of FrodoKEM specification.
 template<const size_t m, const size_t n, const size_t D, const size_t B>
 inline constexpr matrix::matrix<m, n, D>
 encode(std::span<const uint8_t, (m * n * B + 7) / 8> arr)
@@ -83,7 +83,7 @@ encode(std::span<const uint8_t, (m * n * B + 7) / 8> arr)
 // used for decoding it into a bit string of length m x n x B -bits, rounding to
 // the B most significant bits of each matrix entry, by applying `dc()`
 // function, returning a byte array of length (m x n x B + 7)/ 8 -bytes,
-// following algorithm 2 of FrodoKEM specification.
+// following algorithm described in section 7.2 of FrodoKEM specification.
 template<const size_t m, const size_t n, const size_t D, const size_t B>
 inline constexpr void
 decode(const matrix::matrix<m, n, D>& mat,
