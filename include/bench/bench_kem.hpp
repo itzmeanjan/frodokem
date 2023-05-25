@@ -16,19 +16,19 @@ namespace utils = frodo_utils;
 // parameter set.
 template<const size_t n,
          const size_t n̄,
-         const size_t len_sec,
-         const size_t len_SE,
-         const size_t len_A,
+         const size_t lsec,
+         const size_t lSE,
+         const size_t lA,
          const size_t B,
          const size_t D>
 inline void
 keygen(benchmark::State& state)
 {
-  constexpr size_t S_LEN = len_sec / 8;
-  constexpr size_t SEED_SE_LEN = len_SE / 8;
-  constexpr size_t Z_LEN = len_A / 8;
-  constexpr size_t PK_LEN = utils::kem_pub_key_len(n, n̄, len_A, D);
-  constexpr size_t SK_LEN = utils::kem_sec_key_len(n, n̄, len_sec, len_A, D);
+  constexpr size_t S_LEN = lsec / 8;
+  constexpr size_t SEED_SE_LEN = lSE / 8;
+  constexpr size_t Z_LEN = lA / 8;
+  constexpr size_t PK_LEN = utils::kem_pub_key_len(n, n̄, lA, D);
+  constexpr size_t SK_LEN = utils::kem_sec_key_len(n, n̄, lsec, lA, D);
 
   std::vector<uint8_t> s(S_LEN, 0);
   std::vector<uint8_t> seedSE(SEED_SE_LEN, 0);
@@ -49,7 +49,7 @@ keygen(benchmark::State& state)
   prng.read(_z);
 
   for (auto _ : state) {
-    kem::keygen(_s, _seedSE, _z, _pkey, _skey);
+    kem::keygen<n, n̄, lsec, lSE, lA, B, D>(_s, _seedSE, _z, _pkey, _skey);
 
     benchmark::DoNotOptimize(_s);
     benchmark::DoNotOptimize(_seedSE);
@@ -66,24 +66,24 @@ keygen(benchmark::State& state)
 // parameter set.
 template<const size_t n,
          const size_t n̄,
-         const size_t len_sec,
-         const size_t len_SE,
-         const size_t len_A,
-         const size_t len_salt,
+         const size_t lsec,
+         const size_t lSE,
+         const size_t lA,
+         const size_t lsalt,
          const size_t B,
          const size_t D>
 inline void
 encaps(benchmark::State& state)
 {
-  constexpr size_t S_LEN = len_sec / 8;
-  constexpr size_t SEED_SE_LEN = len_SE / 8;
-  constexpr size_t Z_LEN = len_A / 8;
-  constexpr size_t PK_LEN = utils::kem_pub_key_len(n, n̄, len_A, D);
-  constexpr size_t SK_LEN = utils::kem_sec_key_len(n, n̄, len_sec, len_A, D);
-  constexpr size_t μ_LEN = len_sec / 8;
-  constexpr size_t SALT_LEN = len_salt / 8;
-  constexpr size_t CT_LEN = utils::kem_cipher_text_len(n, n̄, len_salt, D);
-  constexpr size_t SS_LEN = len_sec / 8;
+  constexpr size_t S_LEN = lsec / 8;
+  constexpr size_t SEED_SE_LEN = lSE / 8;
+  constexpr size_t Z_LEN = lA / 8;
+  constexpr size_t PK_LEN = utils::kem_pub_key_len(n, n̄, lA, D);
+  constexpr size_t SK_LEN = utils::kem_sec_key_len(n, n̄, lsec, lA, D);
+  constexpr size_t μ_LEN = lsec / 8;
+  constexpr size_t SALT_LEN = lsalt / 8;
+  constexpr size_t CT_LEN = utils::kem_cipher_text_len(n, n̄, lsalt, D);
+  constexpr size_t SS_LEN = lsec / 8;
 
   std::vector<uint8_t> s(S_LEN, 0);
   std::vector<uint8_t> seedSE(SEED_SE_LEN, 0);
@@ -92,7 +92,7 @@ encaps(benchmark::State& state)
   std::vector<uint8_t> skey(SK_LEN, 0);
   std::vector<uint8_t> μ(μ_LEN, 0);
   std::vector<uint8_t> salt(SALT_LEN, 0);
-  std::vector<uint8_t> cipher(CT_LEN, 0);
+  std::vector<uint8_t> enc(CT_LEN, 0);
   std::vector<uint8_t> ss(SS_LEN, 0);
 
   std::span<uint8_t, S_LEN> _s{ s };
@@ -101,8 +101,8 @@ encaps(benchmark::State& state)
   std::span<uint8_t, PK_LEN> _pkey{ pkey };
   std::span<uint8_t, SK_LEN> _skey{ skey };
   std::span<uint8_t, μ_LEN> _μ{ μ };
-  std::span<uint8_t, μ_LEN> _salt{ salt };
-  std::span<uint8_t, CT_LEN> _cipher{ cipher };
+  std::span<uint8_t, SALT_LEN> _salt{ salt };
+  std::span<uint8_t, CT_LEN> _enc{ enc };
   std::span<uint8_t, SS_LEN> _ss{ ss };
 
   prng::prng_t prng;
@@ -111,18 +111,18 @@ encaps(benchmark::State& state)
   prng.read(_seedSE);
   prng.read(_z);
 
-  kem::keygen(_s, _seedSE, _z, _pkey, _skey);
+  kem::keygen<n, n̄, lsec, lSE, lA, B, D>(_s, _seedSE, _z, _pkey, _skey);
 
   prng.read(_μ);
   prng.read(_salt);
 
   for (auto _ : state) {
-    kem::encaps(_μ, _salt, _pkey, _cipher, _ss);
+    kem::encaps<n, n̄, lsec, lSE, lA, lsalt, B, D>(_μ, _salt, _pkey, _enc, _ss);
 
     benchmark::DoNotOptimize(_μ);
     benchmark::DoNotOptimize(_salt);
     benchmark::DoNotOptimize(_pkey);
-    benchmark::DoNotOptimize(_cipher);
+    benchmark::DoNotOptimize(_enc);
     benchmark::DoNotOptimize(_ss);
     benchmark::ClobberMemory();
   }
@@ -134,24 +134,24 @@ encaps(benchmark::State& state)
 // parameter set.
 template<const size_t n,
          const size_t n̄,
-         const size_t len_sec,
-         const size_t len_SE,
-         const size_t len_A,
-         const size_t len_salt,
+         const size_t lsec,
+         const size_t lSE,
+         const size_t lA,
+         const size_t lsalt,
          const size_t B,
          const size_t D>
 inline void
 decaps(benchmark::State& state)
 {
-  constexpr size_t S_LEN = len_sec / 8;
-  constexpr size_t SEED_SE_LEN = len_SE / 8;
-  constexpr size_t Z_LEN = len_A / 8;
-  constexpr size_t PK_LEN = utils::kem_pub_key_len(n, n̄, len_A, D);
-  constexpr size_t SK_LEN = utils::kem_sec_key_len(n, n̄, len_sec, len_A, D);
-  constexpr size_t μ_LEN = len_sec / 8;
-  constexpr size_t SALT_LEN = len_salt / 8;
-  constexpr size_t CT_LEN = utils::kem_cipher_text_len(n, n̄, len_salt, D);
-  constexpr size_t SS_LEN = len_sec / 8;
+  constexpr size_t S_LEN = lsec / 8;
+  constexpr size_t SEED_SE_LEN = lSE / 8;
+  constexpr size_t Z_LEN = lA / 8;
+  constexpr size_t PK_LEN = utils::kem_pub_key_len(n, n̄, lA, D);
+  constexpr size_t SK_LEN = utils::kem_sec_key_len(n, n̄, lsec, lA, D);
+  constexpr size_t μ_LEN = lsec / 8;
+  constexpr size_t SALT_LEN = lsalt / 8;
+  constexpr size_t CT_LEN = utils::kem_cipher_text_len(n, n̄, lsalt, D);
+  constexpr size_t SS_LEN = lsec / 8;
 
   std::vector<uint8_t> s(S_LEN, 0);
   std::vector<uint8_t> seedSE(SEED_SE_LEN, 0);
@@ -160,7 +160,7 @@ decaps(benchmark::State& state)
   std::vector<uint8_t> skey(SK_LEN, 0);
   std::vector<uint8_t> μ(μ_LEN, 0);
   std::vector<uint8_t> salt(SALT_LEN, 0);
-  std::vector<uint8_t> cipher(CT_LEN, 0);
+  std::vector<uint8_t> enc(CT_LEN, 0);
   std::vector<uint8_t> ss0(SS_LEN, 0);
   std::vector<uint8_t> ss1(SS_LEN, 0);
 
@@ -170,8 +170,8 @@ decaps(benchmark::State& state)
   std::span<uint8_t, PK_LEN> _pkey{ pkey };
   std::span<uint8_t, SK_LEN> _skey{ skey };
   std::span<uint8_t, μ_LEN> _μ{ μ };
-  std::span<uint8_t, μ_LEN> _salt{ salt };
-  std::span<uint8_t, CT_LEN> _cipher{ cipher };
+  std::span<uint8_t, SALT_LEN> _salt{ salt };
+  std::span<uint8_t, CT_LEN> _enc{ enc };
   std::span<uint8_t, SS_LEN> _ss0{ ss0 };
   std::span<uint8_t, SS_LEN> _ss1{ ss1 };
 
@@ -183,14 +183,14 @@ decaps(benchmark::State& state)
   prng.read(_μ);
   prng.read(_salt);
 
-  kem::keygen(_s, _seedSE, _z, _pkey, _skey);
-  kem::encaps(_μ, _salt, _pkey, _cipher, _ss0);
+  kem::keygen<n, n̄, lsec, lSE, lA, B, D>(_s, _seedSE, _z, _pkey, _skey);
+  kem::encaps<n, n̄, lsec, lSE, lA, lsalt, B, D>(_μ, _salt, _pkey, _enc, _ss0);
 
   for (auto _ : state) {
-    kem::decaps(_skey, _cipher, _ss1);
+    kem::decaps<n, n̄, lsec, lSE, lA, lsalt, B, D>(_skey, _enc, _ss1);
 
     benchmark::DoNotOptimize(_skey);
-    benchmark::DoNotOptimize(_cipher);
+    benchmark::DoNotOptimize(_enc);
     benchmark::DoNotOptimize(_ss1);
     benchmark::ClobberMemory();
   }
