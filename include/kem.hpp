@@ -362,7 +362,7 @@ decaps(std::span<const uint8_t, kem_sec_key_len(n, n̄, len_sec, len_A, D)> skey
   auto E_dprime = sampling::sample_matrix<n, n̄, n̄, D>(_dig2);
 
   auto B_mat = packing::unpack<n, n̄, D>(skey2);
-  auto V = S_prime * B + E_dprime;
+  auto V = S_prime * B_mat + E_dprime;
 
   auto M_prime = encoding::encode<n̄, n̄, D, B>(μ_prime);
   auto C_prime = V + M_prime;
