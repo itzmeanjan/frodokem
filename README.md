@@ -103,71 +103,71 @@ make benchmark
 ### On 12th Gen Intel(R) Core(TM) i7-1260P [ Compiled with GCC ]
 
 ```bash
-2023-05-25T19:26:02+04:00
+2023-05-26T16:04:16+04:00
 Running ./bench/a.out
-Run on (16 X 3960.66 MHz CPU s)
+Run on (16 X 2892.49 MHz CPU s)
 CPU Caches:
   L1 Data 48 KiB (x8)
   L1 Instruction 32 KiB (x8)
   L2 Unified 1280 KiB (x8)
   L3 Unified 18432 KiB (x1)
-Load Average: 0.19, 0.43, 0.57
+Load Average: 0.76, 0.54, 0.55
 -----------------------------------------------------------------------------
 Benchmark                  Time             CPU   Iterations items_per_second
 -----------------------------------------------------------------------------
-frodo640-keygen         1.61 ms         1.60 ms          437        623.472/s
-frodo640-encaps         1.61 ms         1.61 ms          433        621.661/s
-frodo640-decaps         1.57 ms         1.57 ms          445        637.978/s
-frodo976-keygen         3.51 ms         3.51 ms          199        285.033/s
-frodo976-encaps         3.52 ms         3.52 ms          199        283.849/s
-frodo976-decaps         3.50 ms         3.50 ms          202        285.752/s
-frodo1344-keygen        6.66 ms         6.66 ms          106        150.252/s
-frodo1344-encaps        6.82 ms         6.82 ms          101        146.535/s
-frodo1344-decaps        6.79 ms         6.79 ms          103        147.193/s
-efrodo640-keygen        1.64 ms         1.64 ms          429        609.758/s
-efrodo640-encaps        1.65 ms         1.65 ms          423        607.466/s
-efrodo640-decaps        1.62 ms         1.62 ms          434        619.014/s
-efrodo976-keygen        3.59 ms         3.59 ms          195        278.623/s
-efrodo976-encaps        3.65 ms         3.65 ms          193        274.127/s
-efrodo976-decaps        3.57 ms         3.57 ms          196        279.937/s
-efrodo1344-keygen       6.79 ms         6.79 ms          101        147.382/s
-efrodo1344-encaps       7.04 ms         7.04 ms           99        141.977/s
-efrodo1344-decaps       6.99 ms         6.99 ms          100        142.996/s
+frodo640-keygen         1.59 ms         1.59 ms          440        629.083/s
+frodo640-encaps         1.58 ms         1.58 ms          444        634.195/s
+frodo640-decaps         1.55 ms         1.55 ms          452        643.934/s
+frodo976-keygen         3.49 ms         3.49 ms          201        286.889/s
+frodo976-encaps         3.50 ms         3.50 ms          201        285.928/s
+frodo976-decaps         3.42 ms         3.42 ms          205        292.446/s
+frodo1344-keygen        6.47 ms         6.47 ms          107        154.459/s
+frodo1344-encaps        6.69 ms         6.69 ms          104        149.472/s
+frodo1344-decaps        6.66 ms         6.66 ms          105        150.101/s
+efrodo640-keygen        1.59 ms         1.59 ms          440         627.46/s
+efrodo640-encaps        1.57 ms         1.57 ms          442        637.207/s
+efrodo640-decaps        1.55 ms         1.55 ms          453        643.248/s
+efrodo976-keygen        3.48 ms         3.48 ms          202        287.343/s
+efrodo976-encaps        3.50 ms         3.50 ms          200        286.011/s
+efrodo976-decaps        3.44 ms         3.44 ms          203        290.311/s
+efrodo1344-keygen       6.47 ms         6.47 ms          106        154.508/s
+efrodo1344-encaps       6.77 ms         6.77 ms          103        147.677/s
+efrodo1344-decaps       6.65 ms         6.65 ms          105        150.286/s
 ```
 
 ### On 12th Gen Intel(R) Core(TM) i7-1260P [ Compiled with Clang ]
 
 ```bash
-2023-05-25T19:27:14+04:00
+2023-05-26T16:05:37+04:00
 Running ./bench/a.out
-Run on (16 X 493.774 MHz CPU s)
+Run on (16 X 4649.4 MHz CPU s)
 CPU Caches:
   L1 Data 48 KiB (x8)
   L1 Instruction 32 KiB (x8)
   L2 Unified 1280 KiB (x8)
   L3 Unified 18432 KiB (x1)
-Load Average: 0.26, 0.41, 0.55
+Load Average: 0.55, 0.55, 0.55
 -----------------------------------------------------------------------------
 Benchmark                  Time             CPU   Iterations items_per_second
 -----------------------------------------------------------------------------
-frodo640-keygen         1.36 ms         1.36 ms          512        732.795/s
-frodo640-encaps         2.92 ms         2.92 ms          241        342.815/s
-frodo640-decaps         2.93 ms         2.93 ms          241        341.574/s
-frodo976-keygen         3.48 ms         3.48 ms          202        287.536/s
-frodo976-encaps         5.80 ms         5.80 ms          120        172.334/s
-frodo976-decaps         5.82 ms         5.82 ms          119        171.834/s
-frodo1344-keygen        6.45 ms         6.45 ms          107        154.945/s
-frodo1344-encaps        13.1 ms         13.1 ms           53        76.4382/s
-frodo1344-decaps        13.1 ms         13.1 ms           53        76.5641/s
-efrodo640-keygen        1.35 ms         1.35 ms          516        739.477/s
-efrodo640-encaps        2.89 ms         2.89 ms          241        345.674/s
-efrodo640-decaps        2.91 ms         2.91 ms          241        343.965/s
-efrodo976-keygen        3.47 ms         3.47 ms          201        288.374/s
-efrodo976-encaps        5.79 ms         5.79 ms          120        172.599/s
-efrodo976-decaps        5.80 ms         5.80 ms          120         172.52/s
-efrodo1344-keygen       6.51 ms         6.51 ms          107        153.605/s
-efrodo1344-encaps       13.1 ms         13.1 ms           53        76.3536/s
-efrodo1344-decaps       13.1 ms         13.1 ms           53        76.3647/s
+frodo640-keygen         1.35 ms         1.35 ms          517        740.897/s
+frodo640-encaps         2.89 ms         2.89 ms          247        345.827/s
+frodo640-decaps         2.91 ms         2.91 ms          240        343.512/s
+frodo976-keygen         3.47 ms         3.47 ms          202        288.378/s
+frodo976-encaps         5.81 ms         5.81 ms          120        172.065/s
+frodo976-decaps         5.80 ms         5.80 ms          120        172.356/s
+frodo1344-keygen        6.44 ms         6.44 ms          107        155.265/s
+frodo1344-encaps        13.1 ms         13.1 ms           54        76.3854/s
+frodo1344-decaps        13.1 ms         13.1 ms           53        76.3541/s
+efrodo640-keygen        1.35 ms         1.35 ms          520        742.854/s
+efrodo640-encaps        2.91 ms         2.91 ms          241        344.129/s
+efrodo640-decaps        2.92 ms         2.92 ms          240        342.631/s
+efrodo976-keygen        3.51 ms         3.51 ms          201        284.796/s
+efrodo976-encaps        5.81 ms         5.81 ms          119        172.022/s
+efrodo976-decaps        5.81 ms         5.81 ms          119        172.208/s
+efrodo1344-keygen       6.56 ms         6.56 ms          106        152.376/s
+efrodo1344-encaps       13.1 ms         13.1 ms           53        76.2275/s
+efrodo1344-decaps       13.1 ms         13.1 ms           54        76.3773/s
 ```
 
 ## Usage
