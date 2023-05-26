@@ -14,46 +14,38 @@
 // Some utility functions, required for FrodoKEM
 namespace frodo_utils {
 
-// Compile-time computable byte length of Frodo KEM public key.
+// Compile-time computable byte length of Frodo KEM public key, following
+// description in section 8 of FrodoKEM specification.
 constexpr size_t
 kem_pub_key_len(const size_t n,
-                const size_t n_bar,
-                const size_t len_seed_A,
+                const size_t n̄,
+                const size_t len_A,
                 const size_t D)
 {
-  const size_t bit_len = len_seed_A +     // bit length of seed
-                         (n * n_bar * D); // matrix B packed as bitstring
-  const size_t byte_len = (bit_len + 7) / 8;
-  return byte_len;
+  return (len_A + D * n * n̄) / 8;
 }
 
-// Compile-time computable byte length of Frodo KEM secret key.
+// Compile-time computable byte length of Frodo KEM secret key, following
+// description in section 8 of FrodoKEM specification.
 constexpr size_t
 kem_sec_key_len(const size_t n,
-                const size_t n_bar,
-                const size_t len_s,
-                const size_t len_seed_A,
-                const size_t len_pkh,
+                const size_t n̄,
+                const size_t len_sec,
+                const size_t len_A,
                 const size_t D)
 {
-  const size_t t0 = len_s / 8;
-  const size_t t1 = kem_pub_key_len(n, n_bar, len_seed_A, D);
-  const size_t t2 = n * n_bar * 2;
-  const size_t t3 = len_pkh / 8;
-
-  return t0 + t1 + t2 + t3;
+  return (2 * len_sec + len_A + D * n * n̄ + 16 * n * n̄) / 8;
 }
 
-// Compile-time computable byte length of Frodo KEM cipher text.
+// Compile-time computable byte length of Frodo KEM cipher text, following
+// description in section 8 of FrodoKEM specification.
 constexpr size_t
 kem_cipher_text_len(const size_t n,
-                    const size_t m_bar,
-                    const size_t n_bar,
+                    const size_t n̄,
+                    const size_t len_salt,
                     const size_t D)
 {
-  const size_t c1 = (m_bar * n * D + 7) / 8;
-  const size_t c2 = (m_bar * n_bar * D + 7) / 8;
-  return c1 + c2;
+  return (D * n * n̄ + D * n̄ * n̄ + len_salt) / 8;
 }
 
 // Given a bytearray of length N, this function converts it to human readable

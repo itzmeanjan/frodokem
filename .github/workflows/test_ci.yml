@@ -23,11 +23,9 @@ jobs:
       run: make
     - name: Run Examples
       run: |
+        g++ -std=c++20 -O3 -march=native -mtune=native -Wall -I include -I sha3/include -I subtle/include examples/efrodo640_kem.cpp
+        ./a.out
         g++ -std=c++20 -O3 -march=native -mtune=native -Wall -I include -I sha3/include -I subtle/include examples/frodo640_kem.cpp
-        ./a.out
-        g++ -std=c++20 -O3 -march=native -mtune=native -Wall -I include -I sha3/include -I subtle/include examples/frodo976_kem.cpp
-        ./a.out
-        g++ -std=c++20 -O3 -march=native -mtune=native -Wall -I include -I sha3/include -I subtle/include examples/frodo1344_kem.cpp
         ./a.out
     - name: Cleanup
       run: make clean

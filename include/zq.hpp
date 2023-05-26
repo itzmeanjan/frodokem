@@ -61,7 +61,8 @@ public:
 
   // Given an integer 0 <= k < 2^B, this routine encodes k as an element of Zq
   // s.t. q = 2^D and B <= D, following definition of `ec(k)` function, in
-  // section 2.2.1 of FrodoKEM specification.
+  // section 2.2.1 of FrodoKEM specification
+  // https://frodokem.org/files/FrodoKEM-specification-20210604.pdf.
   template<const size_t B>
   static inline constexpr zq_t encode(const uint16_t k)
     requires(B <= D)
