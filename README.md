@@ -247,6 +247,8 @@ main()
 - A 16 -bytes key `μ`
 - And a 32 -bytes `salt`
 
+> **Note** In case you're trying to use eFrodoKEM-{640, 976, 1344} API, you'll notice that it doesn't take a salt as input during key encapsulation. That is only required if you're using FrodoKEM in static settings, not in ephemeral one.
+
 ```cpp
 int
 main()
