@@ -1,32 +1,32 @@
 #pragma once
 #include "kem.hpp"
 
-// Frodo-640 Key Encapsulation Mechanism
-namespace frodo640_kem {
+// Frodo-976 Key Encapsulation Mechanism
+namespace frodo976_kem {
 
 // See table A.1, A.2 of FrodoKEM specification.
-constexpr size_t D = 15;
-constexpr size_t n = 640;
+constexpr size_t D = 16;
+constexpr size_t n = 976;
 constexpr size_t n̄ = 8;
-constexpr size_t B = 2;
+constexpr size_t B = 3;
 constexpr size_t len_A = 128;
-constexpr size_t len_sec = 128;
-constexpr size_t len_SE = 256;
-constexpr size_t len_salt = 256;
+constexpr size_t len_sec = 192;
+constexpr size_t len_SE = 384;
+constexpr size_t len_salt = 384;
 
-// = 9616 -bytes public key
+// = 15632 -bytes public key
 constexpr auto PUB_KEY_LEN = kem::kem_pub_key_len(n, n̄, len_A, D);
 
-// = 19888 -bytes secret key
+// = 31296 -bytes secret key
 constexpr auto SEC_KEY_LEN = kem::kem_sec_key_len(n, n̄, len_sec, len_A, D);
 
-// = 9752 -bytes cipher text
+// = 15792 -bytes cipher text
 constexpr auto CIPHER_LEN = kem::kem_cipher_text_len(n, n̄, len_salt, D);
 
-// Given 16 -bytes seed s ( secret part of private key ), 32 -bytes seed seedSE
+// Given 24 -bytes seed s ( secret part of private key ), 48 -bytes seed seedSE
 // ( used for sampling error matrices ) and 16 -bytes seed z ( used for deriving
 // pseudo-random seed seedA, which is used for generating matrix A ), this
-// routine can be used for deterministic generation of a Frodo-640 public/
+// routine can be used for deterministic generation of a Frodo-976 public/
 // private keypair, following algorithm described in section 8.1 of FrodoKEM
 // specification.
 inline void
@@ -39,11 +39,12 @@ keygen(std::span<const uint8_t, len_sec / 8> s,
   kem::keygen<n, n̄, len_sec, len_SE, len_A, B, D>(s, seedSE, z, pkey, skey);
 }
 
-// Given 16 -bytes key μ ( which is actually encrypted using underlying PKE
-// scheme ), 32 -bytes salt and a Frodo-640 KEM public key, this routine can be
+// Given 24 -bytes key μ ( which is actually encrypted using underlying PKE
+// scheme ), 48 -bytes salt and a Frodo-976 KEM public key, this routine can be
 // used for computing a cipher text ( which can only be decrypted using
-// corresponding Frodo-640 KEM private key ) and a 16 -bytes shared secret,
-// following algorithm described in section 8.2 of FrodoKEM specification.
+// corresponding Frodo-976 KEM private key ) and a 24 -bytes shared
+// secret,following algorithm described in section 8.2 of FrodoKEM
+// specification.
 inline void
 encaps(std::span<const uint8_t, len_sec / 8> μ,
        std::span<const uint8_t, len_salt / 8> salt,
@@ -55,9 +56,9 @@ encaps(std::span<const uint8_t, len_sec / 8> μ,
     μ, salt, pkey, enc, ss);
 }
 
-// Given a Frodo-640 KEM secret key, which is associated with the public key,
+// Given a Frodo-976 KEM secret key, which is associated with the public key,
 // using which the cipher text was computed and the cipher text as input, this
-// routine can be used for decrypting the cipher text, recovering 16 -bytes
+// routine can be used for decrypting the cipher text, recovering 24 -bytes
 // shared secret, following algorithm described in section 8.3 of FrodoKEM
 // specification.
 inline void
