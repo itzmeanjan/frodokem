@@ -46,15 +46,17 @@ keygen(std::span<const uint8_t, len_sec / 8> s,
   std::array<uint8_t, len_A / 8> seedA{};
 
   if constexpr (n == 640) {
-    shake128::shake128 hasher;
+    shake128::shake128_t hasher;
 
-    hasher.hash(z.data(), z.size());
-    hasher.read(seedA.data(), seedA.size());
+    hasher.absorb(z);
+    hasher.finalize();
+    hasher.squeeze(seedA);
   } else if constexpr ((n == 976) || (n == 1344)) {
-    shake256::shake256 hasher;
+    shake256::shake256_t hasher;
 
-    hasher.hash(z.data(), z.size());
-    hasher.read(seedA.data(), seedA.size());
+    hasher.absorb(z);
+    hasher.finalize();
+    hasher.squeeze(seedA);
   }
 
   auto A = matrix::matrix<n, n, D>::template generate<len_A>(seedA);
@@ -66,15 +68,17 @@ keygen(std::span<const uint8_t, len_sec / 8> s,
   std::memcpy(buf.data() + 1, seedSE.data(), seedSE.size());
 
   if constexpr (n == 640) {
-    shake128::shake128 hasher;
+    shake128::shake128_t hasher;
 
-    hasher.hash(buf.data(), buf.size());
-    hasher.read(dig.data(), dig.size());
+    hasher.absorb(buf);
+    hasher.finalize();
+    hasher.squeeze(dig);
   } else if constexpr ((n == 976) || (n == 1344)) {
-    shake256::shake256 hasher;
+    shake256::shake256_t hasher;
 
-    hasher.hash(buf.data(), buf.size());
-    hasher.read(dig.data(), dig.size());
+    hasher.absorb(buf);
+    hasher.finalize();
+    hasher.squeeze(dig);
   }
 
   std::span<uint8_t, dig.size()> _dig{ dig };
@@ -99,15 +103,17 @@ keygen(std::span<const uint8_t, len_sec / 8> s,
   std::array<uint8_t, len_sec / 8> pkh{};
 
   if constexpr (n == 640) {
-    shake128::shake128 hasher;
+    shake128::shake128_t hasher;
 
-    hasher.hash(pkey.data(), pkey.size());
-    hasher.read(pkh.data(), pkh.size());
+    hasher.absorb(pkey);
+    hasher.finalize();
+    hasher.squeeze(pkh);
   } else if constexpr ((n == 976) || (n == 1344)) {
-    shake256::shake256 hasher;
+    shake256::shake256_t hasher;
 
-    hasher.hash(pkey.data(), pkey.size());
-    hasher.read(pkh.data(), pkh.size());
+    hasher.absorb(pkey);
+    hasher.finalize();
+    hasher.squeeze(pkh);
   }
 
   // --- serialize secret key ---
@@ -159,53 +165,58 @@ encaps(std::span<const uint8_t, len_sec / 8> μ,
   std::array<uint8_t, len_sec / 8> pkh{};
 
   if constexpr (n == 640) {
-    shake128::shake128 hasher;
+    shake128::shake128_t hasher;
 
-    hasher.hash(pkey.data(), pkey.size());
-    hasher.read(pkh.data(), pkh.size());
+    hasher.absorb(pkey);
+    hasher.finalize();
+    hasher.squeeze(pkh);
   } else if constexpr ((n == 976) || (n == 1344)) {
-    shake256::shake256 hasher;
+    shake256::shake256_t hasher;
 
-    hasher.hash(pkey.data(), pkey.size());
-    hasher.read(pkh.data(), pkh.size());
+    hasher.absorb(pkey);
+    hasher.finalize();
+    hasher.squeeze(pkh);
   }
 
   std::array<uint8_t, (len_SE + len_sec) / 8> rand_bytes{};
+  auto _rand_bytes = std::span(rand_bytes);
 
   if constexpr (n == 640) {
-    shake128::shake128<true> hasher;
+    shake128::shake128_t hasher;
 
-    hasher.absorb(pkh.data(), pkh.size());
-    hasher.absorb(μ.data(), μ.size());
-    hasher.absorb(salt.data(), salt.size());
+    hasher.absorb(pkh);
+    hasher.absorb(μ);
+    hasher.absorb(salt);
     hasher.finalize();
-    hasher.read(rand_bytes.data(), rand_bytes.size());
+    hasher.squeeze(_rand_bytes);
   } else if constexpr ((n == 976) || (n == 1344)) {
-    shake256::shake256<true> hasher;
+    shake256::shake256_t hasher;
 
-    hasher.absorb(pkh.data(), pkh.size());
-    hasher.absorb(μ.data(), μ.size());
-    hasher.absorb(salt.data(), salt.size());
+    hasher.absorb(pkh);
+    hasher.absorb(μ);
+    hasher.absorb(salt);
     hasher.finalize();
-    hasher.read(rand_bytes.data(), rand_bytes.size());
+    hasher.squeeze(_rand_bytes);
   }
 
   std::array<uint8_t, 1 + len_SE / 8> buf{};
   std::array<uint8_t, ((2 * n̄ * n + n̄ * n̄) * 16) / 8> dig{};
 
   buf[0] = 0x96;
-  std::memcpy(buf.data() + 1, rand_bytes.data(), len_SE / 8);
+  std::memcpy(buf.data() + 1, _rand_bytes.data(), len_SE / 8);
 
   if constexpr (n == 640) {
-    shake128::shake128 hasher;
+    shake128::shake128_t hasher;
 
-    hasher.hash(buf.data(), buf.size());
-    hasher.read(dig.data(), dig.size());
+    hasher.absorb(buf);
+    hasher.finalize();
+    hasher.squeeze(dig);
   } else if constexpr ((n == 976) || (n == 1344)) {
-    shake256::shake256 hasher;
+    shake256::shake256_t hasher;
 
-    hasher.hash(buf.data(), buf.size());
-    hasher.read(dig.data(), dig.size());
+    hasher.absorb(buf);
+    hasher.finalize();
+    hasher.squeeze(dig);
   }
 
   std::span<uint8_t, dig.size()> _dig{ dig };
@@ -245,19 +256,19 @@ encaps(std::span<const uint8_t, len_sec / 8> μ,
   std::memcpy(enc2.data(), salt.data(), salt.size());
 
   if constexpr (n == 640) {
-    shake128::shake128<true> hasher;
+    shake128::shake128_t hasher;
 
-    hasher.absorb(enc.data(), enc.size());
-    hasher.absorb(rand_bytes.data() + (len_SE / 8), len_sec / 8);
+    hasher.absorb(enc);
+    hasher.absorb(_rand_bytes.subspan(len_SE / 8, len_sec / 8));
     hasher.finalize();
-    hasher.read(ss.data(), ss.size());
+    hasher.squeeze(ss);
   } else if constexpr ((n == 976) || (n == 1344)) {
-    shake256::shake256<true> hasher;
+    shake256::shake256_t hasher;
 
-    hasher.absorb(enc.data(), enc.size());
-    hasher.absorb(rand_bytes.data() + (len_SE / 8), len_sec / 8);
+    hasher.absorb(enc);
+    hasher.absorb(_rand_bytes.subspan(len_SE / 8, len_sec / 8));
     hasher.finalize();
-    hasher.read(ss.data(), ss.size());
+    hasher.squeeze(ss);
   }
 }
 
@@ -328,21 +339,21 @@ decaps(std::span<const uint8_t, kem_sec_key_len(n, n̄, len_sec, len_A, D)> skey
   std::array<uint8_t, (len_SE + len_sec) / 8> rand_bytes{};
 
   if constexpr (n == 640) {
-    shake128::shake128<true> hasher;
+    shake128::shake128_t hasher;
 
-    hasher.absorb(skey4.data(), skey4.size());
-    hasher.absorb(μ_prime.data(), μ_prime.size());
-    hasher.absorb(enc2.data(), enc2.size());
+    hasher.absorb(skey4);
+    hasher.absorb(μ_prime);
+    hasher.absorb(enc2);
     hasher.finalize();
-    hasher.read(rand_bytes.data(), rand_bytes.size());
+    hasher.squeeze(rand_bytes);
   } else if constexpr ((n == 976) || (n == 1344)) {
-    shake256::shake256<true> hasher;
+    shake256::shake256_t hasher;
 
-    hasher.absorb(skey4.data(), skey4.size());
-    hasher.absorb(μ_prime.data(), μ_prime.size());
-    hasher.absorb(enc2.data(), enc2.size());
+    hasher.absorb(skey4);
+    hasher.absorb(μ_prime);
+    hasher.absorb(enc2);
     hasher.finalize();
-    hasher.read(rand_bytes.data(), rand_bytes.size());
+    hasher.squeeze(rand_bytes);
   }
 
   std::array<uint8_t, 1 + (len_SE) / 8> buf{};
@@ -352,15 +363,17 @@ decaps(std::span<const uint8_t, kem_sec_key_len(n, n̄, len_sec, len_A, D)> skey
   std::memcpy(buf.data() + 1, rand_bytes.data(), buf.size() - 1);
 
   if constexpr (n == 640) {
-    shake128::shake128 hasher;
+    shake128::shake128_t hasher;
 
-    hasher.hash(buf.data(), buf.size());
-    hasher.read(dig.data(), dig.size());
+    hasher.absorb(buf);
+    hasher.finalize();
+    hasher.squeeze(dig);
   } else if constexpr ((n == 976) || (n == 1344)) {
-    shake256::shake256 hasher;
+    shake256::shake256_t hasher;
 
-    hasher.hash(buf.data(), buf.size());
-    hasher.read(dig.data(), dig.size());
+    hasher.absorb(buf);
+    hasher.finalize();
+    hasher.squeeze(dig);
   }
 
   std::span<uint8_t, dig.size()> _dig{ dig };
@@ -400,19 +413,19 @@ decaps(std::span<const uint8_t, kem_sec_key_len(n, n̄, len_sec, len_A, D)> skey
   // --- ends ---
 
   if constexpr (n == 640) {
-    shake128::shake128<true> hasher;
+    shake128::shake128_t hasher;
 
-    hasher.absorb(enc.data(), enc.size());
-    hasher.absorb(k̄.data(), k̄.size());
+    hasher.absorb(enc);
+    hasher.absorb(k̄);
     hasher.finalize();
-    hasher.read(ss.data(), ss.size());
+    hasher.squeeze(ss);
   } else if constexpr ((n == 976) || (n == 1344)) {
-    shake256::shake256<true> hasher;
+    shake256::shake256_t hasher;
 
-    hasher.absorb(enc.data(), enc.size());
-    hasher.absorb(k̄.data(), k̄.size());
+    hasher.absorb(enc);
+    hasher.absorb(k̄);
     hasher.finalize();
-    hasher.read(ss.data(), ss.size());
+    hasher.squeeze(ss);
   }
 }
 
