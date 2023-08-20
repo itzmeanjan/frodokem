@@ -1,13 +1,9 @@
-#pragma once
 #include "encoding.hpp"
 #include "prng.hpp"
 #include <algorithm>
 #include <array>
-#include <cassert>
 #include <cstring>
-
-// Test functional correctness of FrodoKEM along with its components.
-namespace test_frodo {
+#include <gtest/gtest.h>
 
 // Test if
 //
@@ -35,7 +31,15 @@ test_matrix_encode_decode()
   auto encoded = encoding::encode<m, n, D, B>(org_bytes);
   encoding::decode<m, n, D, B>(encoded, fin_bytes);
 
-  assert(std::ranges::equal(org_bytes, fin_bytes));
+  EXPECT_EQ(org_bytes, fin_bytes);
 }
 
+TEST(FrodoKEM, MatrixEncodeDecode)
+{
+  test_matrix_encode_decode<8, 8, 15, 2>();
+  test_matrix_encode_decode<8, 8, 15, 3>();
+  test_matrix_encode_decode<8, 8, 15, 4>();
+  test_matrix_encode_decode<8, 8, 16, 2>();
+  test_matrix_encode_decode<8, 8, 16, 3>();
+  test_matrix_encode_decode<8, 8, 16, 4>();
 }
