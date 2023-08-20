@@ -1,11 +1,7 @@
-#pragma once
 #include "matrix.hpp"
 #include "prng.hpp"
 #include "zq.hpp"
-#include <cassert>
-
-// Test functional correctness of FrodoKEM along with its components.
-namespace test_frodo {
+#include <gtest/gtest.h>
 
 // Test if, given a matrix of dimension m x n, it can correctly be transposed
 // into a matrix of dimension n x m.
@@ -19,7 +15,14 @@ test_matrix_transpose()
   auto mat_b = mat_a.transpose();
   auto mat_c = mat_b.transpose();
 
-  assert(mat_a == mat_c);
+  EXPECT_EQ(mat_a, mat_c);
+}
+
+TEST(FrodoKEM, MatrixTranspose)
+{
+  test_matrix_transpose<8, 640, 15>();
+  test_matrix_transpose<8, 976, 16>();
+  test_matrix_transpose<8, 1344, 16>();
 }
 
 // Test if, addition and subtraction of two matrices ( of same dimension ) is
@@ -36,7 +39,14 @@ test_matrix_add_sub()
   auto mat_c = mat_a + mat_b;
   auto mat_d = mat_c - mat_b;
 
-  assert(mat_a == mat_d);
+  EXPECT_EQ(mat_a, mat_d);
 }
 
+TEST(FrodoKEM, MatrixAddSub)
+{
+  test_matrix_add_sub<8, 640, 15>();
+  test_matrix_add_sub<8, 976, 16>();
+  test_matrix_add_sub<8, 1344, 16>();
+  test_matrix_add_sub<8, 8, 15>();
+  test_matrix_add_sub<8, 8, 16>();
 }

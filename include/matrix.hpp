@@ -159,9 +159,10 @@ public:
   {
     constexpr size_t seed_bytes = seed.size();
 
-    uint8_t buf[2 + seed_bytes];
-    uint8_t dig[cols * 2];
-    std::memcpy(buf + 2, seed.data(), seed_bytes);
+    std::array<uint8_t, 2 + seed_bytes> buf{};
+    std::array<uint8_t, cols * 2> dig{};
+
+    std::memcpy(buf.data() + 2, seed.data(), seed_bytes);
 
     matrix<rows, cols, D> mat{};
 
@@ -171,10 +172,11 @@ public:
       buf[0] = (ridx >> 0) & 0xff;
       buf[1] = (ridx >> 8) & 0xff;
 
-      shake128::shake128 hasher{};
+      shake128::shake128_t hasher{};
 
-      hasher.hash(buf, sizeof(buf));
-      hasher.read(dig, sizeof(dig));
+      hasher.absorb(buf);
+      hasher.finalize();
+      hasher.squeeze(dig);
 
       for (size_t j = 0; j < cols; j++) {
         const uint16_t word = (static_cast<uint16_t>(dig[2 * j + 1]) << 8) |

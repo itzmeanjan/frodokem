@@ -1,14 +1,10 @@
-#pragma once
 #include "matrix.hpp"
 #include "packing.hpp"
 #include "prng.hpp"
 #include "utils.hpp"
 #include "zq.hpp"
 #include <array>
-#include <cassert>
-
-// Test functional correctness of FrodoKEM along with its components.
-namespace test_frodo {
+#include <gtest/gtest.h>
 
 // Test if
 //
@@ -34,7 +30,17 @@ test_matrix_pack_unpack()
   packing::pack<n1, n2, D>(mat, packed);
   auto unpacked = packing::unpack<n1, n2, D>(packed);
 
-  assert(mat == unpacked);
+  EXPECT_EQ(mat, unpacked);
 }
 
+TEST(FrodoKEM, MatrixPackUnpack)
+{
+  test_matrix_pack_unpack<640, 8, 15>();
+  test_matrix_pack_unpack<8, 640, 15>();
+  test_matrix_pack_unpack<976, 8, 16>();
+  test_matrix_pack_unpack<8, 976, 16>();
+  test_matrix_pack_unpack<1344, 8, 16>();
+  test_matrix_pack_unpack<8, 1344, 16>();
+  test_matrix_pack_unpack<8, 8, 15>();
+  test_matrix_pack_unpack<8, 8, 16>();
 }

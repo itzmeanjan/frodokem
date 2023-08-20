@@ -1,9 +1,5 @@
-#pragma once
 #include "zq.hpp"
-#include <cassert>
-
-// Test functional correctness of FrodoKEM along with its components.
-namespace test_frodo {
+#include <gtest/gtest.h>
 
 // Test if
 //
@@ -26,8 +22,15 @@ test_zq_encode_decode()
     const auto enc = zq::zq_t<D>::template encode<B>(v);
     const auto dec = enc.template decode<B>();
 
-    assert(v == dec);
+    EXPECT_EQ(v, dec);
   }
+}
+
+TEST(FrodoKEM, ZqEncodeDecode)
+{
+  test_zq_encode_decode<15, 2>();
+  test_zq_encode_decode<16, 3>();
+  test_zq_encode_decode<16, 4>();
 }
 
 // Ensure that this implementation satisfies lemma 2.18 of FrodoKEM
@@ -58,9 +61,14 @@ test_lemma_2_18()
       // = dc(ec(k) + e)
       const auto t = u.template decode<B>();
 
-      assert(k == t);
+      EXPECT_EQ(k, t);
     }
   }
 }
 
+TEST(FrodoKEM, Lemma2_18)
+{
+  test_lemma_2_18<15, 2>();
+  test_lemma_2_18<16, 3>();
+  test_lemma_2_18<16, 4>();
 }

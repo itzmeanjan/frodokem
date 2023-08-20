@@ -1,14 +1,10 @@
-#pragma once
 #include "kem.hpp"
 #include "prng.hpp"
 #include "utils.hpp"
 #include <algorithm>
-#include <cassert>
+#include <gtest/gtest.h>
 #include <span>
 #include <vector>
-
-// Test functional correctness of FrodoKEM along with its components.
-namespace test_frodo {
 
 // Test if
 //
@@ -71,7 +67,15 @@ test_kem()
     _μ, _salt, _pkey, _enc, _ss0);
   decaps<n, n̄, len_sec, len_SE, len_A, len_salt, B, D>(_skey, _enc, _ss1);
 
-  assert(std::ranges::equal(ss0, ss1));
+  EXPECT_EQ(ss0, ss1);
 }
 
+TEST(FrodoKEM, KeygenEncapsDecaps)
+{
+  test_kem<640, 8, 128, 128, 128, 0, 2, 15>();
+  test_kem<640, 8, 128, 128, 256, 256, 2, 15>();
+  test_kem<976, 8, 128, 192, 192, 0, 3, 16>();
+  test_kem<976, 8, 128, 192, 384, 384, 3, 16>();
+  test_kem<1344, 8, 128, 256, 256, 0, 4, 16>();
+  test_kem<1344, 8, 128, 256, 512, 512, 4, 16>();
 }
