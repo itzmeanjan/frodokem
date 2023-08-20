@@ -1,19 +1,12 @@
-#pragma once
 #include "efrodo1344_kem.hpp"
 #include "efrodo640_kem.hpp"
 #include "efrodo976_kem.hpp"
 #include "utils.hpp"
 #include <array>
-#include <cassert>
 #include <fstream>
+#include <gtest/gtest.h>
 #include <string>
 #include <string_view>
-
-// Test functional correctness of FrodoKEM along with its components.
-namespace test_frodo {
-
-using namespace std::literals;
-namespace utils = frodo_utils;
 
 // Test if
 //
@@ -21,9 +14,11 @@ namespace utils = frodo_utils;
 // - Is it conformant with the specification ?
 //
 // using KATs.
-inline void
-test_efrodo640_kem_kat()
+TEST(FrodoKEM, eFrodo640KEMKAT)
 {
+  using namespace std::literals;
+  namespace utils = frodo_utils;
+
   const std::string kat_file = "./kats/eFrodoKEM640_KAT.txt";
   std::fstream file(kat_file);
 
@@ -89,11 +84,11 @@ test_efrodo640_kem_kat()
       efrodo640_kem::encaps(___μ, pubkey, ctxt, shrd_sec0);
       efrodo640_kem::decaps(seckey, ctxt, shrd_sec1);
 
-      assert(std::ranges::equal(___pkey, pubkey));
-      assert(std::ranges::equal(___skey, seckey));
-      assert(std::ranges::equal(___ct, ctxt));
-      assert(std::ranges::equal(___ss, shrd_sec0));
-      assert(std::ranges::equal(shrd_sec0, shrd_sec1));
+      EXPECT_TRUE(std::ranges::equal(___pkey, pubkey));
+      EXPECT_TRUE(std::ranges::equal(___skey, seckey));
+      EXPECT_TRUE(std::ranges::equal(___ct, ctxt));
+      EXPECT_TRUE(std::ranges::equal(___ss, shrd_sec0));
+      EXPECT_TRUE(std::ranges::equal(shrd_sec0, shrd_sec1));
 
       std::string empty_line;
       std::getline(file, empty_line);
@@ -111,9 +106,11 @@ test_efrodo640_kem_kat()
 // - Is it conformant with the specification ?
 //
 // using KATs.
-inline void
-test_efrodo976_kem_kat()
+TEST(FrodoKEM, eFrodo976KEMKAT)
 {
+  using namespace std::literals;
+  namespace utils = frodo_utils;
+
   const std::string kat_file = "./kats/eFrodoKEM976_KAT.txt";
   std::fstream file(kat_file);
 
@@ -179,11 +176,11 @@ test_efrodo976_kem_kat()
       efrodo976_kem::encaps(___μ, pubkey, ctxt, shrd_sec0);
       efrodo976_kem::decaps(seckey, ctxt, shrd_sec1);
 
-      assert(std::ranges::equal(___pkey, pubkey));
-      assert(std::ranges::equal(___skey, seckey));
-      assert(std::ranges::equal(___ct, ctxt));
-      assert(std::ranges::equal(___ss, shrd_sec0));
-      assert(std::ranges::equal(shrd_sec0, shrd_sec1));
+      EXPECT_TRUE(std::ranges::equal(___pkey, pubkey));
+      EXPECT_TRUE(std::ranges::equal(___skey, seckey));
+      EXPECT_TRUE(std::ranges::equal(___ct, ctxt));
+      EXPECT_TRUE(std::ranges::equal(___ss, shrd_sec0));
+      EXPECT_TRUE(std::ranges::equal(shrd_sec0, shrd_sec1));
 
       std::string empty_line;
       std::getline(file, empty_line);
@@ -201,9 +198,11 @@ test_efrodo976_kem_kat()
 // - Is it conformant with the specification ?
 //
 // using KATs.
-inline void
-test_efrodo1344_kem_kat()
+TEST(FrodoKEM, eFrodo1344KEMKAT)
 {
+  using namespace std::literals;
+  namespace utils = frodo_utils;
+
   const std::string kat_file = "./kats/eFrodoKEM1344_KAT.txt";
   std::fstream file(kat_file);
 
@@ -269,11 +268,11 @@ test_efrodo1344_kem_kat()
       efrodo1344_kem::encaps(___μ, pubkey, ctxt, shrd_sec0);
       efrodo1344_kem::decaps(seckey, ctxt, shrd_sec1);
 
-      assert(std::ranges::equal(___pkey, pubkey));
-      assert(std::ranges::equal(___skey, seckey));
-      assert(std::ranges::equal(___ct, ctxt));
-      assert(std::ranges::equal(___ss, shrd_sec0));
-      assert(std::ranges::equal(shrd_sec0, shrd_sec1));
+      EXPECT_TRUE(std::ranges::equal(___pkey, pubkey));
+      EXPECT_TRUE(std::ranges::equal(___skey, seckey));
+      EXPECT_TRUE(std::ranges::equal(___ct, ctxt));
+      EXPECT_TRUE(std::ranges::equal(___ss, shrd_sec0));
+      EXPECT_TRUE(std::ranges::equal(shrd_sec0, shrd_sec1));
 
       std::string empty_line;
       std::getline(file, empty_line);
@@ -283,6 +282,4 @@ test_efrodo1344_kem_kat()
   }
 
   file.close();
-}
-
 }
