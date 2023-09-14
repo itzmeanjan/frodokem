@@ -34,7 +34,7 @@ constexpr std::array<uint16_t, 7> Frodo1344_χ = { 18286, 14320, 6876, 2023,
 //
 // You can find reference implementation @
 // https://github.com/microsoft/PQCrypto-LWEKE/blob/d7037ccb/python3/frodokem.py#L204-L213
-template<const size_t L>
+template<size_t L>
 constexpr std::array<uint16_t, L>
 compute_cdf(std::array<uint16_t, L> χ)
 {
@@ -68,7 +68,7 @@ constexpr auto Frodo1344_Tχ = compute_cdf(Frodo1344_χ);
 // compilers are free to optimize, so it can be better idea to inspect generated
 // assembly rather than just trusting that this implementation will always be
 // constant-time on all targets.
-template<const size_t D, const size_t L, const std::array<uint16_t, L> Tχ>
+template<size_t D, size_t L, std::array<uint16_t, L> Tχ>
 inline constexpr zq::zq_t<D>
 sample(const uint16_t r)
 {
@@ -92,7 +92,7 @@ sample(const uint16_t r)
 //
 // - r is a byte array of length n1 x n2 x (16/ 8) -bytes.
 // - e is a matrix of dimension n1 x n2, over Z.
-template<const size_t n, const size_t n1, const size_t n2, const size_t D>
+template<size_t n, size_t n1, size_t n2, size_t D>
 inline constexpr matrix::matrix<n1, n2, D>
 sample_matrix(std::span<const uint8_t, 16 * n1 * n2 / 8> r)
 {

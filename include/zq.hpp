@@ -9,7 +9,7 @@
 namespace zq {
 
 // Wrapper type encapsulating arithmetic over Zq i.e. mod q (= 2^D).
-template<const size_t D>
+template<size_t D>
   requires(frodo_params::check_d(D))
 struct zq_t
 {
@@ -63,7 +63,7 @@ public:
   // s.t. q = 2^D and B <= D, following definition of `ec(k)` function, in
   // section 2.2.1 of FrodoKEM specification
   // https://frodokem.org/files/FrodoKEM-specification-20210604.pdf.
-  template<const size_t B>
+  template<size_t B>
   static inline constexpr zq_t encode(const uint16_t k)
     requires(B <= D)
   {
@@ -77,7 +77,7 @@ public:
   // Given an entry of Zq, this routine extracts its most significant B bits
   // s.t. returned integer v ∈ [0, 2^B), collecting inspiration from
   // https://github.com/microsoft/PQCrypto-LWEKE/blob/d7037ccb/python3/frodokem.py#L335.
-  template<const size_t B>
+  template<size_t B>
   inline constexpr uint16_t decode() const
     requires(B <= D)
   {

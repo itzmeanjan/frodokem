@@ -12,7 +12,7 @@ namespace encoding {
 // integer k ∈ [0, 2^B), which is encoded as an element of Zq s.t. q = 2^D and B
 // <= D using `ec()` function, returning a matrix of dimension m x n over Zq,
 // following algorithm described in section 7.2 of FrodoKEM specification.
-template<const size_t m, const size_t n, const size_t D, const size_t B>
+template<size_t m, size_t n, size_t D, size_t B>
 inline constexpr matrix::matrix<m, n, D>
 encode(std::span<const uint8_t, (m * n * B + 7) / 8> arr)
   requires((m == n) && frodo_params::check_b(B) && (B <= D))
@@ -84,7 +84,7 @@ encode(std::span<const uint8_t, (m * n * B + 7) / 8> arr)
 // the B most significant bits of each matrix entry, by applying `dc()`
 // function, returning a byte array of length (m x n x B + 7)/ 8 -bytes,
 // following algorithm described in section 7.2 of FrodoKEM specification.
-template<const size_t m, const size_t n, const size_t D, const size_t B>
+template<size_t m, size_t n, size_t D, size_t B>
 inline constexpr void
 decode(const matrix::matrix<m, n, D>& mat,
        std::span<uint8_t, (m * n * B + 7) / 8> arr)

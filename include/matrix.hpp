@@ -12,7 +12,7 @@
 namespace matrix {
 
 // Wrapper type encapsulating ops on matrices s.t. elements ∈ Zq | q = 2^D
-template<const size_t rows, const size_t cols, const size_t D>
+template<size_t rows, size_t cols, size_t D>
 struct matrix
 {
 private:
@@ -104,7 +104,7 @@ public:
   // rhs_rows x rhs_cols ) s.t. cols == rhs_rows, this routine can be used for
   // multiplying them over Zq, resulting into another matrix (C) of dimension
   // rows x rhs_cols.
-  template<const size_t rhs_rows, const size_t rhs_cols>
+  template<size_t rhs_rows, size_t rhs_cols>
   inline constexpr matrix<rows, rhs_cols, D> operator*(
     const matrix<rhs_rows, rhs_cols, D>& rhs) const
     requires(cols == rhs_rows)
@@ -152,7 +152,7 @@ public:
   // deterministically generating a pseudorandom matrix of dimension n x n,
   // using SHAKE128 XOF, following algorithm described in section 7.6.2 of
   // FrodoKEM specification.
-  template<const size_t len_seed_A>
+  template<size_t len_seed_A>
   inline static constexpr matrix<rows, cols, D> generate(
     std::span<const uint8_t, (len_seed_A + 7) / 8> seed)
     requires(rows == cols)

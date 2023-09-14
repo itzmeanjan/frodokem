@@ -12,17 +12,17 @@ Scheme | What does it offer ?
 FrodoPKE | Lets you encrypt a fixed length message M, using your peer's public key, resulting in a cipher text, which can only be decrypted by respective peer's secret key.
 FrodoKEM | Helps in establishing secure communication channel between two parties - (a) starting communication over insecure channel, (b) later on begins using some authenticated encryption (AEAD) scheme for encrypting their messages, using the common key ( = shared secret ) that both of them arrived at by using the KEM scheme.
 
-Here I'm maintaining a header-only, easy-to-use ( see [below](#usage) ) C++ library, offering FrodoKEM API, for three security levels, each for two usage scenarios ( i.e. staic and ephemeral ).
+Here I'm maintaining a header-only, easy-to-use ( see [below](#usage) ) C++ library, offering FrodoKEM API, for three security levels, each for two usage scenarios ( i.e. static and ephemeral ).
 
 > **Note** Right now this library only provides you with FrodoKEM implementation s.t. generation of matrix `A` always uses SHAKE128 Xof. I've not *yet* implemented AES128 backed matrix `A` generation logic.
 
 Scheme | Target Security Level
 :-- | --:
-(e)Frodo-640 KEM | NIST-I 
+(e)Frodo-640 KEM | NIST-I
 (e)Frodo-976 KEM | NIST-III
 (e)Frodo-1344 KEM | NIST-V
 
-> **Note** (STATIC): Long term use of same keypair s.t. many cipher texts can be computed per public key.
+> **Note** (STATIC): Long term use of same keypair s.t. many cipher texts can be computed per public key. KEM variants whose names look like Frodo-{640, 976, 1344} KEM.
 
 > **Note** (EPHEMERAL): Only small number of cipher texts are produced per public key. Begins with an `e` i.e. eFrodo-{640,976,1344} KEM.
 
@@ -62,38 +62,44 @@ cmake version 3.25.1
 
 ```bash
 git clone https://github.com/itzmeanjan/frodokem.git
-
 pushd frodokem
 git submodule update --init # Import dependencies
 popd
+
+# or try
+git clone https://github.com/itzmeanjan/frodokem.git --recurse-submodules
 ```
 
 ## Testing
 
 For ensuring functional correctness of FrodoKEM and its constituting components, issue following command, after you clone this repository and update/ initialize git submodule ( for importing dependencies ). Issuing following command also runs necessary tests, which ensures that this FrodoKEM implementation is conformant with the specification, by checking keypair/ cipher text/ shared secret values for given seeds, using known answer tests (KATs).
 
-> **Note** Known Answer Tests (KATs) living in [this](./kats) directory are computed by following steps, described in [this](https://gist.github.com/itzmeanjan/38d506a69073bdeb0933245401f42186) gist.
-
-> **Warning** KATs used for ensuring correctness of FrodoKEM implementation are actually taken from FrodoKEM reference implementation repository ( i.e. https://github.com/microsoft/PQCrypto-LWEKE.git @ commit d7037ccb ), which is not yet implementing latest version of FrodoKEM specification ( i.e. ISO submission 2023/03/14 ). It implements previous version of FrodoKEM specification i.e. 2021/06/04. But parameters for ephemeral FrodoKEM ( as per ISO submission 2023/03/14 ) and old FrodoKEM ( as per spec. version 2021/06/04 ) are actually same. That's why I use those old test vectors for ensuring correctness of eFrodoKEM-{640, 976, 1344} implementation of this library. I'll wait for FrodoKEM team to update their reference implementation as per latest ISO submission document. After that I'll use those KATs for ensuring that this implementation of FrodoKEM actually conforms to the ISO submission specification of Frodo.
+> **Note** Known Answer Tests (KATs) living in [this](./kats) directory are computed by following (reproducible) steps, described in [this](https://gist.github.com/itzmeanjan/38d506a69073bdeb0933245401f42186) gist.
 
 ```bash
 make -j
 ```
 
 ```bash
-[==========] Running 10 tests from 1 test suite.
+[==========] Running 13 tests from 1 test suite.
 [----------] Global test environment set-up.
-[----------] 10 tests from FrodoKEM
+[----------] 13 tests from FrodoKEM
 [ RUN      ] FrodoKEM.MatrixEncodeDecode
 [       OK ] FrodoKEM.MatrixEncodeDecode (0 ms)
 [ RUN      ] FrodoKEM.KeygenEncapsDecaps
-[       OK ] FrodoKEM.KeygenEncapsDecaps (80 ms)
+[       OK ] FrodoKEM.KeygenEncapsDecaps (74 ms)
+[ RUN      ] FrodoKEM.Frodo640KEMKAT
+[       OK ] FrodoKEM.Frodo640KEMKAT (324 ms)
+[ RUN      ] FrodoKEM.Frodo976KEMKAT
+[       OK ] FrodoKEM.Frodo976KEMKAT (707 ms)
+[ RUN      ] FrodoKEM.Frodo1344KEMKAT
+[       OK ] FrodoKEM.Frodo1344KEMKAT (1338 ms)
 [ RUN      ] FrodoKEM.eFrodo640KEMKAT
-[       OK ] FrodoKEM.eFrodo640KEMKAT (525 ms)
+[       OK ] FrodoKEM.eFrodo640KEMKAT (324 ms)
 [ RUN      ] FrodoKEM.eFrodo976KEMKAT
-[       OK ] FrodoKEM.eFrodo976KEMKAT (1144 ms)
+[       OK ] FrodoKEM.eFrodo976KEMKAT (711 ms)
 [ RUN      ] FrodoKEM.eFrodo1344KEMKAT
-[       OK ] FrodoKEM.eFrodo1344KEMKAT (2213 ms)
+[       OK ] FrodoKEM.eFrodo1344KEMKAT (1339 ms)
 [ RUN      ] FrodoKEM.MatrixTranspose
 [       OK ] FrodoKEM.MatrixTranspose (0 ms)
 [ RUN      ] FrodoKEM.MatrixAddSub
@@ -104,11 +110,11 @@ make -j
 [       OK ] FrodoKEM.ZqEncodeDecode (0 ms)
 [ RUN      ] FrodoKEM.Lemma2_18
 [       OK ] FrodoKEM.Lemma2_18 (2 ms)
-[----------] 10 tests from FrodoKEM (3968 ms total)
+[----------] 13 tests from FrodoKEM (4826 ms total)
 
 [----------] Global test environment tear-down
-[==========] 10 tests from 1 test suite ran. (3968 ms total)
-[  PASSED  ] 10 tests.
+[==========] 13 tests from 1 test suite ran. (4826 ms total)
+[  PASSED  ] 13 tests.
 ```
 
 ## Benchmarking
@@ -127,73 +133,73 @@ make perf       # Must do if you have built google-benchmark library with libPFM
 ### On 12th Gen Intel(R) Core(TM) i7-1260P [ Compiled with GCC-13.1.0 ]
 
 ```bash
-2023-08-20T12:49:24+04:00
+2023-09-14T09:15:08+04:00
 Running ./build/perf.out
-Run on (16 X 4025.75 MHz CPU s)
+Run on (16 X 4095.66 MHz CPU s)
 CPU Caches:
   L1 Data 48 KiB (x8)
   L1 Instruction 32 KiB (x8)
   L2 Unified 1280 KiB (x8)
   L3 Unified 18432 KiB (x1)
-Load Average: 0.28, 0.40, 0.44
+Load Average: 0.62, 0.69, 0.75
 ***WARNING*** There are 18 benchmarks with threads and 1 performance counters were requested. Beware counters will reflect the combined usage across all threads.
 ----------------------------------------------------------------------------------------
 Benchmark                  Time             CPU   Iterations     CYCLES items_per_second
 ----------------------------------------------------------------------------------------
-frodo640-keygen         1.64 ms         1.64 ms          427   7.66089M        608.877/s
-frodo640-encaps         1.64 ms         1.64 ms          426   7.52836M        608.754/s
-frodo640-decaps         1.63 ms         1.63 ms          430   7.43558M        615.205/s
-frodo976-keygen         3.57 ms         3.57 ms          196   16.6304M        280.225/s
-frodo976-encaps         3.62 ms         3.62 ms          193   16.5505M        276.587/s
-frodo976-decaps         3.59 ms         3.59 ms          194   16.4358M        278.582/s
-frodo1344-keygen        6.63 ms         6.63 ms          106   30.8003M        150.823/s
-frodo1344-encaps        7.07 ms         7.06 ms          100   32.0925M         141.56/s
-frodo1344-decaps        7.03 ms         7.03 ms          101   31.8992M        142.348/s
-efrodo640-keygen        1.69 ms         1.69 ms          415   7.62942M        591.028/s
-efrodo640-encaps        1.69 ms         1.69 ms          416     7.531M        592.766/s
-efrodo640-decaps        1.67 ms         1.67 ms          421   7.45408M         600.44/s
-efrodo976-keygen        3.75 ms         3.75 ms          188   16.6681M        266.949/s
-efrodo976-encaps        3.95 ms         3.95 ms          179   16.5363M        253.334/s
-efrodo976-decaps        3.87 ms         3.87 ms          182   16.2101M        258.387/s
-efrodo1344-keygen       7.33 ms         7.32 ms           96   30.7819M        136.567/s
-efrodo1344-encaps       7.72 ms         7.71 ms           91   32.4779M        129.648/s
-efrodo1344-decaps       7.58 ms         7.57 ms           93   31.8845M        132.115/s
+frodo640-keygen         1.63 ms         1.63 ms          431    7.6194M         612.78/s
+frodo640-encaps         1.64 ms         1.64 ms          428   7.53139M        609.328/s
+frodo640-decaps         1.62 ms         1.62 ms          433   7.42627M        617.411/s
+frodo976-keygen         3.59 ms         3.59 ms          195   16.7661M        278.657/s
+frodo976-encaps         3.62 ms         3.62 ms          194   16.5326M         276.26/s
+frodo976-decaps         3.64 ms         3.64 ms          193   16.5727M        275.019/s
+frodo1344-keygen        6.62 ms         6.62 ms          106   30.9151M        150.965/s
+frodo1344-encaps        7.02 ms         7.02 ms          100   32.2145M        142.542/s
+frodo1344-decaps        7.00 ms         7.00 ms          100   32.1409M        142.863/s
+efrodo640-keygen        1.64 ms         1.64 ms          426   7.66086M        609.028/s
+efrodo640-encaps        1.64 ms         1.64 ms          427   7.53886M        608.814/s
+efrodo640-decaps        1.63 ms         1.63 ms          429   7.44922M        615.202/s
+efrodo976-keygen        3.63 ms         3.63 ms          193   16.9749M        275.501/s
+efrodo976-encaps        3.63 ms         3.63 ms          192   16.6042M        275.593/s
+efrodo976-decaps        3.62 ms         3.62 ms          194   16.5478M        276.126/s
+efrodo1344-keygen       6.62 ms         6.62 ms          106   30.8993M        151.059/s
+efrodo1344-encaps       7.05 ms         7.05 ms          100   32.3462M        141.936/s
+efrodo1344-decaps       6.98 ms         6.98 ms          101   32.0267M        143.265/s
 ```
 
 ### On 12th Gen Intel(R) Core(TM) i7-1260P [ Compiled with Clang-16.0.0 ]
 
 ```bash
-2023-08-20T13:07:06+04:00
+2023-09-14T09:17:44+04:00
 Running ./build/perf.out
-Run on (16 X 491.754 MHz CPU s)
+Run on (16 X 492.137 MHz CPU s)
 CPU Caches:
   L1 Data 48 KiB (x8)
   L1 Instruction 32 KiB (x8)
   L2 Unified 1280 KiB (x8)
   L3 Unified 18432 KiB (x1)
-Load Average: 0.51, 0.45, 0.43
+Load Average: 0.85, 0.76, 0.77
 ***WARNING*** There are 18 benchmarks with threads and 1 performance counters were requested. Beware counters will reflect the combined usage across all threads.
 ----------------------------------------------------------------------------------------
 Benchmark                  Time             CPU   Iterations     CYCLES items_per_second
 ----------------------------------------------------------------------------------------
-frodo640-keygen         1.75 ms         1.75 ms          409   8.03467M        571.404/s
-frodo640-encaps         3.28 ms         3.27 ms          214   15.3126M        305.419/s
-frodo640-decaps         3.24 ms         3.24 ms          217   15.0743M        308.903/s
-frodo976-keygen         4.59 ms         4.58 ms          153   20.0601M        218.148/s
-frodo976-encaps         7.11 ms         7.10 ms          105      31.4M        140.864/s
-frodo976-decaps         6.74 ms         6.73 ms          104   29.7862M        148.502/s
-frodo1344-keygen        8.41 ms         8.40 ms           83   36.5998M        119.095/s
-frodo1344-encaps        14.6 ms         14.6 ms           48   64.5883M        68.4905/s
-frodo1344-decaps        14.6 ms         14.6 ms           48   64.2684M        68.5152/s
-efrodo640-keygen        1.85 ms         1.85 ms          379   7.98448M        539.765/s
-efrodo640-encaps        3.42 ms         3.42 ms          204   15.2616M        292.649/s
-efrodo640-decaps        3.40 ms         3.39 ms          207   15.0781M        294.601/s
-efrodo976-keygen        5.68 ms         5.67 ms          100   20.2777M        176.272/s
-efrodo976-encaps        6.96 ms         6.96 ms          101   29.9758M        143.733/s
-efrodo976-decaps        6.89 ms         6.88 ms          102   29.6281M         145.37/s
-efrodo1344-keygen       8.63 ms         8.62 ms           81   36.8052M        115.965/s
-efrodo1344-encaps       14.9 ms         14.9 ms           47   64.5746M        67.2734/s
-efrodo1344-decaps       14.9 ms         14.8 ms           47   64.3989M        67.3644/s
+frodo640-keygen         1.72 ms         1.72 ms          408   7.88842M        581.531/s
+frodo640-encaps         3.38 ms         3.38 ms          205   15.4809M        295.472/s
+frodo640-decaps         3.30 ms         3.30 ms          213    15.094M        303.419/s
+frodo976-keygen         4.18 ms         4.18 ms          168   19.0413M        239.183/s
+frodo976-encaps         6.47 ms         6.47 ms          108   29.6726M        154.593/s
+frodo976-decaps         6.40 ms         6.40 ms          109    29.423M        156.279/s
+frodo1344-keygen        7.35 ms         7.35 ms           93     33.81M        136.069/s
+frodo1344-encaps        14.0 ms         14.0 ms           50   64.4374M        71.6021/s
+frodo1344-decaps        14.0 ms         14.0 ms           50   64.6478M        71.1912/s
+efrodo640-keygen        1.70 ms         1.70 ms          411   7.81349M        586.997/s
+efrodo640-encaps        3.35 ms         3.35 ms          210   15.3683M        298.303/s
+efrodo640-decaps        3.29 ms         3.29 ms          213   15.0855M        303.499/s
+efrodo976-keygen        4.19 ms         4.19 ms          166   19.1414M         238.59/s
+efrodo976-encaps        6.51 ms         6.51 ms          107   29.9185M          153.6/s
+efrodo976-decaps        6.40 ms         6.40 ms          109   29.3982M        156.244/s
+efrodo1344-keygen       7.45 ms         7.45 ms           94    34.293M         134.18/s
+efrodo1344-encaps       14.0 ms         14.0 ms           49   64.6826M        71.2652/s
+efrodo1344-decaps       14.0 ms         14.0 ms           50   64.5704M        71.3314/s
 ```
 
 ## Usage
@@ -204,6 +210,7 @@ FrodoKEM is a header-only C++ library, which is fairly easy to use.
 - Import dependencies, by enabling git submodule.
 
 ```bash
+# First clone the repository, and then
 pushd frodokem
 git submodule update --init
 popd
@@ -226,7 +233,7 @@ eFrodo-1344 KEM | `include/efrodo1344_kem.hpp` | `efrodo1344_kem::`
 
 Let's see how to use Frodo-640 KEM API.
 
-1) First (deterministically from seeds) generate a public/ private keypair. Key generation routine takes following three seeds.
+1) First, generate a public/ private keypair, using seeds. Key generation routine takes following three seeds.
 
 - 16 -bytes seed `s`
 - 32 -byte seed `seedSE`
@@ -256,6 +263,7 @@ main()
   std::span<uint8_t, frodo640_kem::PUB_KEY_LEN> _pkey{ pkey };
   std::span<uint8_t, frodo640_kem::SEC_KEY_LEN> _skey{ skey };
 
+  // Pseudo-random number generator
   prng::prng_t prng;
 
   prng.read(_s);
@@ -305,7 +313,7 @@ main()
 }
 ```
 
-3) Finally recipient has the cipher text ( and its secret key ) which can now be decapsulated, computing 16 -bytes shared secret, which was produced by sending party. This shared secret can now be used for encrypting their communication with symmetric key constructions say [AEAD](https://en.wikipedia.org/wiki/Authenticated_encryption) schemes.
+3) Finally recipient has the cipher text ( and its secret key, obviously ) which can now be decapsulated, computing 16 -bytes shared secret, which the sending party also arrived at. This shared secret can now be used for encrypting their communication with symmetric key constructions, say [AEAD](https://en.wikipedia.org/wiki/Authenticated_encryption) schemes.
 
 ```cpp
 // ...
@@ -354,4 +362,4 @@ Cipher Text   : 408d099ab76c11ea31aae22ef1634eecb2674ac93312b337587ffe0d4500ffb6
 Shared Secret : ebad3b0a0a8b82188a75d3a415b405b
 ```
 
-> **Note** Looking at API documentation, in header files, can give you good idea of how to use FrodoKEM API. Note, this library doesn't expose any raw pointer based interface, rather everything is wrapped under statically defined `std::span` - which one can easily create from `std::{array, vector}`. I opt for using statically defined `std::span` based function interfaces because we always know, at compile-time, how many bytes seeds/ keys/ cipher-texts/ shared-secrets are, for various different Frodo parameters. This gives much better type safety and compile-time error reporting.
+> **Note** Looking at API documentation, in header files, can give you good idea of how to use FrodoKEM API. Note, this library doesn't expose any raw pointer based interface, rather everything is wrapped under statically defined `std::span` - which one can easily create from `std::{array, vector}`. I opt for using statically defined `std::span` based function interfaces because we always know, at compile-time, how many bytes the seeds/ keys/ cipher-texts/ shared-secrets are, for various different Frodo parameters. This gives much better type safety and compile-time error reporting.

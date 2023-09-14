@@ -13,12 +13,12 @@
 int
 main()
 {
-  constexpr size_t S_LEN = 16;
-  constexpr size_t SEED_SE_LEN = 32;
-  constexpr size_t Z_LEN = 16;
-  constexpr size_t μ_LEN = 16;
-  constexpr size_t SALT_LEN = 32;
-  constexpr size_t SS_LEN = 16; // shared secret
+  constexpr size_t S_LEN = frodo640_kem::len_sec / 8;
+  constexpr size_t SEED_SE_LEN = frodo640_kem::len_SE / 8;
+  constexpr size_t Z_LEN = frodo640_kem::len_A / 8;
+  constexpr size_t μ_LEN = frodo640_kem::len_sec / 8;
+  constexpr size_t SALT_LEN = frodo640_kem::len_salt / 8;
+  constexpr size_t SS_LEN = frodo640_kem::len_sec / 8; // shared secret
 
   std::vector<uint8_t> s(S_LEN, 0);
   std::vector<uint8_t> seedSE(SEED_SE_LEN, 0);
