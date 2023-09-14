@@ -12,17 +12,17 @@ Scheme | What does it offer ?
 FrodoPKE | Lets you encrypt a fixed length message M, using your peer's public key, resulting in a cipher text, which can only be decrypted by respective peer's secret key.
 FrodoKEM | Helps in establishing secure communication channel between two parties - (a) starting communication over insecure channel, (b) later on begins using some authenticated encryption (AEAD) scheme for encrypting their messages, using the common key ( = shared secret ) that both of them arrived at by using the KEM scheme.
 
-Here I'm maintaining a header-only, easy-to-use ( see [below](#usage) ) C++ library, offering FrodoKEM API, for three security levels, each for two usage scenarios ( i.e. staic and ephemeral ).
+Here I'm maintaining a header-only, easy-to-use ( see [below](#usage) ) C++ library, offering FrodoKEM API, for three security levels, each for two usage scenarios ( i.e. static and ephemeral ).
 
 > **Note** Right now this library only provides you with FrodoKEM implementation s.t. generation of matrix `A` always uses SHAKE128 Xof. I've not *yet* implemented AES128 backed matrix `A` generation logic.
 
 Scheme | Target Security Level
 :-- | --:
-(e)Frodo-640 KEM | NIST-I 
+(e)Frodo-640 KEM | NIST-I
 (e)Frodo-976 KEM | NIST-III
 (e)Frodo-1344 KEM | NIST-V
 
-> **Note** (STATIC): Long term use of same keypair s.t. many cipher texts can be computed per public key.
+> **Note** (STATIC): Long term use of same keypair s.t. many cipher texts can be computed per public key. KEM variants whose names look like Frodo-{640, 976, 1344} KEM.
 
 > **Note** (EPHEMERAL): Only small number of cipher texts are produced per public key. Begins with an `e` i.e. eFrodo-{640,976,1344} KEM.
 
@@ -62,38 +62,44 @@ cmake version 3.25.1
 
 ```bash
 git clone https://github.com/itzmeanjan/frodokem.git
-
 pushd frodokem
 git submodule update --init # Import dependencies
 popd
+
+# or try
+git clone https://github.com/itzmeanjan/frodokem.git --recurse-submodules
 ```
 
 ## Testing
 
 For ensuring functional correctness of FrodoKEM and its constituting components, issue following command, after you clone this repository and update/ initialize git submodule ( for importing dependencies ). Issuing following command also runs necessary tests, which ensures that this FrodoKEM implementation is conformant with the specification, by checking keypair/ cipher text/ shared secret values for given seeds, using known answer tests (KATs).
 
-> **Note** Known Answer Tests (KATs) living in [this](./kats) directory are computed by following steps, described in [this](https://gist.github.com/itzmeanjan/38d506a69073bdeb0933245401f42186) gist.
-
-> **Warning** KATs used for ensuring correctness of FrodoKEM implementation are actually taken from FrodoKEM reference implementation repository ( i.e. https://github.com/microsoft/PQCrypto-LWEKE.git @ commit d7037ccb ), which is not yet implementing latest version of FrodoKEM specification ( i.e. ISO submission 2023/03/14 ). It implements previous version of FrodoKEM specification i.e. 2021/06/04. But parameters for ephemeral FrodoKEM ( as per ISO submission 2023/03/14 ) and old FrodoKEM ( as per spec. version 2021/06/04 ) are actually same. That's why I use those old test vectors for ensuring correctness of eFrodoKEM-{640, 976, 1344} implementation of this library. I'll wait for FrodoKEM team to update their reference implementation as per latest ISO submission document. After that I'll use those KATs for ensuring that this implementation of FrodoKEM actually conforms to the ISO submission specification of Frodo.
+> **Note** Known Answer Tests (KATs) living in [this](./kats) directory are computed by following (reproducible) steps, described in [this](https://gist.github.com/itzmeanjan/38d506a69073bdeb0933245401f42186) gist.
 
 ```bash
 make -j
 ```
 
 ```bash
-[==========] Running 10 tests from 1 test suite.
+[==========] Running 13 tests from 1 test suite.
 [----------] Global test environment set-up.
-[----------] 10 tests from FrodoKEM
+[----------] 13 tests from FrodoKEM
 [ RUN      ] FrodoKEM.MatrixEncodeDecode
 [       OK ] FrodoKEM.MatrixEncodeDecode (0 ms)
 [ RUN      ] FrodoKEM.KeygenEncapsDecaps
-[       OK ] FrodoKEM.KeygenEncapsDecaps (80 ms)
+[       OK ] FrodoKEM.KeygenEncapsDecaps (74 ms)
+[ RUN      ] FrodoKEM.Frodo640KEMKAT
+[       OK ] FrodoKEM.Frodo640KEMKAT (324 ms)
+[ RUN      ] FrodoKEM.Frodo976KEMKAT
+[       OK ] FrodoKEM.Frodo976KEMKAT (707 ms)
+[ RUN      ] FrodoKEM.Frodo1344KEMKAT
+[       OK ] FrodoKEM.Frodo1344KEMKAT (1338 ms)
 [ RUN      ] FrodoKEM.eFrodo640KEMKAT
-[       OK ] FrodoKEM.eFrodo640KEMKAT (525 ms)
+[       OK ] FrodoKEM.eFrodo640KEMKAT (324 ms)
 [ RUN      ] FrodoKEM.eFrodo976KEMKAT
-[       OK ] FrodoKEM.eFrodo976KEMKAT (1144 ms)
+[       OK ] FrodoKEM.eFrodo976KEMKAT (711 ms)
 [ RUN      ] FrodoKEM.eFrodo1344KEMKAT
-[       OK ] FrodoKEM.eFrodo1344KEMKAT (2213 ms)
+[       OK ] FrodoKEM.eFrodo1344KEMKAT (1339 ms)
 [ RUN      ] FrodoKEM.MatrixTranspose
 [       OK ] FrodoKEM.MatrixTranspose (0 ms)
 [ RUN      ] FrodoKEM.MatrixAddSub
@@ -104,11 +110,11 @@ make -j
 [       OK ] FrodoKEM.ZqEncodeDecode (0 ms)
 [ RUN      ] FrodoKEM.Lemma2_18
 [       OK ] FrodoKEM.Lemma2_18 (2 ms)
-[----------] 10 tests from FrodoKEM (3968 ms total)
+[----------] 13 tests from FrodoKEM (4826 ms total)
 
 [----------] Global test environment tear-down
-[==========] 10 tests from 1 test suite ran. (3968 ms total)
-[  PASSED  ] 10 tests.
+[==========] 13 tests from 1 test suite ran. (4826 ms total)
+[  PASSED  ] 13 tests.
 ```
 
 ## Benchmarking
@@ -204,6 +210,7 @@ FrodoKEM is a header-only C++ library, which is fairly easy to use.
 - Import dependencies, by enabling git submodule.
 
 ```bash
+# First clone the repository, and then
 pushd frodokem
 git submodule update --init
 popd
@@ -226,7 +233,7 @@ eFrodo-1344 KEM | `include/efrodo1344_kem.hpp` | `efrodo1344_kem::`
 
 Let's see how to use Frodo-640 KEM API.
 
-1) First (deterministically from seeds) generate a public/ private keypair. Key generation routine takes following three seeds.
+1) First, generate a public/ private keypair, using seeds. Key generation routine takes following three seeds.
 
 - 16 -bytes seed `s`
 - 32 -byte seed `seedSE`
@@ -256,6 +263,7 @@ main()
   std::span<uint8_t, frodo640_kem::PUB_KEY_LEN> _pkey{ pkey };
   std::span<uint8_t, frodo640_kem::SEC_KEY_LEN> _skey{ skey };
 
+  // Pseudo-random number generator
   prng::prng_t prng;
 
   prng.read(_s);
@@ -305,7 +313,7 @@ main()
 }
 ```
 
-3) Finally recipient has the cipher text ( and its secret key ) which can now be decapsulated, computing 16 -bytes shared secret, which was produced by sending party. This shared secret can now be used for encrypting their communication with symmetric key constructions say [AEAD](https://en.wikipedia.org/wiki/Authenticated_encryption) schemes.
+3) Finally recipient has the cipher text ( and its secret key, obviously ) which can now be decapsulated, computing 16 -bytes shared secret, which the sending party also arrived at. This shared secret can now be used for encrypting their communication with symmetric key constructions, say [AEAD](https://en.wikipedia.org/wiki/Authenticated_encryption) schemes.
 
 ```cpp
 // ...
@@ -354,4 +362,4 @@ Cipher Text   : 408d099ab76c11ea31aae22ef1634eecb2674ac93312b337587ffe0d4500ffb6
 Shared Secret : ebad3b0a0a8b82188a75d3a415b405b
 ```
 
-> **Note** Looking at API documentation, in header files, can give you good idea of how to use FrodoKEM API. Note, this library doesn't expose any raw pointer based interface, rather everything is wrapped under statically defined `std::span` - which one can easily create from `std::{array, vector}`. I opt for using statically defined `std::span` based function interfaces because we always know, at compile-time, how many bytes seeds/ keys/ cipher-texts/ shared-secrets are, for various different Frodo parameters. This gives much better type safety and compile-time error reporting.
+> **Note** Looking at API documentation, in header files, can give you good idea of how to use FrodoKEM API. Note, this library doesn't expose any raw pointer based interface, rather everything is wrapped under statically defined `std::span` - which one can easily create from `std::{array, vector}`. I opt for using statically defined `std::span` based function interfaces because we always know, at compile-time, how many bytes the seeds/ keys/ cipher-texts/ shared-secrets are, for various different Frodo parameters. This gives much better type safety and compile-time error reporting.
