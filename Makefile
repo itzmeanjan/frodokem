@@ -58,7 +58,7 @@ perf: $(PERF_BINARY)
 .PHONY: format clean
 
 clean:
-	rm -rf build
+	rm -rf $(BUILD_DIR)
 
 format: $(FRODO_SOURCES) $(TEST_SOURCES) $(BENCHMARK_SOURCES)
 	clang-format -i --style=Mozilla $^
