@@ -15,7 +15,7 @@ namespace packing {
 //
 // Note, we're dealing with byte oriented API, this routine packs matrix as a
 // byte array of length (n1 * n2 * D + 7) / 8.
-template<const size_t n1, const size_t n2, const size_t D>
+template<size_t n1, size_t n2, size_t D>
 inline constexpr void
 pack(const matrix::matrix<n1, n2, D>& mat,
      std::span<uint8_t, (n1 * n2 * D + 7) / 8> arr)
@@ -103,7 +103,7 @@ pack(const matrix::matrix<n1, n2, D>& mat,
 // (n1 x n2 x D + 7) / 8 -bytes ), this routine can be used for unpacking
 // contiguous ( D -many ) bits into a n1 x n2 matrix over Zq s.t. q = 1 << D,
 // following algorithm described in section 7.3 of FrodoKEM specification.
-template<const size_t n1, const size_t n2, const size_t D>
+template<size_t n1, size_t n2, size_t D>
 inline constexpr matrix::matrix<n1, n2, D>
 unpack(std::span<const uint8_t, (n1 * n2 * D + 7) / 8> arr)
   requires(frodo_params::check_d(D))

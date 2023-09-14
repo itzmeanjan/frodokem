@@ -65,7 +65,7 @@ to_hex(std::span<uint8_t> bytes)
 
 // Given a hex encoded string of length 2*L, this routine can be used for
 // parsing it as a byte array of length L.
-template<const size_t L>
+template<size_t L>
 inline std::array<uint8_t, L>
 from_hex(std::string_view bytes)
 {

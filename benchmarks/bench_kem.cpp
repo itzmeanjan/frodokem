@@ -16,13 +16,13 @@ namespace utils = frodo_utils;
 
 // Benchmark execution of Frodo key generation algorithm, for some specific
 // parameter set.
-template<const size_t n,
-         const size_t n̄,
-         const size_t lsec,
-         const size_t lSE,
-         const size_t lA,
-         const size_t B,
-         const size_t D>
+template<size_t n,
+         size_t n̄,
+         size_t lsec,
+         size_t lSE,
+         size_t lA,
+         size_t B,
+         size_t D>
 inline void
 keygen(benchmark::State& state)
 {
@@ -66,14 +66,14 @@ keygen(benchmark::State& state)
 
 // Benchmark execution of Frodo encapsulation algorithm, for some specific
 // parameter set.
-template<const size_t n,
-         const size_t n̄,
-         const size_t lsec,
-         const size_t lSE,
-         const size_t lA,
-         const size_t lsalt,
-         const size_t B,
-         const size_t D>
+template<size_t n,
+         size_t n̄,
+         size_t lsec,
+         size_t lSE,
+         size_t lA,
+         size_t lsalt,
+         size_t B,
+         size_t D>
 inline void
 encaps(benchmark::State& state)
 {
@@ -134,14 +134,14 @@ encaps(benchmark::State& state)
 
 // Benchmark execution of Frodo KEM decapsulation algorithm, for some specific
 // parameter set.
-template<const size_t n,
-         const size_t n̄,
-         const size_t lsec,
-         const size_t lSE,
-         const size_t lA,
-         const size_t lsalt,
-         const size_t B,
-         const size_t D>
+template<size_t n,
+         size_t n̄,
+         size_t lsec,
+         size_t lSE,
+         size_t lA,
+         size_t lsalt,
+         size_t B,
+         size_t D>
 inline void
 decaps(benchmark::State& state)
 {
