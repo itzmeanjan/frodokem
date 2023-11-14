@@ -1,4 +1,5 @@
-> **Warning** I attempt to make this library implementation constant-time but be informed that it is not yet audited. If you consider using it in production, be careful !
+> **Warning**
+I attempt to make this library implementation constant-time but be informed that it is not yet audited. If you consider using it in production, be careful !
 
 # frodokem
 FrodoKEM: Practical Quantum-secure Key Encapsulation from Generic Lattices
@@ -14,7 +15,8 @@ FrodoKEM | Helps in establishing secure communication channel between two partie
 
 Here I'm maintaining a header-only, easy-to-use ( see [below](#usage) ) C++ library, offering FrodoKEM API, for three security levels, each for two usage scenarios ( i.e. static and ephemeral ).
 
-> **Note** Right now this library only provides you with FrodoKEM implementation s.t. generation of matrix `A` always uses SHAKE128 Xof. I've not *yet* implemented AES128 backed matrix `A` generation logic.
+> **Note**
+Right now this library only provides you with FrodoKEM implementation s.t. generation of matrix `A` always uses SHAKE128 Xof. I've not *yet* implemented AES128 backed matrix `A` generation logic.
 
 Scheme | Target Security Level
 :-- | --:
@@ -22,11 +24,14 @@ Scheme | Target Security Level
 (e)Frodo-976 KEM | NIST-III
 (e)Frodo-1344 KEM | NIST-V
 
-> **Note** (STATIC): Long term use of same keypair s.t. many cipher texts can be computed per public key. KEM variants whose names look like Frodo-{640, 976, 1344} KEM.
+> **Note** 
+(STATIC): Long term use of same keypair s.t. many cipher texts can be computed per public key. KEM variants whose names look like Frodo-{640, 976, 1344} KEM.
 
-> **Note** (EPHEMERAL): Only small number of cipher texts are produced per public key. Begins with an `e` i.e. eFrodo-{640,976,1344} KEM.
+> **Note** 
+(EPHEMERAL): Only small number of cipher texts are produced per public key. Begins with an `e` i.e. eFrodo-{640,976,1344} KEM.
 
-> **Note** While working on this implementation, I've majorly followed [this](https://frodokem.org/files/FrodoKEM-standard_proposal-20230314.pdf) FrodoKEM specification. Though for certain function implementations, I found an older [version](https://frodokem.org/files/FrodoKEM-specification-20210604.pdf) of specifiction more comprehensive. I suggest you go through them for an in-depth understanding of the scheme.
+> **Note** 
+While working on this implementation, I've majorly followed [this](https://frodokem.org/files/FrodoKEM-standard_proposal-20230314.pdf) FrodoKEM specification. Though for certain function implementations, I found an older [version](https://frodokem.org/files/FrodoKEM-specification-20210604.pdf) of specifiction more comprehensive. I suggest you go through them for an in-depth understanding of the scheme.
 
 ## Prerequisites
 
@@ -34,10 +39,10 @@ Scheme | Target Security Level
 
 ```bash
 $ g++ --version
-g++ (Ubuntu 13.1.0-2ubuntu2~23.04) 13.1.0
+g++ (Ubuntu 13.2.0-4ubuntu3) 13.2.0
 
 $ clang++ --version
-Ubuntu clang version 16.0.0 (1~exp5ubuntu3)
+Ubuntu clang version 17.0.2 (1~exp1ubuntu2.1)
 Target: x86_64-pc-linux-gnu
 Thread model: posix
 InstalledDir: /usr/bin
@@ -56,7 +61,8 @@ cmake version 3.25.1
 - For testing functional correctness of FrodoKEM and its components, you need to globally install `google-test` headers and library. Follow [this](https://github.com/google/googletest/tree/main/googletest#standalone-cmake-project) guide.
 - For benchmarking FrodoKEM algorithms, you must have `google-benchmark` headers and library available in `$PATH`. I found [this](https://github.com/google/benchmark#installation) installation guide helpful.
 
-> **Note** If you are on a machine running GNU/Linux kernel and you want to obtain CPU cycle count for KEM algorithms, you should consider building `google-benchmark` library with libPFM support, following [this](https://gist.github.com/itzmeanjan/05dc3e946f635d00c5e0b21aae6203a7) step-by-step guide. Find more about libPFM @ https://perfmon2.sourceforge.net.
+> **Note** 
+If you are on a machine running GNU/Linux kernel and you want to obtain CPU cycle count for KEM algorithms, you should consider building `google-benchmark` library with libPFM support, following [this](https://gist.github.com/itzmeanjan/05dc3e946f635d00c5e0b21aae6203a7) step-by-step guide. Find more about libPFM @ https://perfmon2.sourceforge.net.
 
 - `sha3` and `subtle` are two dependencies of this project, which are pinned to specific commit, using git submodule. Import dependencies after cloning this repository.
 
@@ -66,7 +72,7 @@ pushd frodokem
 git submodule update --init # Import dependencies
 popd
 
-# or try
+# or try - single step cloning and setting up of dependencies !
 git clone https://github.com/itzmeanjan/frodokem.git --recurse-submodules
 ```
 
@@ -74,7 +80,8 @@ git clone https://github.com/itzmeanjan/frodokem.git --recurse-submodules
 
 For ensuring functional correctness of FrodoKEM and its constituting components, issue following command, after you clone this repository and update/ initialize git submodule ( for importing dependencies ). Issuing following command also runs necessary tests, which ensures that this FrodoKEM implementation is conformant with the specification, by checking keypair/ cipher text/ shared secret values for given seeds, using known answer tests (KATs).
 
-> **Note** Known Answer Tests (KATs) living in [this](./kats) directory are computed by following (reproducible) steps, described in [this](https://gist.github.com/itzmeanjan/38d506a69073bdeb0933245401f42186) gist.
+> **Note**
+Known Answer Tests (KATs) living in [this](./kats) directory are computed by following (reproducible) steps, described in [this](https://gist.github.com/itzmeanjan/38d506a69073bdeb0933245401f42186) gist.
 
 ```bash
 make -j
@@ -119,481 +126,373 @@ make -j
 
 ## Benchmarking
 
-For benchmarking FrodoKEM keygen/ encaps/ decaps algorithms, targeting CPU systems, issue following command.
+For benchmarking all instantiations of FrodoKEM keygen/ encaps/ decaps algorithms, targeting CPU systems, issue following command.
 
 ```bash
 make benchmark  # If you haven't built google-benchmark library with libPFM support.
 make perf       # Must do if you have built google-benchmark library with libPFM support.
 ```
 
-> **Warning** When benchmarking, ensure that all your CPU cores are running in performance mode. You may find [this](https://github.com/google/benchmark/blob/2dd015df/docs/reducing_variance.md) guide helpful.
+> **Warning** 
+When benchmarking, ensure that all your CPU cores are running in performance mode. You may find [this](https://github.com/google/benchmark/blob/2dd015df/docs/reducing_variance.md) guide helpful.
 
-> **Note** `make perf` - was issued when collecting following benchmark results. Notice, *CYCLES* column, denoting latency of FrodoKEM routines.
+> **Note** 
+`make perf` - was issued when collecting following benchmark results. Notice, *CYCLES* column, denoting latency of FrodoKEM routines.
 
-### On 12th Gen Intel(R) Core(TM) i7-1260P [ Compiled with GCC-13.1.0 ]
+### On *12th Gen Intel(R) Core(TM) i7-1260P* [ Compiled with GCC-13.2.0 ]
 
 ```bash
-2023-09-17T15:36:14+04:00
+2023-11-14T21:29:29+05:30
 Running ./build/perf.out
-Run on (16 X 4639.63 MHz CPU s)
+Run on (16 X 922.501 MHz CPU s)
 CPU Caches:
   L1 Data 48 KiB (x8)
   L1 Instruction 32 KiB (x8)
   L2 Unified 1280 KiB (x8)
   L3 Unified 18432 KiB (x1)
-Load Average: 0.26, 0.51, 0.50
+Load Average: 0.37, 0.51, 0.54
 -----------------------------------------------------------------------------------------------
 Benchmark                         Time             CPU   Iterations     CYCLES items_per_second
 -----------------------------------------------------------------------------------------------
-frodo976-keygen                3.61 ms         3.61 ms           39    16.906M        277.064/s
-frodo976-keygen                3.60 ms         3.60 ms           39    16.842M        277.413/s
-frodo976-keygen                3.60 ms         3.60 ms           39   16.8133M        278.106/s
-frodo976-keygen                3.60 ms         3.60 ms           39   16.7262M        277.901/s
-frodo976-keygen                3.62 ms         3.62 ms           39   16.7538M        276.099/s
-frodo976-keygen                3.62 ms         3.62 ms           39   16.7597M        276.258/s
-frodo976-keygen                3.64 ms         3.64 ms           39   16.7033M        274.676/s
-frodo976-keygen                3.66 ms         3.66 ms           39   16.7182M        273.068/s
-frodo976-keygen_mean           3.62 ms         3.62 ms            8   16.7778M        276.323/s
-frodo976-keygen_median         3.61 ms         3.61 ms            8   16.7567M        276.661/s
-frodo976-keygen_stddev        0.023 ms        0.023 ms            8   70.1981k        1.72238/s
-frodo976-keygen_cv             0.63 %          0.63 %             8      0.42%            0.62%
-frodo976-encaps                3.65 ms         3.65 ms           39   16.7066M         273.74/s
-frodo976-encaps                3.67 ms         3.67 ms           39   16.8259M        272.766/s
-frodo976-encaps                3.64 ms         3.64 ms           39   16.6566M        274.759/s
-frodo976-encaps                3.68 ms         3.68 ms           39   16.6993M        272.031/s
-frodo976-encaps                3.66 ms         3.66 ms           39   16.6126M        273.199/s
-frodo976-encaps                3.66 ms         3.66 ms           39   16.6698M        273.106/s
-frodo976-encaps                3.70 ms         3.70 ms           39    16.542M        270.009/s
-frodo976-encaps                3.70 ms         3.70 ms           39   16.5358M         270.16/s
-frodo976-encaps_mean           3.67 ms         3.67 ms            8   16.6561M        272.471/s
-frodo976-encaps_median         3.66 ms         3.66 ms            8   16.6632M        272.936/s
-frodo976-encaps_stddev        0.022 ms        0.023 ms            8   94.7131k        1.66747/s
-frodo976-encaps_cv             0.61 %          0.61 %             8      0.57%            0.61%
-frodo976-decaps                3.66 ms         3.66 ms           39   16.7025M        273.529/s
-frodo976-decaps                3.63 ms         3.63 ms           39   16.6696M        275.253/s
-frodo976-decaps                3.64 ms         3.64 ms           39   16.7043M        274.609/s
-frodo976-decaps                3.66 ms         3.66 ms           39   16.6008M        273.301/s
-frodo976-decaps                3.61 ms         3.61 ms           39   16.3967M        277.277/s
-frodo976-decaps                3.66 ms         3.66 ms           39    16.576M        272.901/s
-frodo976-decaps                3.67 ms         3.67 ms           39   16.4167M        272.763/s
-frodo976-decaps                3.69 ms         3.69 ms           39   16.4616M        270.933/s
-frodo976-decaps_mean           3.65 ms         3.65 ms            8    16.566M        273.821/s
-frodo976-decaps_median         3.66 ms         3.66 ms            8   16.5884M        273.415/s
-frodo976-decaps_stddev        0.025 ms        0.025 ms            8   126.296k        1.90031/s
-frodo976-decaps_cv             0.69 %          0.69 %             8      0.76%            0.69%
-efrodo976-keygen               3.59 ms         3.59 ms           39   16.8273M         278.34/s
-efrodo976-keygen               3.58 ms         3.58 ms           39    16.768M         279.03/s
-efrodo976-keygen               3.58 ms         3.58 ms           39   16.6719M        279.477/s
-efrodo976-keygen               3.61 ms         3.61 ms           39   16.4537M        276.944/s
-efrodo976-keygen               3.67 ms         3.67 ms           39   16.5114M        272.111/s
-efrodo976-keygen               3.64 ms         3.64 ms           39   16.4636M        275.004/s
-efrodo976-keygen               3.67 ms         3.67 ms           39   16.4874M        272.499/s
-efrodo976-keygen               3.70 ms         3.70 ms           39   16.5951M        270.136/s
-efrodo976-keygen_mean          3.63 ms         3.63 ms            8   16.5973M        275.443/s
-efrodo976-keygen_median        3.62 ms         3.62 ms            8   16.5532M        275.974/s
-efrodo976-keygen_stddev       0.047 ms        0.047 ms            8   144.203k        3.54382/s
-efrodo976-keygen_cv            1.29 %          1.29 %             8      0.87%            1.29%
-efrodo976-encaps               3.67 ms         3.67 ms           39   16.7689M        272.716/s
-efrodo976-encaps               3.67 ms         3.67 ms           39   16.8055M        272.726/s
-efrodo976-encaps               3.61 ms         3.61 ms           39   16.5239M        277.266/s
-efrodo976-encaps               3.66 ms         3.66 ms           39   16.5517M        272.875/s
-efrodo976-encaps               3.68 ms         3.68 ms           39   16.5417M        271.823/s
-efrodo976-encaps               3.72 ms         3.72 ms           39   16.5433M        269.124/s
-efrodo976-encaps               3.70 ms         3.70 ms           39    16.531M        269.924/s
-efrodo976-encaps               3.73 ms         3.73 ms           39   16.5212M        268.266/s
-efrodo976-encaps_mean          3.68 ms         3.68 ms            8   16.5984M         271.84/s
-efrodo976-encaps_median        3.67 ms         3.67 ms            8   16.5425M        272.269/s
-efrodo976-encaps_stddev       0.038 ms        0.038 ms            8   117.391k        2.82532/s
-efrodo976-encaps_cv            1.04 %          1.03 %             8      0.71%            1.04%
-frodo1344-keygen               6.56 ms         6.56 ms           21   30.6024M        152.507/s
-frodo1344-keygen               6.70 ms         6.70 ms           21   30.1983M        149.293/s
-frodo1344-keygen               6.73 ms         6.73 ms           21    30.219M        148.571/s
-frodo1344-keygen               6.70 ms         6.70 ms           21   30.2014M        149.344/s
-frodo1344-keygen               6.72 ms         6.72 ms           21   30.3212M        148.721/s
-frodo1344-keygen               6.70 ms         6.70 ms           21   30.2459M        149.349/s
-frodo1344-keygen               6.83 ms         6.83 ms           21   30.5039M        146.396/s
-frodo1344-keygen               6.82 ms         6.82 ms           21   30.2807M        146.586/s
-frodo1344-keygen_mean          6.72 ms         6.72 ms            8   30.3216M        148.846/s
-frodo1344-keygen_median        6.71 ms         6.71 ms            8   30.2633M        149.007/s
-frodo1344-keygen_stddev       0.085 ms        0.085 ms            8   151.019k        1.90124/s
-frodo1344-keygen_cv            1.27 %          1.27 %             8      0.50%            1.28%
-frodo1344-decaps               6.88 ms         6.88 ms           20   31.6469M        145.323/s
-frodo1344-decaps               6.85 ms         6.85 ms           20   31.4836M        145.984/s
-frodo1344-decaps               6.86 ms         6.86 ms           20    31.485M        145.701/s
-frodo1344-decaps               6.91 ms         6.91 ms           20   31.6308M         144.76/s
-frodo1344-decaps               6.99 ms         6.99 ms           20    31.486M        143.101/s
-frodo1344-decaps               6.98 ms         6.98 ms           20   31.4912M        143.322/s
-frodo1344-decaps               6.97 ms         6.97 ms           20   31.2897M        143.453/s
-frodo1344-decaps               7.08 ms         7.08 ms           20   31.3721M        141.191/s
-frodo1344-decaps_mean          6.94 ms         6.94 ms            8   31.4857M        144.105/s
-frodo1344-decaps_median        6.94 ms         6.94 ms            8   31.4855M        144.106/s
-frodo1344-decaps_stddev       0.079 ms        0.079 ms            8   118.558k        1.62691/s
-frodo1344-decaps_cv            1.13 %          1.13 %             8      0.38%            1.13%
-efrodo976-decaps               3.60 ms         3.60 ms           38   16.4573M        277.917/s
-efrodo976-decaps               3.65 ms         3.65 ms           38   16.4437M        274.197/s
-efrodo976-decaps               3.66 ms         3.66 ms           38   16.4643M        273.572/s
-efrodo976-decaps               3.67 ms         3.67 ms           38   16.4895M        272.721/s
-efrodo976-decaps               3.68 ms         3.68 ms           38   16.4225M        271.696/s
-efrodo976-decaps               3.70 ms         3.70 ms           38   16.4282M        270.514/s
-efrodo976-decaps               3.70 ms         3.70 ms           38   16.3664M        270.614/s
-efrodo976-decaps               3.74 ms         3.74 ms           38   16.4489M        267.345/s
-efrodo976-decaps_mean          3.67 ms         3.67 ms            8   16.4401M        272.322/s
-efrodo976-decaps_median        3.67 ms         3.67 ms            8   16.4463M        272.208/s
-efrodo976-decaps_stddev       0.042 ms        0.042 ms            8   36.4199k        3.11424/s
-efrodo976-decaps_cv            1.14 %          1.14 %             8      0.22%            1.14%
-frodo640-decaps                1.59 ms         1.59 ms           88   7.26155M        627.537/s
-frodo640-decaps                1.59 ms         1.59 ms           88   7.23662M        628.199/s
-frodo640-decaps                1.62 ms         1.62 ms           88   7.22905M        616.118/s
-frodo640-decaps                1.63 ms         1.63 ms           88   7.21288M        614.627/s
-frodo640-decaps                1.64 ms         1.64 ms           88   7.24441M        611.066/s
-frodo640-decaps                1.66 ms         1.66 ms           88   7.22321M        603.839/s
-frodo640-decaps                1.66 ms         1.66 ms           88   7.24474M        602.593/s
-frodo640-decaps                1.67 ms         1.67 ms           88   7.24832M        598.825/s
-frodo640-decaps_mean           1.63 ms         1.63 ms            8    7.2376M         612.85/s
-frodo640-decaps_median         1.63 ms         1.63 ms            8   7.24051M        612.847/s
-frodo640-decaps_stddev        0.029 ms        0.029 ms            8   15.4834k        11.0288/s
-frodo640-decaps_cv             1.79 %          1.79 %             8      0.21%            1.80%
-efrodo640-encaps               1.59 ms         1.59 ms           88   7.29842M        628.439/s
-efrodo640-encaps               1.62 ms         1.61 ms           88   7.26488M        619.301/s
-efrodo640-encaps               1.61 ms         1.61 ms           88   7.26855M        619.927/s
-efrodo640-encaps               1.62 ms         1.62 ms           88   7.24062M        618.957/s
-efrodo640-encaps               1.63 ms         1.63 ms           88   7.25337M        614.227/s
-efrodo640-encaps               1.64 ms         1.64 ms           88   7.24512M        608.267/s
-efrodo640-encaps               1.66 ms         1.66 ms           88   7.25004M        601.115/s
-efrodo640-encaps               1.66 ms         1.66 ms           88   7.25754M        601.223/s
-efrodo640-encaps_mean          1.63 ms         1.63 ms            8   7.25982M        613.932/s
-efrodo640-encaps_median        1.62 ms         1.62 ms            8   7.25546M        616.592/s
-efrodo640-encaps_stddev       0.026 ms        0.026 ms            8   18.2016k        9.69866/s
-efrodo640-encaps_cv            1.58 %          1.58 %             8      0.25%            1.58%
-efrodo1344-encaps              6.92 ms         6.92 ms           20   31.9008M        144.416/s
-efrodo1344-encaps              6.93 ms         6.93 ms           20   31.7554M        144.265/s
-efrodo1344-encaps              6.91 ms         6.91 ms           20   31.5184M        144.708/s
-efrodo1344-encaps              6.99 ms         6.99 ms           20   31.5602M        143.117/s
-efrodo1344-encaps              7.05 ms         7.05 ms           20   31.4652M        141.838/s
-efrodo1344-encaps              7.07 ms         7.07 ms           20   31.4408M        141.386/s
-efrodo1344-encaps              7.15 ms         7.15 ms           20   31.5013M        139.884/s
-efrodo1344-encaps              7.14 ms         7.14 ms           20   31.6158M        140.028/s
-efrodo1344-encaps_mean         7.02 ms         7.02 ms            8   31.5947M        142.455/s
-efrodo1344-encaps_median       7.02 ms         7.02 ms            8   31.5393M        142.478/s
-efrodo1344-encaps_stddev      0.096 ms        0.096 ms            8   158.633k        1.95145/s
-efrodo1344-encaps_cv           1.37 %          1.37 %             8      0.50%            1.37%
-efrodo1344-keygen              6.53 ms         6.53 ms           21   30.5188M        153.145/s
-efrodo1344-keygen              6.59 ms         6.59 ms           21   30.8239M        151.775/s
-efrodo1344-keygen              6.57 ms         6.57 ms           21   30.4503M        152.121/s
-efrodo1344-keygen              6.67 ms         6.67 ms           21   30.2248M        149.889/s
-efrodo1344-keygen              6.65 ms         6.65 ms           21   30.3697M        150.387/s
-efrodo1344-keygen              6.74 ms         6.74 ms           21   30.5161M        148.406/s
-efrodo1344-keygen              6.70 ms         6.70 ms           21   30.2025M        149.172/s
-efrodo1344-keygen              6.86 ms         6.86 ms           21    30.295M         145.82/s
-efrodo1344-keygen_mean         6.66 ms         6.66 ms            8   30.4251M        150.089/s
-efrodo1344-keygen_median       6.66 ms         6.66 ms            8     30.41M        150.138/s
-efrodo1344-keygen_stddev      0.105 ms        0.105 ms            8   202.253k         2.3402/s
-efrodo1344-keygen_cv           1.57 %          1.57 %             8      0.66%            1.56%
-efrodo640-decaps               1.59 ms         1.59 ms           89   7.28626M        628.673/s
-efrodo640-decaps               1.58 ms         1.58 ms           89   7.27016M        631.384/s
-efrodo640-decaps               1.61 ms         1.61 ms           89   7.23206M        620.032/s
-efrodo640-decaps               1.61 ms         1.61 ms           89   7.22689M        621.389/s
-efrodo640-decaps               1.63 ms         1.63 ms           89   7.26003M        612.932/s
-efrodo640-decaps               1.65 ms         1.65 ms           89   7.24012M        607.492/s
-efrodo640-decaps               1.65 ms         1.65 ms           89   7.23258M        606.417/s
-efrodo640-decaps               1.65 ms         1.65 ms           89   7.21958M        604.981/s
-efrodo640-decaps_mean          1.62 ms         1.62 ms            8   7.24596M        616.662/s
-efrodo640-decaps_median        1.62 ms         1.62 ms            8   7.23635M        616.482/s
-efrodo640-decaps_stddev       0.027 ms        0.027 ms            8    23.526k        10.2409/s
-efrodo640-decaps_cv            1.66 %          1.66 %             8      0.32%            1.66%
-frodo640-encaps                1.59 ms         1.59 ms           87    7.2887M         628.45/s
-frodo640-encaps                1.61 ms         1.61 ms           87   7.28154M        620.153/s
-frodo640-encaps                1.61 ms         1.61 ms           87   7.29705M        621.617/s
-frodo640-encaps                1.62 ms         1.62 ms           87   7.25186M        618.687/s
-frodo640-encaps                1.62 ms         1.62 ms           87   7.25779M        618.462/s
-frodo640-encaps                1.66 ms         1.66 ms           87   7.25685M         601.69/s
-frodo640-encaps                1.66 ms         1.66 ms           87   7.25065M         602.33/s
-frodo640-encaps                1.67 ms         1.67 ms           87   7.24484M         600.35/s
-frodo640-encaps_mean           1.63 ms         1.63 ms            8   7.26616M        613.967/s
-frodo640-encaps_median         1.62 ms         1.62 ms            8   7.25732M        618.575/s
-frodo640-encaps_stddev        0.029 ms        0.029 ms            8   19.8399k        10.8271/s
-frodo640-encaps_cv             1.77 %          1.77 %             8      0.27%            1.76%
-efrodo640-keygen               1.62 ms         1.62 ms           85   7.38117M        616.779/s
-efrodo640-keygen               1.62 ms         1.62 ms           85   7.39701M        616.653/s
-efrodo640-keygen               1.63 ms         1.63 ms           85   7.40831M        612.136/s
-efrodo640-keygen               1.63 ms         1.63 ms           85   7.40796M        612.014/s
-efrodo640-keygen               1.66 ms         1.66 ms           85   7.39371M        602.034/s
-efrodo640-keygen               1.66 ms         1.66 ms           85   7.41354M         602.07/s
-efrodo640-keygen               1.69 ms         1.69 ms           85   7.37997M        592.197/s
-efrodo640-keygen               1.70 ms         1.70 ms           85   7.36342M        588.452/s
-efrodo640-keygen_mean          1.65 ms         1.65 ms            8   7.39314M        605.292/s
-efrodo640-keygen_median        1.65 ms         1.65 ms            8   7.39536M        607.042/s
-efrodo640-keygen_stddev       0.030 ms        0.030 ms            8   17.2423k        10.8832/s
-efrodo640-keygen_cv            1.81 %          1.81 %             8      0.23%            1.80%
-frodo1344-encaps               6.96 ms         6.96 ms           20   31.9627M        143.628/s
-frodo1344-encaps               6.87 ms         6.87 ms           20   31.6577M        145.476/s
-frodo1344-encaps               6.94 ms         6.94 ms           20   31.8108M        144.123/s
-frodo1344-encaps               7.02 ms         7.02 ms           20   31.7336M        142.548/s
-frodo1344-encaps               6.99 ms         6.99 ms           20   31.6801M        143.123/s
-frodo1344-encaps               7.08 ms         7.08 ms           20   31.5038M        141.195/s
-frodo1344-encaps               7.15 ms         7.15 ms           20   31.6112M        139.876/s
-frodo1344-encaps               7.11 ms         7.11 ms           20   31.3596M        140.724/s
-frodo1344-encaps_mean          7.01 ms         7.01 ms            8   31.6649M        142.587/s
-frodo1344-encaps_median        7.00 ms         7.00 ms            8   31.6689M        142.836/s
-frodo1344-encaps_stddev       0.093 ms        0.093 ms            8   184.015k        1.88372/s
-frodo1344-encaps_cv            1.32 %          1.32 %             8      0.58%            1.32%
-efrodo1344-decaps              6.94 ms         6.94 ms           20   31.9546M        144.074/s
-efrodo1344-decaps              6.95 ms         6.95 ms           20    32.003M        143.855/s
-efrodo1344-decaps              6.84 ms         6.84 ms           20   31.2999M        146.155/s
-efrodo1344-decaps              6.97 ms         6.97 ms           20    31.484M         143.45/s
-efrodo1344-decaps              7.00 ms         7.00 ms           20   31.5081M        142.919/s
-efrodo1344-decaps              7.01 ms         7.01 ms           20   31.4431M        142.739/s
-efrodo1344-decaps              7.10 ms         7.10 ms           20   31.4456M        140.827/s
-efrodo1344-decaps              7.15 ms         7.15 ms           20    31.489M        139.822/s
-efrodo1344-decaps_mean         7.00 ms         7.00 ms            8   31.5784M         142.98/s
-efrodo1344-decaps_median       6.98 ms         6.98 ms            8   31.4865M        143.185/s
-efrodo1344-decaps_stddev      0.096 ms        0.096 ms            8   255.567k        1.96156/s
-efrodo1344-decaps_cv           1.38 %          1.38 %             8      0.81%            1.37%
-frodo640-keygen                1.59 ms         1.59 ms           88   7.39937M        630.065/s
-frodo640-keygen                1.61 ms         1.61 ms           88   7.33986M        620.963/s
-frodo640-keygen                1.64 ms         1.64 ms           88   7.35527M        611.133/s
-frodo640-keygen                1.63 ms         1.63 ms           88   7.33949M        613.951/s
-frodo640-keygen                1.67 ms         1.67 ms           88   7.33821M        598.676/s
-frodo640-keygen                1.67 ms         1.67 ms           88   7.35353M        598.013/s
-frodo640-keygen                1.69 ms         1.69 ms           88   7.35193M        590.058/s
-frodo640-keygen                1.69 ms         1.69 ms           88   7.34679M        590.873/s
-frodo640-keygen_mean           1.65 ms         1.65 ms            8   7.35306M        606.717/s
-frodo640-keygen_median         1.65 ms         1.65 ms            8   7.34936M        604.905/s
-frodo640-keygen_stddev        0.039 ms        0.039 ms            8    19.891k        14.5843/s
-frodo640-keygen_cv             2.39 %          2.39 %             8      0.27%            2.40%
+frodo1344-decaps_mean          7.03 ms         7.02 ms            8   31.6641M        142.385/s
+frodo1344-decaps_median        7.03 ms         7.03 ms            8   31.7431M         142.23/s
+frodo1344-decaps_stddev       0.067 ms        0.067 ms            8   183.412k        1.36044/s
+frodo1344-decaps_cv            0.95 %          0.96 %             8      0.58%            0.96%
+frodo640-keygen_mean           1.64 ms         1.64 ms            8   7.35495M        609.252/s
+frodo640-keygen_median         1.64 ms         1.64 ms            8   7.35036M        610.607/s
+frodo640-keygen_stddev        0.025 ms        0.025 ms            8   13.9441k        9.41282/s
+frodo640-keygen_cv             1.55 %          1.54 %             8      0.19%            1.54%
+frodo976-decaps_mean           3.78 ms         3.78 ms            8   16.4306M        264.838/s
+frodo976-decaps_median         3.74 ms         3.73 ms            8   16.4386M        267.761/s
+frodo976-decaps_stddev        0.122 ms        0.123 ms            8   54.1183k        8.55308/s
+frodo976-decaps_cv             3.24 %          3.25 %             8      0.33%            3.23%
+efrodo640-encaps_mean          1.66 ms         1.66 ms            8   7.31615M        603.311/s
+efrodo640-encaps_median        1.64 ms         1.64 ms            8   7.31189M        609.597/s
+efrodo640-encaps_stddev       0.053 ms        0.053 ms            8   16.7025k        19.1731/s
+efrodo640-encaps_cv            3.20 %          3.22 %             8      0.23%            3.18%
+efrodo1344-decaps_mean         7.13 ms         7.13 ms            8   31.6902M        140.424/s
+efrodo1344-decaps_median       7.04 ms         7.04 ms            8   31.6094M        141.959/s
+efrodo1344-decaps_stddev      0.247 ms        0.248 ms            8   211.507k        4.75742/s
+efrodo1344-decaps_cv           3.46 %          3.48 %             8      0.67%            3.39%
+efrodo640-decaps_mean          1.64 ms         1.64 ms            8   7.23458M         610.44/s
+efrodo640-decaps_median        1.63 ms         1.63 ms            8   7.23981M        613.455/s
+efrodo640-decaps_stddev       0.036 ms        0.036 ms            8   17.2304k        12.9376/s
+efrodo640-decaps_cv            2.19 %          2.19 %             8      0.24%            2.12%
+efrodo1344-keygen_mean         6.84 ms         6.84 ms            8   30.3509M        146.312/s
+efrodo1344-keygen_median       6.74 ms         6.74 ms            8   30.3862M        148.345/s
+efrodo1344-keygen_stddev      0.236 ms        0.236 ms            8   127.486k        4.92388/s
+efrodo1344-keygen_cv           3.45 %          3.45 %             8      0.42%            3.37%
+efrodo976-decaps_mean          3.76 ms         3.76 ms            8   16.4413M        266.382/s
+efrodo976-decaps_median        3.71 ms         3.71 ms            8   16.4439M        269.299/s
+efrodo976-decaps_stddev       0.112 ms        0.112 ms            8   40.2691k        7.82576/s
+efrodo976-decaps_cv            2.98 %          2.98 %             8      0.24%            2.94%
+frodo976-encaps_mean           3.73 ms         3.73 ms            8   16.4816M        268.566/s
+frodo976-encaps_median         3.73 ms         3.72 ms            8   16.4683M        268.499/s
+frodo976-encaps_stddev        0.090 ms        0.091 ms            8   63.4466k        6.47054/s
+frodo976-encaps_cv             2.42 %          2.44 %             8      0.38%            2.41%
+efrodo1344-encaps_mean         7.03 ms         7.03 ms            8   31.7188M        142.404/s
+efrodo1344-encaps_median       6.97 ms         6.97 ms            8   31.6327M        143.487/s
+efrodo1344-encaps_stddev      0.220 ms        0.220 ms            8    172.29k        4.33126/s
+efrodo1344-encaps_cv           3.14 %          3.14 %             8      0.54%            3.04%
+efrodo976-keygen_mean          3.78 ms         3.78 ms            8   16.5446M        264.753/s
+efrodo976-keygen_median        3.72 ms         3.72 ms            8   16.5213M        268.645/s
+efrodo976-keygen_stddev       0.128 ms        0.128 ms            8   86.7033k        8.91705/s
+efrodo976-keygen_cv            3.40 %          3.39 %             8      0.52%            3.37%
+frodo1344-keygen_mean          7.03 ms         7.03 ms            8   29.3735M        142.732/s
+frodo1344-keygen_median        6.91 ms         6.91 ms            8   30.3793M        144.817/s
+frodo1344-keygen_stddev       0.426 ms        0.426 ms            8     2.884M        8.17556/s
+frodo1344-keygen_cv            6.06 %          6.06 %             8      9.82%            5.73%
+efrodo976-encaps_mean          3.85 ms         3.85 ms            8    16.546M        259.953/s
+efrodo976-encaps_median        3.86 ms         3.86 ms            8    16.543M        259.094/s
+efrodo976-encaps_stddev       0.100 ms        0.101 ms            8   62.8691k        6.80452/s
+efrodo976-encaps_cv            2.60 %          2.61 %             8      0.38%            2.62%
+frodo976-keygen_mean           3.77 ms         3.77 ms            8   16.7192M        265.543/s
+frodo976-keygen_median         3.76 ms         3.76 ms            8   16.7355M        266.287/s
+frodo976-keygen_stddev        0.118 ms        0.119 ms            8   56.5632k        8.27718/s
+frodo976-keygen_cv             3.13 %          3.17 %             8      0.34%            3.12%
+frodo640-encaps_mean           1.68 ms         1.68 ms            8   7.30596M        596.086/s
+frodo640-encaps_median         1.66 ms         1.66 ms            8   7.31084M        601.596/s
+frodo640-encaps_stddev        0.044 ms        0.044 ms            8   39.5615k         15.226/s
+frodo640-encaps_cv             2.62 %          2.62 %             8      0.54%            2.55%
+efrodo640-keygen_mean          1.69 ms         1.69 ms            8   7.38062M        592.313/s
+efrodo640-keygen_median        1.67 ms         1.67 ms            8   7.38694M        598.462/s
+efrodo640-keygen_stddev       0.050 ms        0.050 ms            8   23.2683k        17.4152/s
+efrodo640-keygen_cv            2.96 %          2.96 %             8      0.32%            2.94%
+frodo640-decaps_mean           1.70 ms         1.70 ms            8   7.24945M        589.592/s
+frodo640-decaps_median         1.72 ms         1.72 ms            8   7.24458M        582.119/s
+frodo640-decaps_stddev        0.045 ms        0.045 ms            8   12.5421k        16.2101/s
+frodo640-decaps_cv             2.66 %          2.66 %             8      0.17%            2.75%
+frodo1344-encaps_mean          7.21 ms         7.21 ms            8   31.7763M        138.838/s
+frodo1344-encaps_median        7.08 ms         7.08 ms            8   31.8189M        141.354/s
+frodo1344-encaps_stddev       0.303 ms        0.303 ms            8   217.814k        5.74848/s
+frodo1344-encaps_cv            4.20 %          4.20 %             8      0.69%            4.14%
 ```
 
-### On 12th Gen Intel(R) Core(TM) i7-1260P [ Compiled with Clang-16.0.0 ]
+### On *12th Gen Intel(R) Core(TM) i7-1260P* [ Compiled with Clang-17.0.2 ]
 
 ```bash
-2023-09-17T15:38:02+04:00
+2023-11-14T21:16:22+05:30
 Running ./build/perf.out
-Run on (16 X 4441.8 MHz CPU s)
+Run on (16 X 3895.3 MHz CPU s)
 CPU Caches:
   L1 Data 48 KiB (x8)
   L1 Instruction 32 KiB (x8)
   L2 Unified 1280 KiB (x8)
   L3 Unified 18432 KiB (x1)
-Load Average: 0.56, 0.54, 0.51
+Load Average: 0.53, 0.48, 0.54
 -----------------------------------------------------------------------------------------------
 Benchmark                         Time             CPU   Iterations     CYCLES items_per_second
 -----------------------------------------------------------------------------------------------
-frodo640-keygen                1.42 ms         1.42 ms          100    6.2303M        705.623/s
-frodo640-keygen                1.43 ms         1.43 ms          100   6.22815M        700.692/s
-frodo640-keygen                1.41 ms         1.41 ms          100   6.20619M        707.337/s
-frodo640-keygen                1.42 ms         1.42 ms          100   6.20599M        703.899/s
-frodo640-keygen                1.44 ms         1.44 ms          100   6.21572M        693.598/s
-frodo640-keygen                1.43 ms         1.43 ms          100   6.18352M        701.273/s
-frodo640-keygen                1.44 ms         1.44 ms          100   6.20868M        695.259/s
-frodo640-keygen                1.44 ms         1.44 ms          100   6.17516M        695.661/s
-frodo640-keygen_mean           1.43 ms         1.43 ms            8   6.20671M        700.418/s
-frodo640-keygen_median         1.43 ms         1.43 ms            8   6.20743M        700.983/s
-frodo640-keygen_stddev        0.010 ms        0.010 ms            8   19.4016k        5.12198/s
-frodo640-keygen_cv             0.73 %          0.73 %             8      0.31%            0.73%
-frodo1344-decaps               13.6 ms         13.6 ms           10   60.0526M         73.408/s
-frodo1344-decaps               13.5 ms         13.5 ms           10   59.7797M        73.8777/s
-frodo1344-decaps               13.5 ms         13.5 ms           10   59.8996M        73.9815/s
-frodo1344-decaps               13.7 ms         13.7 ms           10   59.9009M         73.184/s
-frodo1344-decaps               13.7 ms         13.7 ms           10   59.9846M        72.9685/s
-frodo1344-decaps               13.7 ms         13.7 ms           10   59.9794M        72.8668/s
-frodo1344-decaps               13.8 ms         13.8 ms           10   59.8936M         72.541/s
-frodo1344-decaps               13.7 ms         13.7 ms           10   59.9581M        72.7851/s
-frodo1344-decaps_mean          13.7 ms         13.7 ms            8   59.9311M        73.2016/s
-frodo1344-decaps_median        13.7 ms         13.7 ms            8   59.9295M        73.0763/s
-frodo1344-decaps_stddev       0.097 ms        0.097 ms            8   81.8571k       0.518851/s
-frodo1344-decaps_cv            0.71 %          0.71 %             8      0.14%            0.71%
-efrodo640-decaps               2.92 ms         2.92 ms           48   13.3888M         342.89/s
-efrodo640-decaps               2.91 ms         2.91 ms           48   13.3323M        343.745/s
-efrodo640-decaps               2.97 ms         2.97 ms           48   13.3507M        336.249/s
-efrodo640-decaps               2.97 ms         2.97 ms           48   13.3547M        336.824/s
-efrodo640-decaps               2.95 ms         2.95 ms           48   13.3344M        338.469/s
-efrodo640-decaps               2.96 ms         2.96 ms           48   13.3478M        337.568/s
-efrodo640-decaps               2.98 ms         2.98 ms           48   13.3467M        335.354/s
-efrodo640-decaps               2.99 ms         2.99 ms           48    13.357M         334.04/s
-efrodo640-decaps_mean          2.96 ms         2.96 ms            8   13.3515M        338.142/s
-efrodo640-decaps_median        2.97 ms         2.97 ms            8   13.3492M        337.196/s
-efrodo640-decaps_stddev       0.030 ms        0.030 ms            8   17.4229k        3.47007/s
-efrodo640-decaps_cv            1.02 %          1.02 %             8      0.13%            1.03%
-efrodo1344-decaps              13.6 ms         13.6 ms           10   60.1243M        73.6759/s
-efrodo1344-decaps              13.6 ms         13.6 ms           10   60.0451M        73.7385/s
-efrodo1344-decaps              13.6 ms         13.6 ms           10   59.8858M        73.7632/s
-efrodo1344-decaps              13.7 ms         13.7 ms           10   59.9455M        73.1022/s
-efrodo1344-decaps              13.7 ms         13.7 ms           10   59.9409M        72.7592/s
-efrodo1344-decaps              13.7 ms         13.8 ms           10   60.1122M        72.2318/s
-efrodo1344-decaps              13.7 ms         13.9 ms           10    59.921M         72.137/s
-efrodo1344-decaps              13.7 ms         13.9 ms           10   59.8927M        72.1499/s
-efrodo1344-decaps_mean         13.7 ms         13.7 ms            8   59.9834M        72.9447/s
-efrodo1344-decaps_median       13.7 ms         13.7 ms            8   59.9432M        72.9307/s
-efrodo1344-decaps_stddev      0.087 ms        0.136 ms            8   96.4818k        0.72567/s
-efrodo1344-decaps_cv           0.63 %          0.99 %             8      0.16%            0.99%
-frodo976-encaps                5.91 ms         5.91 ms           24    26.326M        169.244/s
-frodo976-encaps                5.92 ms         5.92 ms           24   26.2727M        168.874/s
-frodo976-encaps                5.96 ms         5.96 ms           24   26.3029M        167.666/s
-frodo976-encaps                6.03 ms         6.03 ms           24    26.354M        165.924/s
-frodo976-encaps                6.02 ms         6.02 ms           24   26.2731M        166.186/s
-frodo976-encaps                6.15 ms         6.15 ms           24   26.3106M         162.64/s
-frodo976-encaps                6.10 ms         6.15 ms           24   26.3581M        162.713/s
-frodo976-encaps                6.07 ms         6.12 ms           24   26.3298M        163.467/s
-frodo976-encaps_mean           6.02 ms         6.03 ms            8   26.3159M        165.839/s
-frodo976-encaps_median         6.02 ms         6.02 ms            8   26.3183M        166.055/s
-frodo976-encaps_stddev        0.085 ms        0.097 ms            8   32.5545k           2.67/s
-frodo976-encaps_cv             1.42 %          1.61 %             8      0.12%            1.61%
-efrodo976-decaps               5.92 ms         5.92 ms           24   26.2393M        168.777/s
-efrodo976-decaps               5.93 ms         5.93 ms           24   26.2386M         168.72/s
-efrodo976-decaps               5.95 ms         5.95 ms           24   26.2138M        167.969/s
-efrodo976-decaps               5.99 ms         5.99 ms           24   26.2219M        167.027/s
-efrodo976-decaps               6.03 ms         6.03 ms           24   26.3198M        165.837/s
-efrodo976-decaps               6.13 ms         6.13 ms           24   26.2239M        163.191/s
-efrodo976-decaps               6.11 ms         6.15 ms           24   26.3345M        162.486/s
-efrodo976-decaps               6.09 ms         6.13 ms           24   26.2406M         163.05/s
-efrodo976-decaps_mean          6.02 ms         6.03 ms            8   26.2541M        165.882/s
-efrodo976-decaps_median        6.01 ms         6.01 ms            8    26.239M        166.432/s
-efrodo976-decaps_stddev       0.083 ms        0.096 ms            8   46.2925k        2.64298/s
-efrodo976-decaps_cv            1.37 %          1.60 %             8      0.18%            1.59%
-frodo640-encaps                2.92 ms         2.92 ms           48   13.4552M        342.359/s
-frodo640-encaps                2.91 ms         2.91 ms           48   13.4008M        344.193/s
-frodo640-encaps                2.95 ms         2.95 ms           48    13.406M        338.908/s
-frodo640-encaps                2.98 ms         2.98 ms           48   13.3991M        335.353/s
-frodo640-encaps                3.01 ms         3.04 ms           48   13.4049M        329.213/s
-frodo640-encaps                3.01 ms         3.03 ms           48   13.3936M        330.164/s
-frodo640-encaps                3.02 ms         3.04 ms           48   13.3987M        328.441/s
-frodo640-encaps                3.04 ms         3.06 ms           48   13.4075M        326.802/s
-frodo640-encaps_mean           2.98 ms         2.99 ms            8   13.4082M        334.429/s
-frodo640-encaps_median         2.99 ms         3.01 ms            8   13.4029M        332.759/s
-frodo640-encaps_stddev        0.050 ms        0.060 ms            8   19.5076k        6.74583/s
-frodo640-encaps_cv             1.66 %          2.01 %             8      0.15%            2.02%
-efrodo1344-keygen              6.85 ms         6.85 ms           21   28.9989M        145.946/s
-efrodo1344-keygen              6.84 ms         6.84 ms           21   29.0593M        146.138/s
-efrodo1344-keygen              6.89 ms         6.89 ms           21   29.1486M        145.136/s
-efrodo1344-keygen              6.94 ms         6.94 ms           21   29.1582M        144.135/s
-efrodo1344-keygen              6.85 ms         6.85 ms           21    28.989M        145.997/s
-efrodo1344-keygen              6.91 ms         6.91 ms           21   29.0439M         144.66/s
-efrodo1344-keygen              6.86 ms         6.86 ms           21   28.8927M        145.695/s
-efrodo1344-keygen              6.90 ms         6.95 ms           21    29.076M        143.969/s
-efrodo1344-keygen_mean         6.88 ms         6.89 ms            8   29.0458M        145.209/s
-efrodo1344-keygen_median       6.88 ms         6.88 ms            8   29.0516M        145.416/s
-efrodo1344-keygen_stddev      0.035 ms        0.041 ms            8   87.1591k        0.86701/s
-efrodo1344-keygen_cv           0.50 %          0.60 %             8      0.30%            0.60%
-efrodo640-keygen               1.43 ms         1.43 ms           99   6.33543M        700.183/s
-efrodo640-keygen               1.45 ms         1.45 ms           99   6.27186M        691.642/s
-efrodo640-keygen               1.49 ms         1.49 ms           99   6.34429M        673.264/s
-efrodo640-keygen               1.45 ms         1.45 ms           99   6.24803M        687.744/s
-efrodo640-keygen               1.46 ms         1.46 ms           99   6.20527M        686.723/s
-efrodo640-keygen               1.47 ms         1.47 ms           99    6.2419M        682.425/s
-efrodo640-keygen               1.47 ms         1.47 ms           99   6.24629M        679.534/s
-efrodo640-keygen               1.47 ms         1.48 ms           99   6.26124M        674.045/s
-efrodo640-keygen_mean          1.46 ms         1.46 ms            8   6.26929M        684.445/s
-efrodo640-keygen_median        1.46 ms         1.46 ms            8   6.25464M        684.574/s
-efrodo640-keygen_stddev       0.018 ms        0.019 ms            8     47.66k        9.07846/s
-efrodo640-keygen_cv            1.23 %          1.32 %             8      0.76%            1.33%
-frodo976-keygen                3.62 ms         3.62 ms           39   15.7352M        276.577/s
-frodo976-keygen                3.68 ms         3.68 ms           39   15.7796M        271.513/s
-frodo976-keygen                3.74 ms         3.74 ms           39   15.8084M        267.683/s
-frodo976-keygen                3.77 ms         3.77 ms           39    15.805M        264.978/s
-frodo976-keygen                3.80 ms         3.80 ms           39   15.9698M        263.315/s
-frodo976-keygen                3.85 ms         3.85 ms           39    15.873M        259.514/s
-frodo976-keygen                3.78 ms         3.81 ms           39   15.8159M        262.546/s
-frodo976-keygen                3.80 ms         3.82 ms           39   15.9064M        261.928/s
-frodo976-keygen_mean           3.75 ms         3.76 ms            8   15.8367M        266.007/s
-frodo976-keygen_median         3.77 ms         3.79 ms            8   15.8122M        264.147/s
-frodo976-keygen_stddev        0.075 ms        0.079 ms            8   75.3042k        5.65611/s
-frodo976-keygen_cv             1.99 %          2.09 %             8      0.48%            2.13%
-frodo1344-keygen               6.56 ms         6.56 ms           22    28.873M        152.488/s
-frodo1344-keygen               6.61 ms         6.61 ms           22   29.0727M        151.302/s
-frodo1344-keygen               6.78 ms         6.78 ms           22   29.0055M        147.592/s
-frodo1344-keygen               6.81 ms         6.81 ms           22    28.973M        146.942/s
-frodo1344-keygen               6.86 ms         6.86 ms           22   29.0708M        145.797/s
-frodo1344-keygen               6.87 ms         6.87 ms           22   29.0401M        145.518/s
-frodo1344-keygen               6.89 ms         6.89 ms           22   29.0107M        145.207/s
-frodo1344-keygen               6.92 ms         6.96 ms           22   28.9915M         143.74/s
-frodo1344-keygen_mean          6.79 ms         6.79 ms            8   29.0047M        147.323/s
-frodo1344-keygen_median        6.83 ms         6.83 ms            8   29.0081M        146.369/s
-frodo1344-keygen_stddev       0.133 ms        0.139 ms            8   64.1617k        3.06191/s
-frodo1344-keygen_cv            1.96 %          2.05 %             8      0.22%            2.08%
-efrodo1344-encaps              13.4 ms         13.4 ms           10    59.916M        74.7186/s
-efrodo1344-encaps              13.6 ms         13.6 ms           10   60.2799M        73.6414/s
-efrodo1344-encaps              13.5 ms         13.5 ms           10   59.8584M        74.3385/s
-efrodo1344-encaps              13.7 ms         13.6 ms           10   60.2154M        73.2638/s
-efrodo1344-encaps              13.8 ms         13.8 ms           10   59.9664M        72.4996/s
-efrodo1344-encaps              13.8 ms         13.8 ms           10   59.9091M         72.353/s
-efrodo1344-encaps              13.8 ms         14.0 ms           10   60.0219M        71.6629/s
-efrodo1344-encaps              13.9 ms         14.0 ms           10   59.9048M        71.6666/s
-efrodo1344-encaps_mean         13.7 ms         13.7 ms            8    60.009M         73.018/s
-efrodo1344-encaps_median       13.7 ms         13.7 ms            8   59.9412M        72.8817/s
-efrodo1344-encaps_stddev      0.187 ms        0.217 ms            8   155.891k         1.1624/s
-efrodo1344-encaps_cv           1.37 %          1.59 %             8      0.26%            1.59%
-efrodo976-keygen               3.66 ms         3.66 ms           39   15.7598M        273.282/s
-efrodo976-keygen               3.73 ms         3.73 ms           39   15.9228M        267.793/s
-efrodo976-keygen               3.79 ms         3.79 ms           39   16.0306M        264.168/s
-efrodo976-keygen               3.76 ms         3.76 ms           39   15.8749M        266.203/s
-efrodo976-keygen               3.76 ms         3.76 ms           39   15.7943M        265.766/s
-efrodo976-keygen               3.83 ms         3.83 ms           39   16.0667M        261.413/s
-efrodo976-keygen               3.79 ms         3.81 ms           39   15.8668M         262.27/s
-efrodo976-keygen               3.80 ms         3.82 ms           39   15.9942M        261.768/s
-efrodo976-keygen_mean          3.76 ms         3.77 ms            8   15.9137M        265.333/s
-efrodo976-keygen_median        3.77 ms         3.77 ms            8   15.8989M        264.967/s
-efrodo976-keygen_stddev       0.050 ms        0.055 ms            8    110.38k        3.94612/s
-efrodo976-keygen_cv            1.34 %          1.47 %             8      0.69%            1.49%
-frodo976-decaps                5.99 ms         5.99 ms           23   26.2547M        167.026/s
-frodo976-decaps                6.00 ms         6.00 ms           23   26.3102M        166.786/s
-frodo976-decaps                6.02 ms         6.02 ms           23   26.2837M        166.003/s
-frodo976-decaps                6.01 ms         6.01 ms           23   26.2458M        166.458/s
-frodo976-decaps                6.10 ms         6.10 ms           23   26.2439M        163.959/s
-frodo976-decaps                6.10 ms         6.15 ms           23   26.2472M        162.616/s
-frodo976-decaps                6.10 ms         6.14 ms           23   26.2512M         162.99/s
-frodo976-decaps                6.12 ms         6.16 ms           23    26.324M        162.374/s
-frodo976-decaps_mean           6.05 ms         6.07 ms            8   26.2701M        164.777/s
-frodo976-decaps_median         6.06 ms         6.06 ms            8   26.2529M        164.981/s
-frodo976-decaps_stddev        0.055 ms        0.073 ms            8   31.8531k        1.99031/s
-frodo976-decaps_cv             0.91 %          1.21 %             8      0.12%            1.21%
-efrodo640-encaps               2.93 ms         2.93 ms           47   13.3957M        340.948/s
-efrodo640-encaps               2.95 ms         2.95 ms           47   13.4116M        338.727/s
-efrodo640-encaps               2.96 ms         2.96 ms           47   13.4057M        337.684/s
-efrodo640-encaps               2.99 ms         2.99 ms           47   13.3963M        334.389/s
-efrodo640-encaps               3.01 ms         3.01 ms           47   13.4147M        331.731/s
-efrodo640-encaps               3.00 ms         3.03 ms           47   13.4045M        330.247/s
-efrodo640-encaps               3.01 ms         3.03 ms           47   13.4071M        330.227/s
-efrodo640-encaps               3.03 ms         3.04 ms           47   13.4158M        328.442/s
-efrodo640-encaps_mean          2.99 ms         2.99 ms            8   13.4064M        334.049/s
-efrodo640-encaps_median        3.00 ms         3.00 ms            8   13.4064M         333.06/s
-efrodo640-encaps_stddev       0.034 ms        0.041 ms            8   7.62759k        4.60902/s
-efrodo640-encaps_cv            1.13 %          1.37 %             8      0.06%            1.38%
-frodo1344-encaps               13.0 ms         13.0 ms           10   59.9605M        76.8125/s
-frodo1344-encaps               13.4 ms         13.4 ms           10   60.1029M        74.6182/s
-frodo1344-encaps               13.6 ms         13.6 ms           10    60.057M        73.6898/s
-frodo1344-encaps               13.5 ms         13.5 ms           10    59.891M        74.0674/s
-frodo1344-encaps               13.6 ms         13.6 ms           10   59.8699M        73.3779/s
-frodo1344-encaps               13.6 ms         13.6 ms           10   60.0011M        73.3049/s
-frodo1344-encaps               13.9 ms         13.9 ms           10   60.1131M        72.0625/s
-frodo1344-encaps               14.0 ms         14.1 ms           10   60.3188M         71.113/s
-frodo1344-encaps_mean          13.6 ms         13.6 ms            8   60.0393M        73.6308/s
-frodo1344-encaps_median        13.6 ms         13.6 ms            8    60.029M        73.5339/s
-frodo1344-encaps_stddev       0.297 ms        0.312 ms            8   144.539k        1.70131/s
-frodo1344-encaps_cv            2.19 %          2.29 %             8      0.24%            2.31%
-efrodo976-encaps               5.81 ms         5.81 ms           24   26.2813M        172.236/s
-efrodo976-encaps               5.94 ms         5.94 ms           24   26.2759M        168.463/s
-efrodo976-encaps               5.96 ms         5.96 ms           24    26.301M        167.774/s
-efrodo976-encaps               5.98 ms         5.98 ms           24    26.289M        167.234/s
-efrodo976-encaps               6.01 ms         6.01 ms           24   26.3184M        166.302/s
-efrodo976-encaps               6.00 ms         6.00 ms           24   26.2845M        166.727/s
-efrodo976-encaps               6.09 ms         6.13 ms           24   26.3184M        163.014/s
-efrodo976-encaps               6.14 ms         6.17 ms           24   26.3503M        162.125/s
-efrodo976-encaps_mean          5.99 ms         6.00 ms            8   26.3023M        166.734/s
-efrodo976-encaps_median        5.99 ms         5.99 ms            8    26.295M        166.981/s
-efrodo976-encaps_stddev       0.101 ms        0.114 ms            8   25.2263k        3.15921/s
-efrodo976-encaps_cv            1.68 %          1.89 %             8      0.10%            1.89%
-frodo640-decaps                2.90 ms         2.90 ms           48   13.3369M        344.333/s
-frodo640-decaps                2.95 ms         2.95 ms           48   13.3389M        339.142/s
-frodo640-decaps                2.96 ms         2.96 ms           48   13.3344M        338.397/s
-frodo640-decaps                2.96 ms         2.96 ms           48   13.3519M          337.9/s
-frodo640-decaps                2.99 ms         2.99 ms           48   13.3618M        334.196/s
-frodo640-decaps                2.99 ms         2.99 ms           48   13.3423M        334.478/s
-frodo640-decaps                3.01 ms         3.01 ms           48   13.3345M        332.396/s
-frodo640-decaps                3.02 ms         3.03 ms           48   13.3514M        329.601/s
-frodo640-decaps_mean           2.97 ms         2.97 ms            8    13.344M        336.306/s
-frodo640-decaps_median         2.97 ms         2.97 ms            8   13.3406M        336.189/s
-frodo640-decaps_stddev        0.037 ms        0.040 ms            8   9.95105k        4.58898/s
-frodo640-decaps_cv             1.26 %          1.36 %             8      0.07%            1.36%
+frodo1344-keygen_mean          6.46 ms         6.46 ms            8   29.3472M        154.806/s
+frodo1344-keygen_median        6.43 ms         6.43 ms            8   29.3053M        155.473/s
+frodo1344-keygen_stddev       0.083 ms        0.083 ms            8   159.294k        1.96474/s
+frodo1344-keygen_cv            1.29 %          1.28 %             8      0.54%            1.27%
+frodo1344-encaps_mean          13.0 ms         13.0 ms            8     59.75M        76.9326/s
+frodo1344-encaps_median        13.0 ms         13.0 ms            8   59.7468M        77.0064/s
+frodo1344-encaps_stddev       0.118 ms        0.118 ms            8    69.249k       0.695325/s
+frodo1344-encaps_cv            0.91 %          0.91 %             8      0.12%            0.90%
+efrodo976-decaps_mean          5.85 ms         5.85 ms            8    26.249M        170.947/s
+efrodo976-decaps_median        5.82 ms         5.82 ms            8   26.2234M        171.677/s
+efrodo976-decaps_stddev       0.072 ms        0.072 ms            8    77.012k        2.08752/s
+efrodo976-decaps_cv            1.23 %          1.23 %             8      0.29%            1.22%
+efrodo640-encaps_mean          2.92 ms         2.92 ms            8   13.2454M        342.644/s
+efrodo640-encaps_median        2.90 ms         2.90 ms            8   13.2375M        344.583/s
+efrodo640-encaps_stddev       0.042 ms        0.042 ms            8   27.4564k        4.87626/s
+efrodo640-encaps_cv            1.45 %          1.45 %             8      0.21%            1.42%
+efrodo1344-encaps_mean         13.2 ms         13.2 ms            8   60.0583M        75.9014/s
+efrodo1344-encaps_median       13.1 ms         13.1 ms            8   60.0247M        76.3338/s
+efrodo1344-encaps_stddev      0.280 ms        0.280 ms            8   340.834k        1.60256/s
+efrodo1344-encaps_cv           2.12 %          2.13 %             8      0.57%            2.11%
+frodo640-decaps_mean           2.90 ms         2.90 ms            8   13.2159M        344.856/s
+frodo640-decaps_median         2.89 ms         2.89 ms            8   13.1884M        346.257/s
+frodo640-decaps_stddev        0.046 ms        0.046 ms            8   59.5386k        5.39528/s
+frodo640-decaps_cv             1.59 %          1.59 %             8      0.45%            1.56%
+efrodo640-decaps_mean          2.90 ms         2.90 ms            8   13.1848M        345.368/s
+efrodo640-decaps_median        2.90 ms         2.90 ms            8    13.188M        345.105/s
+efrodo640-decaps_stddev       0.025 ms        0.026 ms            8   16.4474k        3.04985/s
+efrodo640-decaps_cv            0.88 %          0.88 %             8      0.12%            0.88%
+frodo1344-decaps_mean          13.1 ms         13.1 ms            8   59.7862M        76.5473/s
+frodo1344-decaps_median        13.0 ms         13.0 ms            8   59.7214M        76.9549/s
+frodo1344-decaps_stddev       0.215 ms        0.214 ms            8   200.706k        1.24366/s
+frodo1344-decaps_cv            1.65 %          1.64 %             8      0.34%            1.62%
+efrodo1344-keygen_mean         6.64 ms         6.64 ms            8   29.3757M        150.662/s
+efrodo1344-keygen_median       6.61 ms         6.61 ms            8   29.2875M        151.357/s
+efrodo1344-keygen_stddev      0.180 ms        0.179 ms            8   191.606k        4.07208/s
+efrodo1344-keygen_cv           2.70 %          2.70 %             8      0.65%            2.70%
+frodo640-encaps_mean           2.91 ms         2.91 ms            8   13.2555M        343.543/s
+frodo640-encaps_median         2.92 ms         2.92 ms            8   13.2437M        342.921/s
+frodo640-encaps_stddev        0.026 ms        0.026 ms            8   30.5832k        3.08818/s
+frodo640-encaps_cv             0.89 %          0.90 %             8      0.23%            0.90%
+efrodo640-keygen_mean          1.67 ms         1.67 ms            8   7.47165M        599.936/s
+efrodo640-keygen_median        1.66 ms         1.66 ms            8   7.47122M        601.893/s
+efrodo640-keygen_stddev       0.017 ms        0.017 ms            8   5.19107k        6.20448/s
+efrodo640-keygen_cv            1.04 %          1.04 %             8      0.07%            1.03%
+frodo976-decaps_mean           5.84 ms         5.84 ms            8   26.2327M        171.355/s
+frodo976-decaps_median         5.80 ms         5.80 ms            8   26.2229M        172.457/s
+frodo976-decaps_stddev        0.078 ms        0.078 ms            8   44.2111k        2.28259/s
+frodo976-decaps_cv             1.34 %          1.34 %             8      0.17%            1.33%
+efrodo1344-decaps_mean         13.2 ms         13.2 ms            8   59.9126M        75.7504/s
+efrodo1344-decaps_median       13.2 ms         13.2 ms            8   59.8539M        75.6771/s
+efrodo1344-decaps_stddev      0.202 ms        0.203 ms            8   237.834k         1.1655/s
+efrodo1344-decaps_cv           1.53 %          1.54 %             8      0.40%            1.54%
+frodo640-keygen_mean           1.66 ms         1.66 ms            8   7.43802M         601.67/s
+frodo640-keygen_median         1.67 ms         1.67 ms            8   7.44746M        598.454/s
+frodo640-keygen_stddev        0.033 ms        0.033 ms            8   38.2173k        11.9799/s
+frodo640-keygen_cv             2.00 %          1.99 %             8      0.51%            1.99%
+frodo976-keygen_mean           3.67 ms         3.67 ms            8    16.145M        272.685/s
+frodo976-keygen_median         3.68 ms         3.68 ms            8   16.0363M        272.102/s
+frodo976-keygen_stddev        0.036 ms        0.036 ms            8   357.649k        2.70765/s
+frodo976-keygen_cv             0.99 %          0.99 %             8      2.22%            0.99%
+efrodo976-keygen_mean          3.65 ms         3.65 ms            8   16.0231M        274.461/s
+efrodo976-keygen_median        3.65 ms         3.65 ms            8   16.0354M        273.711/s
+efrodo976-keygen_stddev       0.090 ms        0.090 ms            8   161.953k        6.82146/s
+efrodo976-keygen_cv            2.47 %          2.47 %             8      1.01%            2.49%
+efrodo976-encaps_mean          5.86 ms         5.86 ms            8   26.3125M        170.739/s
+efrodo976-encaps_median        5.87 ms         5.87 ms            8   26.3024M        170.433/s
+efrodo976-encaps_stddev       0.062 ms        0.062 ms            8   93.3083k        1.83505/s
+efrodo976-encaps_cv            1.07 %          1.07 %             8      0.35%            1.07%
+frodo976-encaps_mean           5.79 ms         5.79 ms            8   26.2905M        172.766/s
+frodo976-encaps_median         5.77 ms         5.77 ms            8    26.302M        173.237/s
+frodo976-encaps_stddev        0.070 ms        0.070 ms            8   90.1564k        2.07082/s
+frodo976-encaps_cv             1.21 %          1.21 %             8      0.34%            1.20%
+```
+
+### On *ARM Cortex-A72 (i.e. Raspberry Pi 4B)* [ Compiled with GCC-13.2.0 ]
+
+```bash
+2023-11-14T21:40:06+05:30
+Running ./build/perf.out
+Run on (4 X 1800 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x4)
+  L1 Instruction 48 KiB (x4)
+  L2 Unified 1024 KiB (x1)
+Load Average: 1.39, 1.32, 0.95
+Performance counters not supported.
+------------------------------------------------------------------------------------
+Benchmark                         Time             CPU   Iterations items_per_second
+------------------------------------------------------------------------------------
+frodo640-keygen_mean           6.97 ms         6.97 ms            8        143.467/s
+frodo640-keygen_median         6.97 ms         6.97 ms            8        143.495/s
+frodo640-keygen_stddev        0.010 ms        0.009 ms            8       0.194181/s
+frodo640-keygen_cv             0.14 %          0.14 %             8            0.14%
+efrodo640-keygen_mean          6.97 ms         6.97 ms            8        143.401/s
+efrodo640-keygen_median        6.98 ms         6.98 ms            8        143.356/s
+efrodo640-keygen_stddev       0.005 ms        0.005 ms            8       0.101918/s
+efrodo640-keygen_cv            0.08 %          0.07 %             8            0.07%
+efrodo976-decaps_mean          26.9 ms         26.9 ms            8        37.1446/s
+efrodo976-decaps_median        26.9 ms         26.9 ms            8        37.1436/s
+efrodo976-decaps_stddev       0.017 ms        0.012 ms            8      0.0168801/s
+efrodo976-decaps_cv            0.06 %          0.05 %             8            0.05%
+efrodo976-encaps_mean          26.9 ms         26.9 ms            8        37.1232/s
+efrodo976-encaps_median        26.9 ms         26.9 ms            8          37.12/s
+efrodo976-encaps_stddev       0.017 ms        0.017 ms            8      0.0238676/s
+efrodo976-encaps_cv            0.06 %          0.06 %             8            0.06%
+efrodo1344-keygen_mean         28.6 ms         28.6 ms            8        35.0201/s
+efrodo1344-keygen_median       28.6 ms         28.6 ms            8        35.0034/s
+efrodo1344-keygen_stddev      0.046 ms        0.045 ms            8       0.055295/s
+efrodo1344-keygen_cv           0.16 %          0.16 %             8            0.16%
+efrodo640-encaps_mean          9.12 ms         9.12 ms            8        109.682/s
+efrodo640-encaps_median        9.11 ms         9.11 ms            8        109.746/s
+efrodo640-encaps_stddev       0.029 ms        0.028 ms            8       0.338306/s
+efrodo640-encaps_cv            0.32 %          0.31 %             8            0.31%
+frodo976-decaps_mean           27.0 ms         27.0 ms            8        37.0924/s
+frodo976-decaps_median         27.0 ms         27.0 ms            8        37.1045/s
+frodo976-decaps_stddev        0.045 ms        0.039 ms            8      0.0534145/s
+frodo976-decaps_cv             0.17 %          0.14 %             8            0.14%
+efrodo976-keygen_mean          14.9 ms         14.9 ms            8        66.9203/s
+efrodo976-keygen_median        14.9 ms         14.9 ms            8        66.9517/s
+efrodo976-keygen_stddev       0.032 ms        0.029 ms            8       0.130532/s
+efrodo976-keygen_cv            0.21 %          0.20 %             8            0.20%
+frodo976-keygen_mean           15.0 ms         15.0 ms            8        66.7646/s
+frodo976-keygen_median         15.0 ms         15.0 ms            8        66.7527/s
+frodo976-keygen_stddev        0.017 ms        0.015 ms            8      0.0683373/s
+frodo976-keygen_cv             0.12 %          0.10 %             8            0.10%
+efrodo1344-decaps_mean         46.5 ms         46.5 ms            8        21.5044/s
+efrodo1344-decaps_median       46.7 ms         46.7 ms            8        21.4155/s
+efrodo1344-decaps_stddev      0.325 ms        0.320 ms            8       0.148669/s
+efrodo1344-decaps_cv           0.70 %          0.69 %             8            0.69%
+frodo640-encaps_mean           9.11 ms         9.11 ms            8          109.8/s
+frodo640-encaps_median         9.10 ms         9.10 ms            8        109.843/s
+frodo640-encaps_stddev        0.018 ms        0.019 ms            8       0.224591/s
+frodo640-encaps_cv             0.20 %          0.20 %             8            0.20%
+frodo640-decaps_mean           9.12 ms         9.12 ms            8        109.708/s
+frodo640-decaps_median         9.11 ms         9.11 ms            8        109.729/s
+frodo640-decaps_stddev        0.024 ms        0.024 ms            8       0.289793/s
+frodo640-decaps_cv             0.26 %          0.26 %             8            0.26%
+frodo1344-decaps_mean          46.6 ms         46.5 ms            8        21.4839/s
+frodo1344-decaps_median        46.6 ms         46.6 ms            8        21.4654/s
+frodo1344-decaps_stddev       0.238 ms        0.231 ms            8       0.106829/s
+frodo1344-decaps_cv            0.51 %          0.50 %             8            0.50%
+frodo1344-encaps_mean          46.6 ms         46.6 ms            8        21.4683/s
+frodo1344-encaps_median        46.6 ms         46.6 ms            8        21.4592/s
+frodo1344-encaps_stddev       0.245 ms        0.248 ms            8       0.114247/s
+frodo1344-encaps_cv            0.53 %          0.53 %             8            0.53%
+frodo976-encaps_mean           27.0 ms         27.0 ms            8        37.0742/s
+frodo976-encaps_median         27.0 ms         27.0 ms            8        37.0779/s
+frodo976-encaps_stddev        0.017 ms        0.016 ms            8      0.0219159/s
+frodo976-encaps_cv             0.06 %          0.06 %             8            0.06%
+frodo1344-keygen_mean          28.4 ms         28.4 ms            8        35.1827/s
+frodo1344-keygen_median        28.4 ms         28.4 ms            8        35.1935/s
+frodo1344-keygen_stddev       0.041 ms        0.043 ms            8      0.0529067/s
+frodo1344-keygen_cv            0.14 %          0.15 %             8            0.15%
+efrodo640-decaps_mean          9.09 ms         9.09 ms            8        110.003/s
+efrodo640-decaps_median        9.09 ms         9.09 ms            8        110.058/s
+efrodo640-decaps_stddev       0.018 ms        0.018 ms            8       0.215985/s
+efrodo640-decaps_cv            0.20 %          0.20 %             8            0.20%
+efrodo1344-encaps_mean         46.6 ms         46.6 ms            8        21.4743/s
+efrodo1344-encaps_median       46.7 ms         46.7 ms            8        21.4285/s
+efrodo1344-encaps_stddev      0.239 ms        0.237 ms            8       0.109315/s
+efrodo1344-encaps_cv           0.51 %          0.51 %             8            0.51%
+```
+
+### On *ARM Cortex-A72 (i.e. Raspberry Pi 4B)* [ Compiled with Clang-17.0.2 ]
+
+```bash
+2023-11-14T21:42:05+05:30
+Running ./build/perf.out
+Run on (4 X 1800 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x4)
+  L1 Instruction 48 KiB (x4)
+  L2 Unified 1024 KiB (x1)
+Load Average: 0.62, 1.05, 0.90
+Performance counters not supported.
+------------------------------------------------------------------------------------
+Benchmark                         Time             CPU   Iterations items_per_second
+------------------------------------------------------------------------------------
+efrodo640-decaps_mean          29.0 ms         29.0 ms            8        34.4418/s
+efrodo640-decaps_median        29.0 ms         29.0 ms            8        34.4555/s
+efrodo640-decaps_stddev       0.035 ms        0.033 ms            8      0.0393049/s
+efrodo640-decaps_cv            0.12 %          0.11 %             8            0.11%
+frodo1344-decaps_mean           134 ms          134 ms            8        7.47997/s
+frodo1344-decaps_median         134 ms          134 ms            8        7.47764/s
+frodo1344-decaps_stddev       0.109 ms        0.098 ms            8       5.46918m/s
+frodo1344-decaps_cv            0.08 %          0.07 %             8            0.07%
+frodo976-keygen_mean           34.8 ms         34.8 ms            8         28.743/s
+frodo976-keygen_median         34.8 ms         34.8 ms            8        28.7421/s
+frodo976-keygen_stddev        0.019 ms        0.014 ms            8      0.0117582/s
+frodo976-keygen_cv             0.05 %          0.04 %             8            0.04%
+efrodo1344-keygen_mean         69.5 ms         69.5 ms            8        14.3815/s
+efrodo1344-keygen_median       69.5 ms         69.5 ms            8        14.3827/s
+efrodo1344-keygen_stddev      0.035 ms        0.037 ms            8       7.69036m/s
+efrodo1344-keygen_cv           0.05 %          0.05 %             8            0.05%
+frodo640-decaps_mean           29.1 ms         29.0 ms            8        34.4237/s
+frodo640-decaps_median         29.0 ms         29.0 ms            8        34.4347/s
+frodo640-decaps_stddev        0.038 ms        0.040 ms            8      0.0473325/s
+frodo640-decaps_cv             0.13 %          0.14 %             8            0.14%
+efrodo976-decaps_mean          56.0 ms         56.0 ms            8        17.8636/s
+efrodo976-decaps_median        56.0 ms         56.0 ms            8        17.8657/s
+efrodo976-decaps_stddev       0.030 ms        0.019 ms            8       6.13093m/s
+efrodo976-decaps_cv            0.05 %          0.03 %             8            0.03%
+frodo640-keygen_mean           15.5 ms         15.5 ms            8         64.358/s
+frodo640-keygen_median         15.5 ms         15.5 ms            8        64.3649/s
+frodo640-keygen_stddev        0.012 ms        0.012 ms            8      0.0502388/s
+frodo640-keygen_cv             0.08 %          0.08 %             8            0.08%
+efrodo976-keygen_mean          35.0 ms         35.0 ms            8        28.5803/s
+efrodo976-keygen_median        35.0 ms         35.0 ms            8        28.5819/s
+efrodo976-keygen_stddev       0.049 ms        0.041 ms            8       0.033305/s
+efrodo976-keygen_cv            0.14 %          0.12 %             8            0.12%
+frodo976-encaps_mean           55.8 ms         55.8 ms            8        17.9101/s
+frodo976-encaps_median         55.8 ms         55.8 ms            8          17.91/s
+frodo976-encaps_stddev        0.030 ms        0.023 ms            8       7.26259m/s
+frodo976-encaps_cv             0.05 %          0.04 %             8            0.04%
+frodo976-decaps_mean           56.1 ms         56.1 ms            8        17.8166/s
+frodo976-decaps_median         56.1 ms         56.1 ms            8        17.8201/s
+frodo976-decaps_stddev        0.050 ms        0.035 ms            8      0.0111291/s
+frodo976-decaps_cv             0.09 %          0.06 %             8            0.06%
+efrodo640-encaps_mean          29.0 ms         29.0 ms            8        34.5191/s
+efrodo640-encaps_median        29.0 ms         29.0 ms            8        34.5295/s
+efrodo640-encaps_stddev       0.050 ms        0.049 ms            8      0.0577552/s
+efrodo640-encaps_cv            0.17 %          0.17 %             8            0.17%
+efrodo1344-decaps_mean          134 ms          134 ms            8        7.48309/s
+efrodo1344-decaps_median        134 ms          134 ms            8        7.48083/s
+efrodo1344-decaps_stddev      0.185 ms        0.174 ms            8       9.75308m/s
+efrodo1344-decaps_cv           0.14 %          0.13 %             8            0.13%
+frodo1344-encaps_mean           134 ms          134 ms            8        7.47452/s
+frodo1344-encaps_median         134 ms          134 ms            8         7.4752/s
+frodo1344-encaps_stddev       0.168 ms        0.153 ms            8       8.54404m/s
+frodo1344-encaps_cv            0.13 %          0.11 %             8            0.11%
+efrodo1344-encaps_mean          134 ms          134 ms            8        7.47717/s
+efrodo1344-encaps_median        134 ms          134 ms            8        7.47543/s
+efrodo1344-encaps_stddev      0.187 ms        0.182 ms            8      0.0101732/s
+efrodo1344-encaps_cv           0.14 %          0.14 %             8            0.14%
+efrodo976-encaps_mean          55.8 ms         55.8 ms            8        17.9132/s
+efrodo976-encaps_median        55.8 ms         55.8 ms            8        17.9164/s
+efrodo976-encaps_stddev       0.037 ms        0.027 ms            8       8.67024m/s
+efrodo976-encaps_cv            0.07 %          0.05 %             8            0.05%
+efrodo640-keygen_mean          15.6 ms         15.6 ms            8        64.3067/s
+efrodo640-keygen_median        15.6 ms         15.5 ms            8        64.3165/s
+efrodo640-keygen_stddev       0.016 ms        0.014 ms            8      0.0569655/s
+efrodo640-keygen_cv            0.10 %          0.09 %             8            0.09%
+frodo1344-keygen_mean          69.9 ms         69.9 ms            8        14.3035/s
+frodo1344-keygen_median        70.0 ms         70.0 ms            8        14.2941/s
+frodo1344-keygen_stddev       0.114 ms        0.112 ms            8       0.023011/s
+frodo1344-keygen_cv            0.16 %          0.16 %             8            0.16%
+frodo640-encaps_mean           29.1 ms         29.1 ms            8        34.4028/s
+frodo640-encaps_median         29.0 ms         29.0 ms            8        34.5066/s
+frodo640-encaps_stddev        0.200 ms        0.198 ms            8       0.232564/s
+frodo640-encaps_cv             0.69 %          0.68 %             8            0.68%
 ```
 
 ## Usage
@@ -675,7 +574,8 @@ main()
 - A 16 -bytes key `μ`
 - And a 32 -bytes `salt`
 
-> **Note** In case you're trying to use eFrodoKEM-{640, 976, 1344} API, you'll notice that it doesn't take a salt as input during key encapsulation. That is only required if you're using FrodoKEM in static settings, not in ephemeral one.
+> **Note** 
+In case you're trying to use eFrodoKEM-{640, 976, 1344} API, you'll notice that it doesn't take a salt as input during key encapsulation. That is only required if you're using FrodoKEM in static settings, not in ephemeral one.
 
 ```cpp
 int
@@ -737,7 +637,7 @@ main()
 I keep example programs demonstrating usage of {e}FrodoKEM-640 API in `./examples` directory. You may go through it for better understanding of Frodo KEM API.
 
 ```bash
-$ g++ -std=c++20 -O3 -march=native -mtune=native -Wall -I include -I sha3/include -I subtle/include examples/efrodo640_kem.cpp && ./a.out
+$ g++ -std=c++20 -O3 -march=native -Wall -I include -I sha3/include -I subtle/include examples/efrodo640_kem.cpp && ./a.out
 
 eFrodo-640 KEM
 
@@ -746,7 +646,7 @@ Secret Key    : feb7b9abb3eec52b1c089eb3a891cd651204c4bda4f262644028a56d28451707
 Cipher Text   : f32fed51a319a743796c04e96c6d31ed8e850b2e14ee842af6713d9153948377730e6db9c9611ac42876a9e11a2954735879aaafcb6da088d8b0544bbc1d76dfe9d3154ce0ee6f64e1579d48001f3d5c7046e09e6f3f2cecb12f462c5759729985388b23c9736de6ef917c9187ca7a4cb17f2e419eb120d71ebd46e6a7a536d27d532e5e97c60e7196bd9f3da725ebdbdd8ec5d3e31ebbf6af6ad192b86a812a7da0d40be44eeb91fb684a5131afcbd8ca5763f9ebce3c97c08d629377e6e62263e6cf0f4016a8db0fc6818eb25f4942bb64addf24f0b2bad497f811cf4a8c7de0658f36e484a66cac704a0fc8e7422e74da5cb9b3109910241eaae20945c2a3f54d7e750e0694bcf1b0d2e92f1f18e0a6562ef9525787f9d484630a3585ac3607c05c9461f347be1e71107ccaf7df2cb4180f625c6b964b54343383ad8dd7b8de8e8288fa370912dafdfe2304dcb46d69f40d31a162f788ebc29b62665fb395909e91546ebd7827d45d91a9e2a71e0eadd674fc7c5880650239a3a8956ac3a8bc4c7679c99a3d5011ec118761f38253bff20693fef93ea6ce1c439d399a9858dad1313e11fb72725c1493b48cc4c0ebeb5fcf371026b723f0c4fe6828b7cc72f34e114b2098369712b13d8e2f5b2d80b1d165cbf6c764755b707c82a7a3c7fe1271b68fd0d32ec9671477040451da2b66e0b8e9e3c552775a15d61a03541d34a77572e49de60ad8777e4e4a3c8120465847842a6d226bc7679fdbdf5ad22f928cd67a369cad3b4c989d0718344cee52bc6a15ab06e2d1dcc63e0386e97ca481adfe7f4a94991c1dc215d27e58a9e35c980156256f6b42d55b2a653cd30f8386622f757d9eab490081fc96f26e88c558f7b5521e6b2a738d148118aca98e2c012d5b08a1c35359565e86817d8c86347dc6ca8daa91da4c6a24a707d7de20671d98522b52ee8a0d981a757a8b5370040fb4a9083fd395476307d1dab9d9de0ba75d48fc0e94420d0df9849e531459f4abe7f3d2b8f9c2cf3eddd5c5e03afb2b7608bc8a5d8d0e3cffe2a468b9253737caef77482b8bd25e3f4bcd2b32705badb78ef82e2cbccee3d70295fcab116683a71980f897bd5e8534e48c155c2e69a68973308eed84a3140ebf968092418672fb5b261bb829686d125ddd475f36666d50470e5d77a9d531d871a3e58758a2afbc61e1dd15558219e8fa8112e8628c1c9e10fbd7a5859caecf1a56d6feb0159ce88995e4d0522dac84f698679052c21176f14b4c9e6279287241ea18e5bb68618f2c9480b5a9c315d2249d0590dc811902023571dc9e77c4239bbdd5fd130f040b2a4c331e74450daee7c6d8563690776b0f53d07bca0963fdc9e7d303a3addacda8697e5dd020adbade57b6ea015c67db5e9ab7e56a5139de4e64b9cadd88b0a1741a6a998f27a1bf278a4b727e7205de3898c49baa9310f9f0cbc52ef9501b41c1d61a39a4a6f9b453ac73235392cbd86c46c429f58d32b3899c9fba9445253e655a9ddfa6dab5355499fae40e91df5576f062fa1db885441e1ef425077f88f5fd7599a4a0d00abb1c083d533a043907d70d8b68754a984957c31a40cf09b3f465f66f55b9125b4f1ed6c4b9314dd18f57e37607126e87f13894c68a92091f81cd7e5f73f295355a409da9629712fc614c07046393136aa9dac55526f6dd81caee27786bbb06307b2b61dcfab8d3b3342d7b555e867be2262a306e810e295669d6fd0b51ac67de9be1cc61ccfaa1f59fdbd95db8776d2484d9744639703205fdd0a3b88701d4f8bf2035841ca94a0649218ec99e42ba6a4901de3b1b8a8eec3db97017ddad89dedb832ccad3c2afb78d01f727ceaec005e85ba411ffee950d497a712555a854c396801c1455c79d6ca63ed1a69874f661c1dbd01bfed15195f80dc9a788bd9451b12fb99579ed46b299e7a300ad59533608812201adcfa18d08137dfff9de5df5307ccd69138f27b92b00c45200784f8d93237b9f5da67c1bada8da0d95be1144981fe2c847b6ec4b7d0994bba8c4b8b619650b1e7b5715c5675607eccf11737b22a4d4371fbedcb6f0f75d72af5000e8fbf61f564f7b64d323892312cb54098d63ab08e6c1afe24b7821f5b43fea78eb18349cd5bf2787fe9bcf8b9de5d2f0fc3d2612d95786849da30798d2eec73bd08bee400c05a8b0ac4f8708b9bb03df06934cd9f64e15fa269d866fa0bb58687d97def0ecad04676fdce295cd164a0073b27f6a4e036f41b70823f8fe4aca44a54c7fb5c1fe76da4a90c8cd3ff37f1d2fe032445843735d2c22749cb147942a3ba809e5ad5e806693c909e17270de8baeec1f2bd145e81671be8f6bfb1fb6a224a991955b9812d6eb204d05b77d7d1a5982d63024f0c1de0bd0e7cb9e75deb4ade8573e3d27966386efba90a26405ac9cbc903185bcda77eea35144acac1e1a96a35ff079d4235672ad4230d138c49f8513bd1758373024cfafbc62969e08f2e8c04588cf13f80a1acb379f9947613f9b2a91db0723c6de7413aaedf5ad3ea13323b27d924a656a8dd332dd9832d7861b1330bd9e77fe7e347e8aea5acacf2492e12e4267c5bffe18ae28e0b7571782b7e09c1a5437afb6c3942bca042b7a3656ef6f7991840e264958c3665545bd825141738c0072b40a240392b482ba595bc7e09ca3b4b9acc2437b8d6d0cb8be8c451bcfe11a0c6d78de6fd9e8498d780a457f3792263452aef1c9c4cf93cac25d0a12f1462bb0b4d9d3cd52df4ba4d847280a96bd0045bc1ac4d6e429a2473afe0cf6d3adc43a572b9f0283d165cbe6120e59b1db3a04d72548f9e06dc6ff50801a51de2fdf1668233c1625f7db1eaaea2369a49f261d6efc5640854cac8c596f02729381f40824de745a54bdcc5ba2850872d9567a2e5b4073e6647a1590ed7796be3881cf2b4ad8e3b2ac6ee992b89fcb2a19fdc5642a5db44443b6a988003f7380d3cffae1e1cd3359a2e291dfe5f02155fe68e4a74ba85aae0d7a57dcaf23916a7897aeccaae989135639aa2508c10f7b5f172ece207a2ef500a4e8bfef545287a5a74941869f43a00775b3b43c59a2d9be721cf0201b8131690ed0aebbf8a599dfdefe0f066b8142ac76dc693d931c903422489a754e099aeac2d7495664fa511a84f1011e303fac6aaef2d05fb326cd1cff90097d3195d6a0f639e0420ef34c0245a055938b5f7f4d43f49d1100f303ee84fe3fbc315e6081b46c78798bdc12717629f61bf0cf8fbb1afd1677c6fc438688e89f9a3018e285a61bed891df57334d5ff5283819f90fddae592ea32675ec7d8ce04c2dadab974d5948faac88f3bb094d5ad16d11398979fef933ef7fa6a0e01acc851a73cbb4d62cca3d08966ed0d9d04ed6ab5b4dbf17ddb53bdc474f68e992950f8e3938d2d9b3d34fd1ba4df4cfaedd742000b37b1396d57906d4bae4197568e571d21836baf644c3f942b943cd51f544f32a3ad3b6f5a9764630ba0d3153352dc31439b64bcdfb4c8a625631e5965f1efd0b756632a4aee5fd8f1e4befa5e7ae735600b0cd21cfe5e6060ce18f82bb560d13d8fb862113f9ae75ae7e6b2c7a5d13b0a72b5889ba0743faf0b1fb6701644998e7ba9e30ef0483797adbcfba6214c3ba9ced59b19acd1b2ab8cc38d12a85cb75df23707803ce017b2b47ea43fcbb367a3ae1f40611274ebf8b1f405b5d12963997c36731cdd1bbdd5a192d07db04eb75579405627563edded896dae5ec618fd4a9a658b8c68c5109f64a101f4a61da8c23201e9671094210b5ce64432da7817ec900e753f746ad288243b1fa7b537922076c99818e52a9abff5ef6e209c3aa61b7110d58fbd5b13efdcd59704ed90df948138d3ecf536f76784646429e58f02f0249559b1762471c894754b3063a5d45a81c3cbf53795b4290d8d2a636a3acdebe12ecc158288ca2ec0413bccd18a3d3bf983ac56d73d1084601522a31a2061e6886560a4e83e1a161f830335ab4cfde8191b54e5addb8e85bce41c40ef98dcdc0835401667c3bf7fd1d8f141c0b8e4e45ebed149ee4c6658cda609347de70e9ea5a40e989f3e59ef5b7ddb60aa6d7fa23ce8f2b137cecec14d1c152e7103f89971a779e120ca83ae73fa7ec59a6327fa35e7b89efe8ad24495427bda4a7965e24c3911d8116c35fdb922cc3bc43f02e1668aa397e7b41a75c9be7dc211b33392a51b1a4050fba61261c12c65a2513f5a34c6076e237236f554440c1640da2354ab8a07c86ed0d3e7e1326711a48795f3d64f3f2ae808c0d4a5815c0fc4df7c237b371314d5883675a330fadbfa68f43d64901635e3fa38ca329a1f6499b4ab394e2d1696614ff8567bbe7e2f317897cf4017d54d2c22eab6834094ed094477df0fa758952117af408e04f4ec01fab7f15e5994518ed37d1de231f0666c32e46342751780386cb86aaa47889265529a16c86e779dfb3c0d227a4340cda3e70104112aa854dd5bd5fc9d3089b91f18ce7b738b8f52dcd221d124052e62934895220b059bec6634346dacce48b936feeeebda9805315381096986da7e950e2f762de8068865db898d23b3d1a270c2101194510596aa2f999e3ed7a707735ac2323455d85ea06427a8e82be66f86ac2308abfcc910f4f0285fbeac3045436a43d8a5a126f436c9398b5f104ed95d143d6d57fcb8d3f6c8a311d9c90da08c61c5aba6022ff733b7c643b72f4d96bbf6742d459ebb12a12c4b425c79616fff4cf5e94db07e199342bb3786acf74e4c39005da58aa23b45af874fbb0245a16be1ba2d717239152069ea56c88f5d6f546ba7e091f130092cac118e1e84e3da2b836d3ab1fe6407be89710cead78853d1cff48347090a44ac1cd0d04a8352425417735b3b64dfab6dbb52a746b9cda95bf566169d31d7f8d0c72cc71ebb90bdc4e062c33de89301669a2751bf2c185334afc5e11483391d29e32065b691c8f60e1c22e588590484038036302576be9a995c510488acfe6aabb2afc38bb8c353d3d56948220fb14240ccb8193e93dccc002ac167232caacaa1241f4cccd207bd4c894cf010f60a6d90f1dde45d3f36071344c4e31d52e3d16b237dacc780be623b327a987cba722a57ff29c21a3bb845ca2380fd211fc96b7687c5e1a06262cc59f0a5e9578fb2cce47368e8c9b4b5f3858e42ebe28c0d89f394764225fa9b7c8b525f4125f55d465e559c4eb0ae52054ce0ee8f91f47da5377e2f3787a3d505e5b5829f9a8e64e2debd69b4a7e6cb16f474b96ef1994137c65942ca353dee861011e984a070a92077e7a6a0b919a95ce2609172a7b0e61636e25eb8ed5717789c1e3f6f7915edaa7e859b991eb2985cb4ce0b5f2d25eea1fc3870b0ac433b83c6f57ab5f421cb69b05b010cd2ac2707ab3ba5b31086a6d4aa62af6105d773cf424a7e271173af2ec73397f474abcb96b613ae0845491bf2d58605a94cdce45d2b312a68f00b7bd2d0da7eeaecd54713b5d093c461ed4f14ce91608979d37e058ec477025856321a451cf3ce4d88fa9bafc17edcf2ae480bf72f5170e680322eed600e663bab3f0145d70543d85b64d803df0e5f2a4f1b15c466e5519d106b7543d6f53bf4a2a199d7a083a5e13710f8d8c4485240e891aead9891f093fedaea0d1f7c003aec1426471168d80262bc2fcb645c2f42f45b7d36486ead0719a6c6464493b1fedbbc1f7721a84c49941dbeb8005e507ea7cdbb721280522a5a84c627a21cff3b8a788695ffd232113c2e42b5a8afbb53f8ff893cee064e2d0949d362d7d3d62dbe5ccf0c436e220b13034ca25d37c8553a2c01120aacb1989aaf6baddf49db6e5c27676d79d780477f399abeeb008c45f8a8deb6780c32e2d0fc18eb7868b16eee1d3a9f9065b1eba1fa500e174190395c38b66130c739732ba7c7431563db6ddbe0ba6f68e79164f49a07cf9133f5f761b6d4b7efc0b71e95934cd45763b5470d936c9ae638ffc5fe21d6536fbfc7a11a8930058042fce531cd493b4d44309eb4a68b0fdeaadf380d2a75acda1d83b8c2ff316e96d2cb907eb951f3a7805572a25628a787076033385f7f53291c78484ce61329398107d94daa8c8224581e90413faeb332bab1b6ec0b71796a079a6678cfecbce29b6eac9327e05ac60f35d4e7c9f3948b49e6c37f355ba88667ecee3fe5eb2737b345791a0957c8e13df7987a6d174bdb16519e400f8429a4f102eeecbf4df52e7aa5e30c50c7432c868c766ca91641b3aeacbe02720854dbe761a4e72e34adaf78016f6affdc14058ce5fe0ce10ee9a8e962672550f12f33cfa951e0a495ff204e54c2cad687ac20a06e75426df3a7f165bdd619b88207c82fd36ed559e8f12fee9aa2a039a215e0c6231bbe2e3b5147a30156b9efd32d2b69e9e50497dad9de6c1cb466540d072503729c631ad5730087bb10c52820174e165c6a95ed17af693503ce6af5df37f1553203bf23faf84390d18fe82d05aacc14585e92fdabc3f67047c8fa8d9d4bf62374f7acd4c5a5ee0df844d304dbee8aff192ebf63735162eb9ef208a66598e1293467fa15e797b48a5e5dd25c01f8876f12df366c61c2a7c6957e983d05834eed94456907339c06b48a7d6c5f30d4d0cbfc29971980c9ce85957ca5f82a752ff7534480c35ec19500568cc1f06e3d745395e78e0d79e304e763bb7025749bcd2d4c73aa7e6e1e27704454387058edd1706d6d7a0f4010c7a4e11f40a3ca764c2468252e2160a121f82974dfefdcbcf666b49e950ff595b996e23fc05fca2d8f14d334e9f62677e4030a71c86c5bffd442b52f840b5ea655e9719096d5f4eaa766cc2439c2a2ee87c0e6629bfd03854070f7cbc2def7cbfb8b0e15b1ecd15354da7baa361c24cac3c1fc2824ee816178964966574ca46d35d7989d4981ee2c8ce946c0859bdeddaa1dc28d7aba622b33a3e5eee99710abb65b10affcf83019348aad2e8327785d0aabb638ee4ebca16348021c7cffa2c0db2d602dae98f98b62393c1559712810d13b26d7ccf9a8fcd26be2858fc6aa49f812ab2646384b9a6279803c8e5085ccfe09cf74fd0b6b185cc29f8a1c80d45b45be482207a35c7f13281bba5c27509935e06bbb6cbb7a643010e44f9bf05fde3c9c8388c8e5dfe9661df136c96679a2861ac6fec65e7c017278f03846327749b03cfb407c1dfb90c2df847d5813582abcd643ef6a06e325721d3f2e432f12bada10455612d2c8f64fa03ee5be6096d502cb95aa960a4921e67432107465b3cfb91e7034689626bd8e553f9742a01970a9b5dc7ddbc7085a3f694dfe4ec326c71e126bfff8f372bb39c6707b816c45633f254cd170ee7501d9ec78d512386d1bfbacd47455576ee867a37c5f24dc483d36b55ca262f384567a18e41e55acc4983e6140d3204b48f5768e2f04f11131d1d6f7c7fffa20d66b3e3520bdc340758df412742d6e45a5e35896ae494f1d62b5158e4e35e60db824c271ce733bbb0a3d12a622c7db1bd1e5256f886af45a2a7dfb3a90e1a1babea76ab8576befb2fa60bd93d0cd42ecebc4698fa4a434cbfa1dbb5199a0b832f79082876f03e089ed9d43fc6ed9a8a7d705b21fc3203731760a9f288b6eab9b3a0a89bfa369be8d22c01b68f6976f3b62fec2ff581d2caa970ca63ecb7020bf6b8d32a04a8ba4eac0174ab011d497a03c74f2e7a9e91914d648ae4fcc7d0772efb483f5aa197fdd6b884fee00678d43f0e7c1e657bf4088a13fab156ad76aefa42a1a47f716c41e4698b4d99a82e2abdd4b2981e1b0a09050cf5031049884d25e26f1748b66123fd24a24bab34b9b8345f6153c09bd80f2d2fde44d9bd9d1d10120b718cb000f0dba73ae1823798ce9311ef2942b3f53120615143c2fa08e9219bd7231a486ae7b0a697a0379a5464ab735fb8a08623408f556ed9989e003fc28d8ed879bd4f83d78b62a84f06d2bb390e144034e6cde2ba9d606338fbb0f42e1f67dce38242c819ed678f3a9bbebfbc33b033e885c24d6c43395b403e51a83ce2c63e3b6473639b8c5ec759e3e5a7ae7f201c7f873ea5239d66803851df6f5acfe7735905fcecc3d70ce01deb98eea07d18fc4b7498d00ca8cceb99b085619cfa4bec0323ac5d4d1b415a93fa7d6882d202c3c862ddd6140f783b7729dd78f130bc3976b053c655e5401c75af2a01bb9e683ea9e8baa0c24a71ec67a9846b65ab381fba7eba8875bd981782e0ec98578301b98d54e031024da1dab409be13765e09bc62060fd5dd36131f4c35d98a766e6245a7320da5671850b36fe3b4d95643a99da83820f3c4b5a864c1eab76f260c5b9836276f1405f9ae6095f1ab15bbb66598551c355d3b0cb9a9b84e64dd00abacfb93b9197b95cc2bfc7ec9c579c338e01533bf7a1a01c7164772430ae2405b8c08cd4e227bbce8fd372a1ef146b3391b700b3b1a0bda6dd96f6e453f24d46bb2288ea47f2e493f3144cb0bd886a7ac46a24f4320dc896a9e4762dd604d0eae11a479156b5c98a5f97fa55c2abd684f91af5648d7426dea3b085c7de6cd0f10079a63cc11a4484223fc1aadb4e46695ddc82997a692bf8857a3f6de5ee923c699992ebb1976b689b9463ef49f7a1abd5df87e1ece5d1e762d05d78edf2311929eb1f018497426d7d8eaa8a361c63f03edb1cbb115376686ec7d939f68f2e9c9facddb9f172b0887151aac834096767538f77aac38774a985e278e8e303d4848cd65f1cc56f664c6aad8372107374fb6641ed108d26d8f31f7220bca62ed8176f36afb101d7bf13bdeba00c53cd6472e2c6aa0a6cc91d51b6f5fe1144c86e74c3e5594b68dbd7f49979cc3db5251423e6cbc8933980de4351708b318f2b345a7f73d9e3f95c74c66128598c480e8c9454e8ad18e007f6a5f0108fceced8b65aad9fa21c7f8db643686082f7f44b6cf947d602bc3ddcdf30134663fa6ff86c30252d8915a4431a264445ee3aa87513c5cd9111d7bd43c6e9e6eb65497bee47cd867e022eb6e0b2e4f4f34164b3388e4a1801cad586ea6c3a335a0cb102a3741bc182d86fcec16c01825231e0c1e0d1582ef5586c7b27e088bbd97e34ad5a1015385629cfb998e016c199c3007ea47709f1207ff61ec6d6fc04d59e43277f4257dbff246168d7f3750824b0558ecab722280e11e34386ad72767b05ae71eb7b6ebd07293f4b29a26898e975af80d631dee1ae557747fb8a917feb28f465c4f15fc2cf8074673640f1dd66fc8065c8687fb1a2813ca29a0bcc9e1cd8fe49d674828688222574878b2244e53cd58e0c4e4e9e04635b7c9e7ae3e14627676a353d6ce7b44604aa99c9950b9eaa51cc742114341281bd488e8e43ee2cd1d161f7c662b253349b56931a1cfef36a3b3659ad813cbd5acfb9575aeda13de89c7a3f5ec08efbf0db6a67d0d2ace9109852248606c4cc912709a1696e96bc3be762c4f364fd55a60ba7293ba01cd89f5f927c4d4e8b36237d871489c20179bdd4d8b460a552c1b0647f145288fe05e5625127e7a5a559e224f16e4ed7007b55121aa065c0860ca4158ca6cb7aff77ca9f926d389cc2e5c7bfa306efd50025004644b870d013055fb479e7352f0d66571060b850bd7ece444f04ec61a64f0afa7985888e72b23b25dfe4f3343411d9012953f22f2d468513c9f45b6b46f22578c60ac29978d714b28520476d8d73dfe972e4b087a954551cd0306831b1996b16a963c2c79d56e9e302b79f4a06622aac9feba16e5bd6eacaac217726fe2773f632caa899f75f8a8ce8ec26750a6820c154842bb43956a72b504ae722b1b033a182c4a74d6163d55f67278634574d302448863e801b00fdd1df466138b7275ac577d568b4581031d0800b42d61cdc4159ce5b772b5faf182a51263cbe6473ed2fa3a58acf71f84fcb1826423545eee78c09dc5abcadeb6c02073c6148f64ab9743fc4c7279af1a7711521ffd090a0ce7166fe4cf97bc99c9addef22f3c850ac0fa38bff047f802af8d5a69593b189ce08722b15a08a9f4ca7e7de0b349d603e6c89d4e30db60210374d4784b3dbdcbc37d1b62ba34dbdd0ee7dd4e6299dfffbb17da1ff0a717246c25524cb5dd298d2ba4f1841f661e095a4af19a490fd3d946d7ef3f7b0a26a4215d62267dd008aa14001e31fb2644cc315017e6f765cde9c7d35d2482fef8c78072a3662ba07d71f9bcd92a37c71290ff0d17d92147077801b1e50a20801fc2df5fa1b6e132e93ab01b73bc0e9e313808c8d55b05bf9631de89de86034c754ca224b16083afa21d256c9a5b8f349b830059ae6b6444d668fdf94b5bd799a1fa32fd4b7de16dca3bdafa8dbd13f8da3bcf6f56db35a646d0c167fac4369320a9e4302d9c2ac5611c1581785f93e30beec433d60c436e8e96699261496cebe13506a00df762501511e61e1f53e4e734282fe83a194ffe6c263e477f439028165298824b0b405c2cb4b105f0103c6fea47796f507e28a5c5431e1c40ab02052b34fd5d77a16bd33c0fc86a6ee93c6868f01f535e719fe8f2faaa820b642464e7c39a1186b3652cde90878836478ca767b22d703909ca6390c1f746126cbf3dab721b7f48974f21c3add3f19bfc6c4393c84d9163953d31975c02bc9a5dc4720371d7893fdb1d936e5780421cfbe69fc7abc86e3990c372b86241c289025a2d4a1fb08f20910689a2fb72ed3c23b4a81d44d55af54095f9b4d6a644435e4910074f091586afb01c9cc02e9dc80ff85b81db9a8306c5e7eccca517214e818b0e843a58f39e305a7aad50c40bbccdfb61d83002ea9af0afbb7c943459d69eb2c425d0280eda4921c4ab61f90f4f290a346ca8f15863e661d4a5d33f013054b0746c7422e2c8da98ce963b63c01e0db5f7382817800451a7663ef5e1e92a8a4dfcb16d8895c3b9f8a65768ac978f71246b69acd0221ed64da59ed6ec391776d2c1202ba5d01528b609d8307c37d1d85201a6326d94ebe90a760bccf99a27c0d74f8e62080fa5b1fa02c164f5d3d25f6147317a52d71f81d108e4d3491c8c0497290a33ec43a5ee20798a085eb48b9f0a69c281796c1bb7910f9dda736736996e10114d19f63e6ebc9dafbd57e8aaa71bac0103683faa049983e7146187f48c5afbf3b409753bac902d4c0f9c851c0702d4156e49aa26485518bbda0b9677f34171f6f0567165c9927dac656500649ad01f5beb200933038106098544042de442c82cca6e9f9dc12144f93eb09fb44a731d27860c0433cbcb100861a99f4ac46d27502aca3e260aefefc267b9c2d640268c0cd7b693eca17e5fe8fba9e8a3c87c229f9fbfb73e6f043e65ce82ba6ae040f06275e6a164e7b96c3d3942671e1b9869ca1e34318210f3a8b4c964e7de4aecc8b466c5c7f4f0ac353b82cf6474354e3c9bd47049ce6d8c9d3501f4802c9112fe38d0ae95e4025ada9cd5e83b0a6f51b71c900af4e94aafd562e6b35d286a02321cd8b6af55965eea32f1e2dfaadfc9bc0e313fae7c9a6c8c200c5cdbc8d9b3bdaff63a3d7434fe1b8aea898fb979c67d3a61ae4f525b483c9906d30e35885d135c13f84979e365764a1c3908d9b75a8701b96e52747dcf6783845b0349130ee60ddf28575a7272f682b07b0248390d9a402a8aeb670b90b2e95cb6907ae3f06dd475c9c2e04a2cc4c94b83fe2b0f4a51f51bb62ab70ca1298ccce4ea16e3541dd98bbdc321aa2100083532771bfc7d20277532665cf6c364abe50ad24770e0eb76c5f7fdf8941e15d7789ae52012dfe29abfbfc5f8bfbe4c319fd67bad55cb930a9e1e5461add8f492743a0025d4129731b26205c11da65115b1dae1fdfad636acc1e7608986c4817d759c0adc1db1407d27505cd8cab84e113ccac6dc372ae4f7e59e1a013376f8516467d43bbbc775ec4f0b2a9334aa9af0a7d63dadf7e3e221a4251a7475ae9f89c119236bac365bd475005f9bc88aa193a94883932fb31e69b7e6076a7f3e45bdad18df52a34a88fa3dab7aaeae2af231362fe9071a44ee26c7c897de4c9b054a70735f8af8857c0e2169a042c6960cef5399f9272e25b2b2f63c12924bb1ff6fe30ab97fb128f0cce3415f8d2f5a3f31584603fb13289f22b065257b1329e82e29723be372d655363d49eafd19fdbbe368c971ef126033760cde1777e33e2ba31c71b649b2eaff6b0aaecf21868a36d1add8f723d5110dac68147891d604ead92f044b1eb300e9478e42b67ce624c655e516bcada747c27aa6f78c3336ba15295e7e5436784827a6e28e87f05c986d3b9cf247f2253b841f40845924b1d8447b28e1a837c29dd081ee784bffccb1eccdad1d9d95b18321de619eeec398587fd2b499834b8e6910d2f9e1ca40a025fc41124faac0f36d56bde181cbc06c395574cf7a6f4cd00a573d76c6675dc26516d373de409d0807c7fee0e122094dd51717f0bd98e714f2e2485a23f17b534970826e0f3debbbf5612ffe0fb759a78501faf2900d7e49c9bb684b3ca0e0a7e0767bd6785f575000b682c1212db6e999b1c16c42ed0cf8aaec6d94fc930ea41a3add5fcec475474880ae6eafd37d2642dced1d68976cd0ddb56411cdf7800dd02215e55f5cb2420ab1076bbbe69380ffbb7f78c73ee7dc081cd54830d15b205c84283e3afd32b792c40ac0a564d426443687b704723bfbda2cbe3732a1c9304265ecf89e6de6aa42f8b0db5b250aceb91fa8fa1a826f1112670452fc06a83a1cdcd2405d77d6f60fb7ee0e264d3f8f78a56847f06d42ee341ee2552ccee9b7cf062b5a979e493eb91305b070a4d673c65858b91c4638890967cc88e0aa11cd19869bbb1d80e82ce68c3b1ed75962e6eb75e4bcf58558b82131ae20b4f81d87cddc47e7742b2f8edb8b2042d510b8f29d7b8f964c03c36e1f81744ce3c00781a46ae707061b798f1153a32e5fb1a23d84fa80c16cf8fb37d3fe6f94c120776ac0f17bafec03af3ae2d1f159eae5b775182404925a8902e7d2fb88e1257f283b6877cad9ae961f843e9137c145dc0de99ad3666e557824f42aa9905b0be240adf3db8d5f18b955c90f9d2f1fe09003fcb8058839333848ba4f89e7effa7a7bf6d81c56923a4772685263f2724d5844ec9c053682e32bb572b7b32ee9b225e26d9399860baa908397bac325652e68593efe380d3734b1013486ddea1ff57ddafb6ba6b83050d744fb956634a382d261f7dce96a8af88b834cb636e7894b39adb5b6bf8ff763203dbd7453908001ac087e2fcf3f59fe1d1d0fe4bf37a062ae55549bc9a64b6c937acc4c49c22b79061effc73685bfe07401fb10f34d278e29ed46622e6cbf019e153d57e94530327d13b0988db1150502c167bb17dee56b74480d8bacd883b30d71f2a0412a5abf84abbc232e43bf66d09299c24b0aebffc41b2f66bcd18acd008ad30fc5156143eebdbb3d74196c1ff59559981005a603190b7a644a93112b5b0afb6ac22044174d65eedf7202d194d1c93da8771f5843d3f011af8a9d843637578bd42c791be9a608db32255eb953205970e430b2af06520fd10226184190dc27cfa253dd46483103eaecbada9820f4c529629d2cc676cc0a0f5945e363c268e144470424004839f1550133e5e87756ec0b51857248403186eed07d9711446b12e7b37b242eda49a2ad9a9a6e05e8a4395823cf958f0692df1cdf3c970a8b8e093a3836992bf3da6d91e0103f68648341ba05baf88b13fb6b55433dd1af5294d2fb1fb7318f3eadfad789e28ca3440c71bc1
 Shared Secret : 6b7b3392ed112be7392ef7f456d365f1
 
-$ g++ -std=c++20 -O3 -march=native -mtune=native -Wall -I include -I sha3/include -I subtle/include examples/frodo640_kem.cpp && ./a.out
+$ g++ -std=c++20 -O3 -march=native -Wall -I include -I sha3/include -I subtle/include examples/frodo640_kem.cpp && ./a.out
 
 Frodo-640 KEM
 
@@ -756,4 +656,8 @@ Cipher Text   : 408d099ab76c11ea31aae22ef1634eecb2674ac93312b337587ffe0d4500ffb6
 Shared Secret : ebad3b0a0a8b82188a75d3a415b405b
 ```
 
-> **Note** Looking at API documentation, in header files, can give you good idea of how to use FrodoKEM API. Note, this library doesn't expose any raw pointer based interface, rather everything is wrapped under statically defined `std::span` - which one can easily create from `std::{array, vector}`. I opt for using statically defined `std::span` based function interfaces because we always know, at compile-time, how many bytes the seeds/ keys/ cipher-texts/ shared-secrets are, for various different Frodo parameters. This gives much better type safety and compile-time error reporting.
+> **Warning**
+Before you consider using Psuedo Random Number Generator which comes with this library implementation, I *strongly* advice you to go through [include/prng.hpp](./include/prng.hpp).
+
+> **Note**
+Looking at API documentation, in header files, can give you good idea of how to use FrodoKEM API. Note, this library doesn't expose any raw pointer based interface, rather everything is wrapped under statically defined `std::span` - which one can easily create from `std::{array, vector}`. I opt for using statically defined `std::span` based function interfaces because we always know, at compile-time, how many bytes the seeds/ keys/ cipher-texts/ shared-secrets are, for various different Frodo parameters. This gives much better type safety and compile-time error reporting.
