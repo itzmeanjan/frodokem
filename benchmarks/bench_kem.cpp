@@ -1,16 +1,13 @@
+#include "bench_helper.hpp"
 #include "efrodo1344_kem.hpp"
 #include "efrodo640_kem.hpp"
 #include "efrodo976_kem.hpp"
 #include "frodo1344_kem.hpp"
 #include "frodo640_kem.hpp"
 #include "frodo976_kem.hpp"
-#include "kem.hpp"
 #include "prng.hpp"
-#include <algorithm>
 #include <benchmark/benchmark.h>
 #include <cassert>
-#include <span>
-#include <vector>
 
 namespace utils = frodo_utils;
 
@@ -210,7 +207,9 @@ BENCHMARK(keygen<frodo640_kem::n,
                  frodo640_kem::len_A,
                  frodo640_kem::B,
                  frodo640_kem::D>)
-  ->Name("frodo640-keygen");
+  ->Name("frodo640-keygen")
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max);
 BENCHMARK(encaps<frodo640_kem::n,
                  frodo640_kem::n̄,
                  frodo640_kem::len_sec,
@@ -219,7 +218,9 @@ BENCHMARK(encaps<frodo640_kem::n,
                  frodo640_kem::len_salt,
                  frodo640_kem::B,
                  frodo640_kem::D>)
-  ->Name("frodo640-encaps");
+  ->Name("frodo640-encaps")
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max);
 BENCHMARK(decaps<frodo640_kem::n,
                  frodo640_kem::n̄,
                  frodo640_kem::len_sec,
@@ -228,7 +229,9 @@ BENCHMARK(decaps<frodo640_kem::n,
                  frodo640_kem::len_salt,
                  frodo640_kem::B,
                  frodo640_kem::D>)
-  ->Name("frodo640-decaps");
+  ->Name("frodo640-decaps")
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max);
 
 BENCHMARK(keygen<frodo976_kem::n,
                  frodo976_kem::n̄,
@@ -237,7 +240,9 @@ BENCHMARK(keygen<frodo976_kem::n,
                  frodo976_kem::len_A,
                  frodo976_kem::B,
                  frodo976_kem::D>)
-  ->Name("frodo976-keygen");
+  ->Name("frodo976-keygen")
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max);
 BENCHMARK(encaps<frodo976_kem::n,
                  frodo976_kem::n̄,
                  frodo976_kem::len_sec,
@@ -246,7 +251,9 @@ BENCHMARK(encaps<frodo976_kem::n,
                  frodo976_kem::len_salt,
                  frodo976_kem::B,
                  frodo976_kem::D>)
-  ->Name("frodo976-encaps");
+  ->Name("frodo976-encaps")
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max);
 BENCHMARK(decaps<frodo976_kem::n,
                  frodo976_kem::n̄,
                  frodo976_kem::len_sec,
@@ -255,7 +262,9 @@ BENCHMARK(decaps<frodo976_kem::n,
                  frodo976_kem::len_salt,
                  frodo976_kem::B,
                  frodo976_kem::D>)
-  ->Name("frodo976-decaps");
+  ->Name("frodo976-decaps")
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max);
 
 BENCHMARK(keygen<frodo1344_kem::n,
                  frodo1344_kem::n̄,
@@ -264,7 +273,9 @@ BENCHMARK(keygen<frodo1344_kem::n,
                  frodo1344_kem::len_A,
                  frodo1344_kem::B,
                  frodo1344_kem::D>)
-  ->Name("frodo1344-keygen");
+  ->Name("frodo1344-keygen")
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max);
 BENCHMARK(encaps<frodo1344_kem::n,
                  frodo1344_kem::n̄,
                  frodo1344_kem::len_sec,
@@ -273,7 +284,9 @@ BENCHMARK(encaps<frodo1344_kem::n,
                  frodo1344_kem::len_salt,
                  frodo1344_kem::B,
                  frodo1344_kem::D>)
-  ->Name("frodo1344-encaps");
+  ->Name("frodo1344-encaps")
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max);
 BENCHMARK(decaps<frodo1344_kem::n,
                  frodo1344_kem::n̄,
                  frodo1344_kem::len_sec,
@@ -282,7 +295,9 @@ BENCHMARK(decaps<frodo1344_kem::n,
                  frodo1344_kem::len_salt,
                  frodo1344_kem::B,
                  frodo1344_kem::D>)
-  ->Name("frodo1344-decaps");
+  ->Name("frodo1344-decaps")
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max);
 
 BENCHMARK(keygen<efrodo640_kem::n,
                  efrodo640_kem::n̄,
@@ -291,7 +306,9 @@ BENCHMARK(keygen<efrodo640_kem::n,
                  efrodo640_kem::len_A,
                  efrodo640_kem::B,
                  efrodo640_kem::D>)
-  ->Name("efrodo640-keygen");
+  ->Name("efrodo640-keygen")
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max);
 BENCHMARK(encaps<efrodo640_kem::n,
                  efrodo640_kem::n̄,
                  efrodo640_kem::len_sec,
@@ -300,7 +317,9 @@ BENCHMARK(encaps<efrodo640_kem::n,
                  efrodo640_kem::len_salt,
                  efrodo640_kem::B,
                  efrodo640_kem::D>)
-  ->Name("efrodo640-encaps");
+  ->Name("efrodo640-encaps")
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max);
 BENCHMARK(decaps<efrodo640_kem::n,
                  efrodo640_kem::n̄,
                  efrodo640_kem::len_sec,
@@ -309,7 +328,9 @@ BENCHMARK(decaps<efrodo640_kem::n,
                  efrodo640_kem::len_salt,
                  efrodo640_kem::B,
                  efrodo640_kem::D>)
-  ->Name("efrodo640-decaps");
+  ->Name("efrodo640-decaps")
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max);
 
 BENCHMARK(keygen<efrodo976_kem::n,
                  efrodo976_kem::n̄,
@@ -318,7 +339,9 @@ BENCHMARK(keygen<efrodo976_kem::n,
                  efrodo976_kem::len_A,
                  efrodo976_kem::B,
                  efrodo976_kem::D>)
-  ->Name("efrodo976-keygen");
+  ->Name("efrodo976-keygen")
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max);
 BENCHMARK(encaps<efrodo976_kem::n,
                  efrodo976_kem::n̄,
                  efrodo976_kem::len_sec,
@@ -327,7 +350,9 @@ BENCHMARK(encaps<efrodo976_kem::n,
                  efrodo976_kem::len_salt,
                  efrodo976_kem::B,
                  efrodo976_kem::D>)
-  ->Name("efrodo976-encaps");
+  ->Name("efrodo976-encaps")
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max);
 BENCHMARK(decaps<efrodo976_kem::n,
                  efrodo976_kem::n̄,
                  efrodo976_kem::len_sec,
@@ -336,7 +361,9 @@ BENCHMARK(decaps<efrodo976_kem::n,
                  efrodo976_kem::len_salt,
                  efrodo976_kem::B,
                  efrodo976_kem::D>)
-  ->Name("efrodo976-decaps");
+  ->Name("efrodo976-decaps")
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max);
 
 BENCHMARK(keygen<efrodo1344_kem::n,
                  efrodo1344_kem::n̄,
@@ -345,7 +372,9 @@ BENCHMARK(keygen<efrodo1344_kem::n,
                  efrodo1344_kem::len_A,
                  efrodo1344_kem::B,
                  efrodo1344_kem::D>)
-  ->Name("efrodo1344-keygen");
+  ->Name("efrodo1344-keygen")
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max);
 BENCHMARK(encaps<efrodo1344_kem::n,
                  efrodo1344_kem::n̄,
                  efrodo1344_kem::len_sec,
@@ -354,7 +383,9 @@ BENCHMARK(encaps<efrodo1344_kem::n,
                  efrodo1344_kem::len_salt,
                  efrodo1344_kem::B,
                  efrodo1344_kem::D>)
-  ->Name("efrodo1344-encaps");
+  ->Name("efrodo1344-encaps")
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max);
 BENCHMARK(decaps<efrodo1344_kem::n,
                  efrodo1344_kem::n̄,
                  efrodo1344_kem::len_sec,
@@ -363,4 +394,6 @@ BENCHMARK(decaps<efrodo1344_kem::n,
                  efrodo1344_kem::len_salt,
                  efrodo1344_kem::B,
                  efrodo1344_kem::D>)
-  ->Name("efrodo1344-decaps");
+  ->Name("efrodo1344-decaps")
+  ->ComputeStatistics("min", compute_min)
+  ->ComputeStatistics("max", compute_max);
