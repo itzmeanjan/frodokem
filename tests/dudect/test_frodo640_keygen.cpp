@@ -1,6 +1,4 @@
 #include "frodo640_kem.hpp"
-#include <array>
-#include <cstdint>
 #include <cstdio>
 
 #define DUDECT_IMPLEMENTATION
