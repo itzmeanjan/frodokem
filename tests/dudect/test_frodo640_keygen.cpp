@@ -21,8 +21,7 @@ do_one_computation(uint8_t* const data)
   constexpr size_t doff3 = doff2 + Z_BYTE_LEN;
 
   auto s = std::span<const uint8_t, doff1 - doff0>(data + doff0, doff1 - doff0);
-  auto seedSE =
-    std::span<const uint8_t, doff2 - doff1>(data + doff1, doff2 - doff1);
+  auto seedSE = std::span<const uint8_t, doff2 - doff1>(data + doff1, doff2 - doff1);
   auto z = std::span<const uint8_t, doff3 - doff2>(data + doff2, doff3 - doff2);
 
   std::array<uint8_t, frodo640_kem::PUB_KEY_LEN> pkey{};
@@ -31,16 +30,13 @@ do_one_computation(uint8_t* const data)
   uint8_t ret_val = 0;
 
   frodo640_kem::keygen(s, seedSE, z, pkey, skey);
-  ret_val ^=
-    (pkey[0] ^ pkey[pkey.size() - 1]) ^ (skey[0] ^ skey[skey.size() - 1]);
+  ret_val ^= (pkey[0] ^ pkey[pkey.size() - 1]) ^ (skey[0] ^ skey[skey.size() - 1]);
 
   return ret_val;
 }
 
 void
-prepare_inputs(dudect_config_t* const c,
-               uint8_t* const input_data,
-               uint8_t* const classes)
+prepare_inputs(dudect_config_t* const c, uint8_t* const input_data, uint8_t* const classes)
 {
   randombytes(input_data, c->number_measurements * c->chunk_size);
 
@@ -72,9 +68,7 @@ test_frodo640_keygen()
 
   dudect_free(&ctx);
 
-  printf("Detected timing leakage in \"%s\", defined in file \"%s\"\n",
-         __func__,
-         __FILE_NAME__);
+  printf("Detected timing leakage in \"%s\", defined in file \"%s\"\n", __func__, __FILE_NAME__);
   return state;
 }
 

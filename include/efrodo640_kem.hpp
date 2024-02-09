@@ -45,13 +45,9 @@ keygen(std::span<const uint8_t, len_sec / 8> s,
 // eFrodo-640 KEM private key ) and a 16 -bytes shared secret, following
 // algorithm described in section 8.2 of FrodoKEM specification.
 inline void
-encaps(std::span<const uint8_t, len_sec / 8> μ,
-       std::span<const uint8_t, PUB_KEY_LEN> pkey,
-       std::span<uint8_t, CIPHER_LEN> enc,
-       std::span<uint8_t, len_sec / 8> ss)
+encaps(std::span<const uint8_t, len_sec / 8> μ, std::span<const uint8_t, PUB_KEY_LEN> pkey, std::span<uint8_t, CIPHER_LEN> enc, std::span<uint8_t, len_sec / 8> ss)
 {
-  kem::encaps<n, n̄, len_sec, len_SE, len_A, len_salt, B, D>(
-    μ, std::span<uint8_t, len_salt / 8>{}, pkey, enc, ss);
+  kem::encaps<n, n̄, len_sec, len_SE, len_A, len_salt, B, D>(μ, std::span<uint8_t, len_salt / 8>{}, pkey, enc, ss);
 }
 
 // Given an eFrodo-640 KEM secret key, which is associated with the public key,
@@ -60,9 +56,7 @@ encaps(std::span<const uint8_t, len_sec / 8> μ,
 // shared secret, following algorithm described in section 8.3 of FrodoKEM
 // specification.
 inline void
-decaps(std::span<const uint8_t, SEC_KEY_LEN> skey,
-       std::span<const uint8_t, CIPHER_LEN> enc,
-       std::span<uint8_t, len_sec / 8> ss)
+decaps(std::span<const uint8_t, SEC_KEY_LEN> skey, std::span<const uint8_t, CIPHER_LEN> enc, std::span<uint8_t, len_sec / 8> ss)
 {
   kem::decaps<n, n̄, len_sec, len_SE, len_A, len_salt, B, D>(skey, enc, ss);
 }

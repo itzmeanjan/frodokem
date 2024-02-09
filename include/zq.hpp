@@ -24,10 +24,7 @@ public:
   inline constexpr zq_t(const uint16_t _v) { this->v = _v; }
 
   // Addition of two integers modulo Q
-  inline constexpr zq_t operator+(const zq_t& rhs) const
-  {
-    return zq_t(this->v + rhs.v);
-  }
+  inline constexpr zq_t operator+(const zq_t& rhs) const { return zq_t(this->v + rhs.v); }
 
   // Compound addition of two integers modulo Q
   inline constexpr void operator+=(const zq_t& rhs) { *this = *this + rhs; }
@@ -36,28 +33,16 @@ public:
   inline constexpr zq_t operator-() const { return zq_t(-this->v); }
 
   // Subtraction of one integer from another one, modulo Q
-  inline constexpr zq_t operator-(const zq_t& rhs) const
-  {
-    return *this + (-rhs);
-  };
+  inline constexpr zq_t operator-(const zq_t& rhs) const { return *this + (-rhs); };
 
   // Multiply two integers, modulo Q
-  inline constexpr zq_t operator*(const zq_t& rhs) const
-  {
-    return zq_t(this->v * rhs.v);
-  }
+  inline constexpr zq_t operator*(const zq_t& rhs) const { return zq_t(this->v * rhs.v); }
 
   // Check equality between canonical form of two Zq elements
-  inline constexpr bool operator==(const zq_t& rhs) const
-  {
-    return this->to_canonical() == rhs.to_canonical();
-  }
+  inline constexpr bool operator==(const zq_t& rhs) const { return this->to_canonical() == rhs.to_canonical(); }
 
   // Check inequality between canonical form of two Zq elements
-  inline constexpr bool operator!=(const zq_t& rhs) const
-  {
-    return !(*this == rhs);
-  }
+  inline constexpr bool operator!=(const zq_t& rhs) const { return !(*this == rhs); }
 
   // Given an integer 0 <= k < 2^B, this routine encodes k as an element of Zq
   // s.t. q = 2^D and B <= D, following definition of `ec(k)` function, in
