@@ -49,12 +49,10 @@ encode(std::span<const uint8_t, (m * n * B + 7) / 8> arr)
     while (boff < byte_len) {
       mat[moff + 0] = Zq::template encode<B>((arr[boff] >> 0) & mask3);
       mat[moff + 1] = Zq::template encode<B>((arr[boff] >> 3) & mask3);
-      mat[moff + 2] = Zq::template encode<B>(((arr[boff + 1] & mask1) << 2) |
-                                             ((arr[boff] >> 6) & mask2));
+      mat[moff + 2] = Zq::template encode<B>(((arr[boff + 1] & mask1) << 2) | ((arr[boff] >> 6) & mask2));
       mat[moff + 3] = Zq::template encode<B>((arr[boff + 1] >> 1) & mask3);
       mat[moff + 4] = Zq::template encode<B>((arr[boff + 1] >> 4) & mask3);
-      mat[moff + 5] = Zq::template encode<B>(((arr[boff + 2] & mask2) << 1) |
-                                             ((arr[boff + 1] >> 7) & mask1));
+      mat[moff + 5] = Zq::template encode<B>(((arr[boff + 2] & mask2) << 1) | ((arr[boff + 1] >> 7) & mask1));
       mat[moff + 6] = Zq::template encode<B>((arr[boff + 2] >> 2) & mask3);
       mat[moff + 7] = Zq::template encode<B>(arr[boff + 2] >> 5);
 
@@ -86,10 +84,8 @@ encode(std::span<const uint8_t, (m * n * B + 7) / 8> arr)
 // following algorithm described in section 7.2 of FrodoKEM specification.
 template<size_t m, size_t n, size_t D, size_t B>
 inline constexpr void
-decode(const matrix::matrix<m, n, D>& mat,
-       std::span<uint8_t, (m * n * B + 7) / 8> arr)
-  requires((m == n) && frodo_params::check_d(D) && frodo_params::check_b(B) &&
-           (B <= D))
+decode(const matrix::matrix<m, n, D>& mat, std::span<uint8_t, (m * n * B + 7) / 8> arr)
+  requires((m == n) && frodo_params::check_d(D) && frodo_params::check_b(B) && (B <= D))
 {
   if constexpr (B == 2) {
     constexpr uint16_t mask = 0b11;
@@ -98,10 +94,8 @@ decode(const matrix::matrix<m, n, D>& mat,
     size_t boff = 0;
 
     while (moff < mat.element_count()) {
-      arr[boff] = ((mat[moff + 3].template decode<B>() & mask) << 6) |
-                  ((mat[moff + 2].template decode<B>() & mask) << 4) |
-                  ((mat[moff + 1].template decode<B>() & mask) << 2) |
-                  ((mat[moff + 0].template decode<B>() & mask) << 0);
+      arr[boff] = ((mat[moff + 3].template decode<B>() & mask) << 6) | ((mat[moff + 2].template decode<B>() & mask) << 4) |
+                  ((mat[moff + 1].template decode<B>() & mask) << 2) | ((mat[moff + 0].template decode<B>() & mask) << 0);
 
       moff += 4;
       boff += 1;
@@ -142,8 +136,7 @@ decode(const matrix::matrix<m, n, D>& mat,
     size_t boff = 0;
 
     while (moff < mat.element_count()) {
-      arr[boff] = ((mat[moff + 1].template decode<B>() & mask) << 4) |
-                  ((mat[moff + 0].template decode<B>() & mask) << 0);
+      arr[boff] = ((mat[moff + 1].template decode<B>() & mask) << 4) | ((mat[moff + 0].template decode<B>() & mask) << 0);
 
       moff += 2;
       boff += 1;

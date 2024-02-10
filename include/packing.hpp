@@ -17,8 +17,7 @@ namespace packing {
 // byte array of length (n1 * n2 * D + 7) / 8.
 template<size_t n1, size_t n2, size_t D>
 inline constexpr void
-pack(const matrix::matrix<n1, n2, D>& mat,
-     std::span<uint8_t, (n1 * n2 * D + 7) / 8> arr)
+pack(const matrix::matrix<n1, n2, D>& mat, std::span<uint8_t, (n1 * n2 * D + 7) / 8> arr)
   requires(frodo_params::check_d(D))
 {
   if constexpr (D == 15ul) {
@@ -127,28 +126,14 @@ unpack(std::span<const uint8_t, (n1 * n2 * D + 7) / 8> arr)
     size_t moff = 0;
 
     while (boff < byte_len) {
-      mat[moff + 0] = Zq((static_cast<uint16_t>(arr[boff + 0]) << 7) |
-                         static_cast<uint16_t>(arr[boff + 1] >> 1));
-      mat[moff + 1] = Zq((static_cast<uint16_t>(arr[boff + 1] & mask1) << 14) |
-                         (static_cast<uint16_t>(arr[boff + 2]) << 6) |
-                         static_cast<uint16_t>(arr[boff + 3] >> 2));
-      mat[moff + 2] = Zq((static_cast<uint16_t>(arr[boff + 3] & mask2) << 13) |
-                         (static_cast<uint16_t>(arr[boff + 4]) << 5) |
-                         static_cast<uint16_t>(arr[boff + 5] >> 3));
-      mat[moff + 3] = Zq((static_cast<uint16_t>(arr[boff + 5] & mask3) << 12) |
-                         (static_cast<uint16_t>(arr[boff + 6]) << 4) |
-                         static_cast<uint16_t>(arr[boff + 7] >> 4));
-      mat[moff + 4] = Zq((static_cast<uint16_t>(arr[boff + 7] & mask4) << 11) |
-                         (static_cast<uint16_t>(arr[boff + 8]) << 3) |
-                         static_cast<uint16_t>(arr[boff + 9] >> 5));
-      mat[moff + 5] = Zq((static_cast<uint16_t>(arr[boff + 9] & mask5) << 10) |
-                         (static_cast<uint16_t>(arr[boff + 10]) << 2) |
-                         static_cast<uint16_t>(arr[boff + 11] >> 6));
-      mat[moff + 6] = Zq((static_cast<uint16_t>(arr[boff + 11] & mask6) << 9) |
-                         (static_cast<uint16_t>(arr[boff + 12]) << 1) |
-                         static_cast<uint16_t>(arr[boff + 13] >> 7));
-      mat[moff + 7] = Zq((static_cast<uint16_t>(arr[boff + 13] & mask7) << 8) |
-                         static_cast<uint16_t>(arr[boff + 14]));
+      mat[moff + 0] = Zq((static_cast<uint16_t>(arr[boff + 0]) << 7) | static_cast<uint16_t>(arr[boff + 1] >> 1));
+      mat[moff + 1] = Zq((static_cast<uint16_t>(arr[boff + 1] & mask1) << 14) | (static_cast<uint16_t>(arr[boff + 2]) << 6) | static_cast<uint16_t>(arr[boff + 3] >> 2));
+      mat[moff + 2] = Zq((static_cast<uint16_t>(arr[boff + 3] & mask2) << 13) | (static_cast<uint16_t>(arr[boff + 4]) << 5) | static_cast<uint16_t>(arr[boff + 5] >> 3));
+      mat[moff + 3] = Zq((static_cast<uint16_t>(arr[boff + 5] & mask3) << 12) | (static_cast<uint16_t>(arr[boff + 6]) << 4) | static_cast<uint16_t>(arr[boff + 7] >> 4));
+      mat[moff + 4] = Zq((static_cast<uint16_t>(arr[boff + 7] & mask4) << 11) | (static_cast<uint16_t>(arr[boff + 8]) << 3) | static_cast<uint16_t>(arr[boff + 9] >> 5));
+      mat[moff + 5] = Zq((static_cast<uint16_t>(arr[boff + 9] & mask5) << 10) | (static_cast<uint16_t>(arr[boff + 10]) << 2) | static_cast<uint16_t>(arr[boff + 11] >> 6));
+      mat[moff + 6] = Zq((static_cast<uint16_t>(arr[boff + 11] & mask6) << 9) | (static_cast<uint16_t>(arr[boff + 12]) << 1) | static_cast<uint16_t>(arr[boff + 13] >> 7));
+      mat[moff + 7] = Zq((static_cast<uint16_t>(arr[boff + 13] & mask7) << 8) | static_cast<uint16_t>(arr[boff + 14]));
 
       boff += 15;
       moff += 8;
@@ -158,8 +143,7 @@ unpack(std::span<const uint8_t, (n1 * n2 * D + 7) / 8> arr)
     size_t moff = 0;
 
     while (boff < byte_len) {
-      mat[moff] = Zq((static_cast<uint16_t>(arr[boff + 0]) << 8) |
-                     static_cast<uint16_t>(arr[boff + 1]) << 0);
+      mat[moff] = Zq((static_cast<uint16_t>(arr[boff + 0]) << 8) | static_cast<uint16_t>(arr[boff + 1]) << 0);
 
       boff += 2;
       moff += 1;

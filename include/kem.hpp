@@ -27,21 +27,14 @@ using namespace frodo_utils;
 // as input, this routine can be used for deterministically generating a new
 // Frodo KEM public/ private keypair, following algorithm definition in
 // section 8.1 of FrodoKEM specification.
-template<size_t n,
-         size_t n̄,
-         size_t len_sec,
-         size_t len_SE,
-         size_t len_A,
-         size_t B,
-         size_t D>
+template<size_t n, size_t n̄, size_t len_sec, size_t len_SE, size_t len_A, size_t B, size_t D>
 inline void
 keygen(std::span<const uint8_t, len_sec / 8> s,
        std::span<const uint8_t, len_SE / 8> seedSE,
        std::span<const uint8_t, len_A / 8> z,
        std::span<uint8_t, kem_pub_key_len(n, n̄, len_A, D)> pkey,
        std::span<uint8_t, kem_sec_key_len(n, n̄, len_sec, len_A, D)> skey)
-  requires(
-    frodo_params::check_keygen_params(n, n̄, len_sec, len_SE, len_A, B, D))
+  requires(frodo_params::check_keygen_params(n, n̄, len_sec, len_SE, len_A, B, D))
 {
   std::array<uint8_t, len_A / 8> seedA{};
 
@@ -139,28 +132,14 @@ keygen(std::span<const uint8_t, len_sec / 8> s,
 // corresponding private key can be used for decrypting the cipher text ), this
 // routine can be used for computing a cipher text and a shared secret,
 // following algorithm definition in section 8.2 of FrodoKEM specification.
-template<size_t n,
-         size_t n̄,
-         size_t len_sec,
-         size_t len_SE,
-         size_t len_A,
-         size_t len_salt,
-         size_t B,
-         size_t D>
+template<size_t n, size_t n̄, size_t len_sec, size_t len_SE, size_t len_A, size_t len_salt, size_t B, size_t D>
 inline void
 encaps(std::span<const uint8_t, len_sec / 8> μ,
        std::span<const uint8_t, len_salt / 8> salt,
        std::span<const uint8_t, kem_pub_key_len(n, n̄, len_A, D)> pkey,
        std::span<uint8_t, kem_cipher_text_len(n, n̄, len_salt, D)> enc,
        std::span<uint8_t, len_sec / 8> ss)
-  requires(frodo_params::check_encaps_params(n,
-                                             n̄,
-                                             len_sec,
-                                             len_SE,
-                                             len_A,
-                                             len_salt,
-                                             B,
-                                             D))
+  requires(frodo_params::check_encaps_params(n, n̄, len_sec, len_SE, len_A, len_salt, B, D))
 {
   std::array<uint8_t, len_sec / 8> pkh{};
 
@@ -276,26 +255,12 @@ encaps(std::span<const uint8_t, len_sec / 8> μ,
 // public key, using which the cipher text was computed, this routine can be
 // used for decrypting the cipher text, recovering shared secret, following
 // algorithm definition in section 8.3 of FrodoKEM specification.
-template<size_t n,
-         size_t n̄,
-         size_t len_sec,
-         size_t len_SE,
-         size_t len_A,
-         size_t len_salt,
-         size_t B,
-         size_t D>
+template<size_t n, size_t n̄, size_t len_sec, size_t len_SE, size_t len_A, size_t len_salt, size_t B, size_t D>
 inline void
 decaps(std::span<const uint8_t, kem_sec_key_len(n, n̄, len_sec, len_A, D)> skey,
        std::span<const uint8_t, kem_cipher_text_len(n, n̄, len_salt, D)> enc,
        std::span<uint8_t, len_sec / 8> ss)
-  requires(frodo_params::check_decaps_params(n,
-                                             n̄,
-                                             len_sec,
-                                             len_SE,
-                                             len_A,
-                                             len_salt,
-                                             B,
-                                             D))
+  requires(frodo_params::check_decaps_params(n, n̄, len_sec, len_SE, len_A, len_salt, B, D))
 {
   // Parse cipher text
   // = c1

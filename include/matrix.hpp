@@ -22,31 +22,18 @@ public:
   inline constexpr matrix() = default;
 
   // Given linear index of matrix, returns reference to requested element.
-  inline constexpr zq::zq_t<D>& operator[](const size_t lin_idx)
-  {
-    return this->elements[lin_idx];
-  }
+  inline constexpr zq::zq_t<D>& operator[](const size_t lin_idx) { return this->elements[lin_idx]; }
 
   // Given linear index of matrix, returns const reference to requested element.
-  inline constexpr const zq::zq_t<D>& operator[](const size_t lin_idx) const
-  {
-    return this->elements[lin_idx];
-  }
+  inline constexpr const zq::zq_t<D>& operator[](const size_t lin_idx) const { return this->elements[lin_idx]; }
 
   // Given row and column index of matrix, returns reference to requested
   // element.
-  inline constexpr zq::zq_t<D>& operator[](std::pair<size_t, size_t> idx)
-  {
-    return this->elements[idx.first * cols + idx.second];
-  }
+  inline constexpr zq::zq_t<D>& operator[](std::pair<size_t, size_t> idx) { return this->elements[idx.first * cols + idx.second]; }
 
   // Given row and column index of matrix, returns const reference to requested
   // element.
-  inline constexpr const zq::zq_t<D>& operator[](
-    std::pair<size_t, size_t> idx) const
-  {
-    return this->elements[idx.first * cols + idx.second];
-  }
+  inline constexpr const zq::zq_t<D>& operator[](std::pair<size_t, size_t> idx) const { return this->elements[idx.first * cols + idx.second]; }
 
   // Returns # -of rows in matrix M
   inline constexpr size_t row_count() const { return rows; }
@@ -74,8 +61,7 @@ public:
 
   // Given two matrices A, B of same dimension, this routine can be used for
   // performing matrix addition over Zq, returning a matrix of same dimension.
-  inline constexpr matrix<rows, cols, D> operator+(
-    const matrix<rows, cols, D>& rhs) const
+  inline constexpr matrix<rows, cols, D> operator+(const matrix<rows, cols, D>& rhs) const
   {
     matrix<rows, cols, D> res{};
 
@@ -88,8 +74,7 @@ public:
 
   // Given two matrices A, B of same dimension, this routine can be used for
   // subtracting B from A, resulting into another matrix C of same dimension.
-  inline constexpr matrix<rows, cols, D> operator-(
-    const matrix<rows, cols, D>& rhs) const
+  inline constexpr matrix<rows, cols, D> operator-(const matrix<rows, cols, D>& rhs) const
   {
     matrix<rows, cols, D> res{};
 
@@ -105,8 +90,7 @@ public:
   // multiplying them over Zq, resulting into another matrix (C) of dimension
   // rows x rhs_cols.
   template<size_t rhs_rows, size_t rhs_cols>
-  inline constexpr matrix<rows, rhs_cols, D> operator*(
-    const matrix<rhs_rows, rhs_cols, D>& rhs) const
+  inline constexpr matrix<rows, rhs_cols, D> operator*(const matrix<rhs_rows, rhs_cols, D>& rhs) const
     requires(cols == rhs_rows)
   {
     matrix<rows, rhs_cols, D> res{};
@@ -128,10 +112,7 @@ public:
 
   // Given two matrices A, B of same dimension, this routine can be used for
   // testing equality of A and B i.e. only returns true if A == B.
-  inline constexpr bool operator==(const matrix<rows, cols, D>& rhs) const
-  {
-    return std::ranges::equal(this->elements, rhs.elements);
-  }
+  inline constexpr bool operator==(const matrix<rows, cols, D>& rhs) const { return std::ranges::equal(this->elements, rhs.elements); }
 
   // Given two matrices A, B of same dimension, this routine can be used for
   // constant-time equality test between A and B s.t. it returns truth value ( =
@@ -141,8 +122,7 @@ public:
     uint32_t res = -1u;
 
     for (size_t i = 0; i < this->element_count(); i++) {
-      res &= subtle::ct_eq<uint16_t, uint32_t>(this->elements[i].to_canonical(),
-                                               rhs.elements[i].to_canonical());
+      res &= subtle::ct_eq<uint16_t, uint32_t>(this->elements[i].to_canonical(), rhs.elements[i].to_canonical());
     }
 
     return res;
@@ -153,8 +133,7 @@ public:
   // using SHAKE128 XOF, following algorithm described in section 7.6.2 of
   // FrodoKEM specification.
   template<size_t len_seed_A>
-  inline static constexpr matrix<rows, cols, D> generate(
-    std::span<const uint8_t, (len_seed_A + 7) / 8> seed)
+  inline static constexpr matrix<rows, cols, D> generate(std::span<const uint8_t, (len_seed_A + 7) / 8> seed)
     requires(rows == cols)
   {
     constexpr size_t seed_bytes = seed.size();
@@ -179,8 +158,7 @@ public:
       hasher.squeeze(dig);
 
       for (size_t j = 0; j < cols; j++) {
-        const uint16_t word = (static_cast<uint16_t>(dig[2 * j + 1]) << 8) |
-                              (static_cast<uint16_t>(dig[2 * j + 0]) << 0);
+        const uint16_t word = (static_cast<uint16_t>(dig[2 * j + 1]) << 8) | (static_cast<uint16_t>(dig[2 * j + 0]) << 0);
 
         mat[{ i, j }] = zq::zq_t<D>(word);
       }
@@ -218,8 +196,7 @@ public:
   // Given a byte array of length m * n * 2, this routine can be used for
   // deserializing it as a matrix of dimension m x n s.t. each matrix element is
   // computed by interpreting two consecutive bytes in little-endian order.
-  inline static matrix<rows, cols, D> read_from_le_bytes(
-    std::span<const uint8_t, rows * cols * 2> bytes)
+  inline static matrix<rows, cols, D> read_from_le_bytes(std::span<const uint8_t, rows * cols * 2> bytes)
   {
     constexpr size_t blen = bytes.size();
     matrix<rows, cols, D> res{};
@@ -228,8 +205,7 @@ public:
     size_t moff = 0;
 
     while (boff < blen) {
-      const uint16_t word = (static_cast<uint16_t>(bytes[boff + 1]) << 8) |
-                            (static_cast<uint16_t>(bytes[boff + 0]) << 0);
+      const uint16_t word = (static_cast<uint16_t>(bytes[boff + 1]) << 8) | (static_cast<uint16_t>(bytes[boff + 0]) << 0);
       res[moff] = zq::zq_t<D>(word);
 
       boff += 2;

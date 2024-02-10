@@ -13,14 +13,7 @@
 // - decapsulating shared secret, using private key
 //
 // works as expected.
-template<const size_t n,
-         const size_t n̄,
-         const size_t len_A,
-         const size_t len_sec,
-         const size_t len_SE,
-         const size_t len_salt,
-         const size_t B,
-         const size_t D>
+template<const size_t n, const size_t n̄, const size_t len_A, const size_t len_sec, const size_t len_SE, const size_t len_salt, const size_t B, const size_t D>
 void
 test_kem()
 {
@@ -63,8 +56,7 @@ test_kem()
   using namespace kem;
 
   keygen<n, n̄, len_sec, len_SE, len_A, B, D>(_s, _seedSE, _z, _pkey, _skey);
-  encaps<n, n̄, len_sec, len_SE, len_A, len_salt, B, D>(
-    _μ, _salt, _pkey, _enc, _ss0);
+  encaps<n, n̄, len_sec, len_SE, len_A, len_salt, B, D>(_μ, _salt, _pkey, _enc, _ss0);
   decaps<n, n̄, len_sec, len_SE, len_A, len_salt, B, D>(_skey, _enc, _ss1);
 
   EXPECT_EQ(ss0, ss1);

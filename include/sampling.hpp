@@ -12,20 +12,15 @@ namespace sampling {
 
 // Discrete, symmetric error distribution over Z, centered at 0, for
 // {e}Frodo-640, as given on table A.3 of FrodoKEM specification.
-constexpr std::array<uint16_t, 13> Frodo640_χ = { 9288, 8720, 7216, 5264, 3384,
-                                                  1918, 958,  422,  164,  56,
-                                                  17,   4,    1 };
+constexpr std::array<uint16_t, 13> Frodo640_χ = { 9288, 8720, 7216, 5264, 3384, 1918, 958, 422, 164, 56, 17, 4, 1 };
 
 // Discrete, symmetric error distribution over Z, centered at 0, for
 // {e}Frodo-976, as given on table A.3 of FrodoKEM specification.
-constexpr std::array<uint16_t, 11> Frodo976_χ = { 11278, 10277, 7774, 4882,
-                                                  2545,  1101,  396,  118,
-                                                  29,    6,     1 };
+constexpr std::array<uint16_t, 11> Frodo976_χ = { 11278, 10277, 7774, 4882, 2545, 1101, 396, 118, 29, 6, 1 };
 
 // Discrete, symmetric error distribution over Z, centered at 0, for
 // {e}Frodo-1344, as given on table A.3 of FrodoKEM specification.
-constexpr std::array<uint16_t, 7> Frodo1344_χ = { 18286, 14320, 6876, 2023,
-                                                  364,   40,    2 };
+constexpr std::array<uint16_t, 7> Frodo1344_χ = { 18286, 14320, 6876, 2023, 364, 40, 2 };
 
 // Compile-time compute a zero-centerd CDF, suitable for sampling using a
 // uniform random value, following equations provided in section 2.2.4 of
@@ -102,8 +97,7 @@ sample_matrix(std::span<const uint8_t, 16 * n1 * n2 / 8> r)
   size_t boff = 0;
 
   while (moff < e.element_count()) {
-    const uint16_t tmp = (static_cast<uint16_t>(r[boff + 1]) << 8) |
-                         (static_cast<uint16_t>(r[boff + 0]) << 0);
+    const uint16_t tmp = (static_cast<uint16_t>(r[boff + 1]) << 8) | (static_cast<uint16_t>(r[boff + 0]) << 0);
 
     if constexpr (n == 640) {
       e[moff] = sample<D, 13, Frodo640_Tχ>(tmp);
