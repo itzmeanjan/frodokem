@@ -1,22 +1,22 @@
-> **Warning**
-I attempt to make this library implementation constant-time but be informed that it is not yet audited. If you consider using it in production, be careful !
+> [!CAUTION]
+> This FrodoKEM implementation is conformant with FrodoKEM specification @ https://frodokem.org/files/FrodoKEM-standard_proposal-20230314.pdf. I also try to make it timing leakage free, using `dudect` (see https://github.com/oreparaz/dudect) -based tests, but be informed that this implementation is not yet audited. *If you consider using it in production, be careful !*
 
 # frodokem
 FrodoKEM: Practical Quantum-secure Key Encapsulation from Generic Lattices
 
 ## Overview
 
-FrodoKEM is a post-quantum key encapsulation mechanism (KEM), based on the hardness of learning with errors (LWE) problem, which has close connections to conjectured-hard problems on generic, algebraically unstructured lattices, offering IND-CCA security. FrodoKEM is built on top of FrodoPKE, which is a public key encryption (PKE) algorithm, can be used for encrypting fixed length messages, offering IND-CPA security. 
+FrodoKEM is a post-quantum key encapsulation mechanism (KEM), based on the hardness of learning with errors (LWE) problem, which has close connections to conjectured-hard problems on generic, algebraically unstructured lattices, offering IND-CCA security. FrodoKEM is built on top of FrodoPKE, which is a public key encryption (PKE) algorithm, can be used for encrypting fixed length messages, offering IND-CPA security.
 
 Scheme | What does it offer ?
 --- | --:
 FrodoPKE | Lets you encrypt a fixed length message M, using your peer's public key, resulting in a cipher text, which can only be decrypted by respective peer's secret key.
 FrodoKEM | Helps in establishing secure communication channel between two parties - (a) starting communication over insecure channel, (b) later on begins using some authenticated encryption (AEAD) scheme for encrypting their messages, using the common key ( = shared secret ) that both of them arrived at by using the KEM scheme.
 
-Here I'm maintaining a header-only, easy-to-use ( see [below](#usage) ) C++ library, offering FrodoKEM API, for three security levels, each for two usage scenarios ( i.e. static and ephemeral ).
+Here I'm maintaining a header-only, easy-to-use ( see [below](#usage) ) C++20 library, offering FrodoKEM API, for three security levels, each for two usage scenarios ( i.e. static and ephemeral ).
 
-> **Note**
-Right now this library only provides you with FrodoKEM implementation s.t. generation of matrix `A` always uses SHAKE128 Xof. I've not *yet* implemented AES128 backed matrix `A` generation logic.
+> [!NOTE]
+> Right now this library only provides you with FrodoKEM implementation s.t. generation of matrix `A` always uses SHAKE128 Xof. I've not *yet* implemented AES128 backed matrix `A` generation logic.
 
 Scheme | Target Security Level
 :-- | --:
@@ -24,21 +24,20 @@ Scheme | Target Security Level
 (e)Frodo-976 KEM | NIST-III
 (e)Frodo-1344 KEM | NIST-V
 
-> **Note** 
-(STATIC): Long term use of same keypair s.t. many cipher texts can be computed per public key. KEM variants whose names look like Frodo-{640, 976, 1344} KEM.
+> [!NOTE]
+> (STATIC): Long term use of same keypair s.t. many cipher texts can be computed per public key. KEM variants whose names look like Frodo-{640, 976, 1344} KEM.
 
-> **Note** 
-(EPHEMERAL): Only small number of cipher texts are produced per public key. Begins with an `e` i.e. eFrodo-{640,976,1344} KEM.
+> [!NOTE]
+> (EPHEMERAL): Only small number of cipher texts are produced per public key. Begins with an `e` i.e. eFrodo-{640,976,1344} KEM.
 
-> **Note** 
-While working on this implementation, I've majorly followed [this](https://frodokem.org/files/FrodoKEM-standard_proposal-20230314.pdf) FrodoKEM specification. Though for certain function implementations, I found an older [version](https://frodokem.org/files/FrodoKEM-specification-20210604.pdf) of specifiction more comprehensive. I suggest you go through them for an in-depth understanding of the scheme.
+While working on this implementation, I've mainly followed the FrodoKEM specification @ https://frodokem.org/files/FrodoKEM-standard_proposal-20230314.pdf. Though for certain function implementations, I found an older version of specifiction, living @ https://frodokem.org/files/FrodoKEM-specification-20210604.pdf, more comprehensive. I suggest you go through them for an in-depth understanding of the scheme.
 
 ## Prerequisites
 
 - A C++ compiler with support for C++20 standard library.
 
 ```bash
-$ g++ --version
+$  g++ --version
 g++ (Ubuntu 13.2.0-4ubuntu3) 13.2.0
 
 $ clang++ --version
@@ -55,449 +54,529 @@ $ make --version
 GNU Make 4.3
 
 $ cmake --version
-cmake version 3.25.1
+cmake version 3.27.4
 ```
 
-- For testing functional correctness of FrodoKEM and its components, you need to globally install `google-test` headers and library. Follow [this](https://github.com/google/googletest/tree/main/googletest#standalone-cmake-project) guide.
-- For benchmarking FrodoKEM algorithms, you must have `google-benchmark` headers and library available in `$PATH`. I found [this](https://github.com/google/benchmark#installation) installation guide helpful.
+- For testing functional correctness of FrodoKEM and its components, you need to globally install `google-test` headers and library. Follow the guide @ https://github.com/google/googletest/tree/main/googletest#standalone-cmake-project.
+- For benchmarking FrodoKEM algorithms, you must have `google-benchmark` headers and library available in `$PATH`. I found the installation guide @ https://github.com/google/benchmark#installation helpful.
 
-> **Note** 
-If you are on a machine running GNU/Linux kernel and you want to obtain CPU cycle count for KEM algorithms, you should consider building `google-benchmark` library with libPFM support, following [this](https://gist.github.com/itzmeanjan/05dc3e946f635d00c5e0b21aae6203a7) step-by-step guide. Find more about libPFM @ https://perfmon2.sourceforge.net.
+> [!NOTE]
+> If you are on a machine running GNU/Linux kernel and you want to obtain CPU cycle count for KEM algorithms, you should consider building `google-benchmark` library with libPFM support, following the step-by-step guide @ https://gist.github.com/itzmeanjan/05dc3e946f635d00c5e0b21aae6203a7. Find more about libPFM @ https://perfmon2.sourceforge.net.
 
-- `sha3` and `subtle` are two dependencies of this project, which are pinned to specific commit, using git submodule. Import dependencies after cloning this repository.
-
-```bash
-git clone https://github.com/itzmeanjan/frodokem.git
-pushd frodokem
-git submodule update --init # Import dependencies
-popd
-
-# or try - single step cloning and setting up of dependencies !
-git clone https://github.com/itzmeanjan/frodokem.git --recurse-submodules
-```
+> [!TIP]
+> Git submodule based dependencies will generally be imported automatically, but in case that doesn't work, you can manually initialize and update them by issuing `$ git submodule update --init` from inside the root of this repository.
 
 ## Testing
 
-For ensuring functional correctness of FrodoKEM and its constituting components, issue following command, after you clone this repository and update/ initialize git submodule ( for importing dependencies ). Issuing following command also runs necessary tests, which ensures that this FrodoKEM implementation is conformant with the specification, by checking keypair/ cipher text/ shared secret values for given seeds, using known answer tests (KATs).
+For ensuring functional correctness of FrodoKEM and its constituting components, issue following command. Issuing following command also runs necessary tests, which ensures that this FrodoKEM implementation is conformant with the specification, by checking keypair/ cipher text/ shared secret values for given seeds, using known answer tests (KATs).
 
-> **Note**
-Known Answer Tests (KATs) living in [this](./kats) directory are computed by following (reproducible) steps, described in [this](https://gist.github.com/itzmeanjan/38d506a69073bdeb0933245401f42186) gist.
+> [!NOTE]
+> Known Answer Tests (KATs) living in [this](./kats) directory are computed by following (reproducible) steps, described in the gist @ https://gist.github.com/itzmeanjan/38d506a69073bdeb0933245401f42186.
 
 ```bash
-make -j
+make -j            # Run tests without any sort of sanitizers
+make asan_test -j  # Run tests with AddressSanitizer enabled
+make ubsan_test -j # Run tests with UndefinedBehaviourSanitizer enabled
 ```
 
 ```bash
-[==========] Running 13 tests from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 13 tests from FrodoKEM
-[ RUN      ] FrodoKEM.MatrixEncodeDecode
-[       OK ] FrodoKEM.MatrixEncodeDecode (0 ms)
-[ RUN      ] FrodoKEM.KeygenEncapsDecaps
-[       OK ] FrodoKEM.KeygenEncapsDecaps (74 ms)
-[ RUN      ] FrodoKEM.Frodo640KEMKAT
-[       OK ] FrodoKEM.Frodo640KEMKAT (324 ms)
-[ RUN      ] FrodoKEM.Frodo976KEMKAT
-[       OK ] FrodoKEM.Frodo976KEMKAT (707 ms)
-[ RUN      ] FrodoKEM.Frodo1344KEMKAT
-[       OK ] FrodoKEM.Frodo1344KEMKAT (1338 ms)
-[ RUN      ] FrodoKEM.eFrodo640KEMKAT
-[       OK ] FrodoKEM.eFrodo640KEMKAT (324 ms)
-[ RUN      ] FrodoKEM.eFrodo976KEMKAT
-[       OK ] FrodoKEM.eFrodo976KEMKAT (711 ms)
-[ RUN      ] FrodoKEM.eFrodo1344KEMKAT
-[       OK ] FrodoKEM.eFrodo1344KEMKAT (1339 ms)
-[ RUN      ] FrodoKEM.MatrixTranspose
-[       OK ] FrodoKEM.MatrixTranspose (0 ms)
-[ RUN      ] FrodoKEM.MatrixAddSub
-[       OK ] FrodoKEM.MatrixAddSub (0 ms)
-[ RUN      ] FrodoKEM.MatrixPackUnpack
-[       OK ] FrodoKEM.MatrixPackUnpack (1 ms)
-[ RUN      ] FrodoKEM.ZqEncodeDecode
-[       OK ] FrodoKEM.ZqEncodeDecode (0 ms)
-[ RUN      ] FrodoKEM.Lemma2_18
-[       OK ] FrodoKEM.Lemma2_18 (2 ms)
-[----------] 13 tests from FrodoKEM (4826 ms total)
+[13/13] FrodoKEM.Frodo1344KEMKAT (1838 ms)
+PASSED TESTS (13/13):
+       5 ms: build/test.out FrodoKEM.ZqEncodeDecode
+       6 ms: build/test.out FrodoKEM.MatrixEncodeDecode
+      11 ms: build/test.out FrodoKEM.MatrixPackUnpack
+      11 ms: build/test.out FrodoKEM.MatrixTranspose
+      17 ms: build/test.out FrodoKEM.MatrixAddSub
+      18 ms: build/test.out FrodoKEM.Lemma2_18
+     203 ms: build/test.out FrodoKEM.KeygenEncapsDecaps
+     529 ms: build/test.out FrodoKEM.eFrodo640KEMKAT
+     747 ms: build/test.out FrodoKEM.Frodo640KEMKAT
+    1044 ms: build/test.out FrodoKEM.Frodo976KEMKAT
+    1173 ms: build/test.out FrodoKEM.eFrodo976KEMKAT
+    1792 ms: build/test.out FrodoKEM.eFrodo1344KEMKAT
+    1838 ms: build/test.out FrodoKEM.Frodo1344KEMKAT
+```
 
-[----------] Global test environment tear-down
-[==========] 13 tests from 1 test suite ran. (4826 ms total)
-[  PASSED  ] 13 tests.
+You can run timing leakage tests, using `dudect`; execute following
+
+> [!NOTE]
+> `dudect` is integrated into this library implementation of FrodoKEM to find any sort of timing leakages. It checks for constant-timeness of key generation, encapsulation and decapsulation function implementations, for only one variant i.e. *frodo640*.
+
+```bash
+# Can only be built and run on x86_64 machine.
+make dudect_test_build -j
+
+# Before running the constant-time tests, it's a good idea to put all CPU cores on "performance" mode.
+# You may find the guide @ https://github.com/google/benchmark/blob/main/docs/reducing_variance.md helpful.
+
+# Given FrodoKEM operations is slow, compared to Kyber/ Saber, following tests are required to be 
+# run for longer, so that we can collect enough execution timing samples.
+timeout 4h taskset -c 0 ./build/dudect/test_frodo640_keygen.out
+timeout 4h taskset -c 0 ./build/dudect/test_frodo640_encaps.out
+timeout 4h taskset -c 0 ./build/dudect/test_frodo640_decaps.out
+```
+
+> [!TIP]
+> `dudect` documentation says if `t` statistic is `< 10`, we're *probably* good, yes *probably*. You may want to read `dudect` documentation @ https://github.com/oreparaz/dudect. Also you might find the original paper @ https://ia.cr/2016/1123 interesting.
+
+```bash
+# frodo640-keygen
+...
+meas:    0.06 M, max t:   +2.71, max tau: 1.15e-02, (5/tau)^2: 1.88e+05. For the moment, maybe constant time.
+meas:    0.06 M, max t:   +2.90, max tau: 1.22e-02, (5/tau)^2: 1.68e+05. For the moment, maybe constant time.
+meas:    0.06 M, max t:   +2.92, max tau: 1.23e-02, (5/tau)^2: 1.66e+05. For the moment, maybe constant time.
+meas:    0.06 M, max t:   +2.49, max tau: 1.03e-02, (5/tau)^2: 2.35e+05. For the moment, maybe constant time.
+meas:    0.06 M, max t:   +2.27, max tau: 9.31e-03, (5/tau)^2: 2.88e+05. For the moment, maybe constant time.
+meas:    0.06 M, max t:   +2.23, max tau: 9.14e-03, (5/tau)^2: 2.99e+05. For the moment, maybe constant time.
+meas:    0.06 M, max t:   +2.38, max tau: 9.63e-03, (5/tau)^2: 2.70e+05. For the moment, maybe constant time.
+meas:    0.06 M, max t:   +2.23, max tau: 8.96e-03, (5/tau)^2: 3.11e+05. For the moment, maybe constant time.
+meas:    0.43 M, max t:   +2.21, max tau: 3.38e-03, (5/tau)^2: 2.19e+06. For the moment, maybe constant time.
+meas:    0.43 M, max t:   +2.22, max tau: 3.38e-03, (5/tau)^2: 2.19e+06. For the moment, maybe constant time.
+meas:    0.06 M, max t:   +2.43, max tau: 9.58e-03, (5/tau)^2: 2.73e+05. For the moment, maybe constant time.
+meas:    0.06 M, max t:   +2.42, max tau: 9.50e-03, (5/tau)^2: 2.77e+05. For the moment, maybe constant time.
+meas:    0.07 M, max t:   +2.65, max tau: 1.03e-02, (5/tau)^2: 2.35e+05. For the moment, maybe constant time.
+
+# frodo640-encaps
+...
+meas:    2.35 M, max t:   +1.98, max tau: 1.29e-03, (5/tau)^2: 1.50e+07. For the moment, maybe constant time.
+meas:    2.43 M, max t:   +1.91, max tau: 1.22e-03, (5/tau)^2: 1.67e+07. For the moment, maybe constant time.
+meas:    2.52 M, max t:   +1.87, max tau: 1.18e-03, (5/tau)^2: 1.79e+07. For the moment, maybe constant time.
+meas:    2.61 M, max t:   +2.00, max tau: 1.24e-03, (5/tau)^2: 1.62e+07. For the moment, maybe constant time.
+meas:    2.69 M, max t:   +1.69, max tau: 1.03e-03, (5/tau)^2: 2.35e+07. For the moment, maybe constant time.
+meas:    2.78 M, max t:   +1.59, max tau: 9.53e-04, (5/tau)^2: 2.75e+07. For the moment, maybe constant time.
+meas:    2.86 M, max t:   +1.70, max tau: 1.01e-03, (5/tau)^2: 2.46e+07. For the moment, maybe constant time.
+meas:    2.90 M, max t:   +1.71, max tau: 1.01e-03, (5/tau)^2: 2.47e+07. For the moment, maybe constant time.
+meas:    2.98 M, max t:   +1.69, max tau: 9.76e-04, (5/tau)^2: 2.63e+07. For the moment, maybe constant time.
+meas:    3.07 M, max t:   +1.67, max tau: 9.56e-04, (5/tau)^2: 2.74e+07. For the moment, maybe constant time.
+meas:    3.15 M, max t:   +1.76, max tau: 9.94e-04, (5/tau)^2: 2.53e+07. For the moment, maybe constant time.
+
+# frodo640-decaps
+...
+meas:    6.24 M, max t:   +1.30, max tau: 5.21e-04, (5/tau)^2: 9.21e+07. For the moment, maybe constant time.
+meas:    5.97 M, max t:   +1.38, max tau: 5.65e-04, (5/tau)^2: 7.84e+07. For the moment, maybe constant time.
+meas:    6.07 M, max t:   +1.57, max tau: 6.38e-04, (5/tau)^2: 6.15e+07. For the moment, maybe constant time.
+meas:    6.16 M, max t:   +1.61, max tau: 6.47e-04, (5/tau)^2: 5.97e+07. For the moment, maybe constant time.
+meas:    6.25 M, max t:   +1.34, max tau: 5.37e-04, (5/tau)^2: 8.66e+07. For the moment, maybe constant time.
+meas:    6.34 M, max t:   +1.36, max tau: 5.41e-04, (5/tau)^2: 8.53e+07. For the moment, maybe constant time.
+meas:    6.43 M, max t:   +1.34, max tau: 5.28e-04, (5/tau)^2: 8.98e+07. For the moment, maybe constant time.
+meas:    6.52 M, max t:   +1.42, max tau: 5.55e-04, (5/tau)^2: 8.13e+07. For the moment, maybe constant time.
+meas:    6.61 M, max t:   +1.38, max tau: 5.37e-04, (5/tau)^2: 8.66e+07. For the moment, maybe constant time.
+meas:    5.28 M, max t:   +1.26, max tau: 5.49e-04, (5/tau)^2: 8.30e+07. For the moment, maybe constant time.
+meas:    6.80 M, max t:   +1.27, max tau: 4.88e-04, (5/tau)^2: 1.05e+08. For the moment, maybe constant time.
 ```
 
 ## Benchmarking
 
-For benchmarking all instantiations of FrodoKEM keygen/ encaps/ decaps algorithms, targeting CPU systems, issue following command.
+For benchmarking all instantiations of FrodoKEM keygen/ encaps/ decaps algorithms, issue following command.
 
 ```bash
 make benchmark  # If you haven't built google-benchmark library with libPFM support.
 make perf       # Must do if you have built google-benchmark library with libPFM support.
 ```
 
-> **Warning** 
-When benchmarking, ensure that all your CPU cores are running in performance mode. You may find [this](https://github.com/google/benchmark/blob/2dd015df/docs/reducing_variance.md) guide helpful.
+> [!CAUTION]
+> When benchmarking, ensure that all your CPU cores are running in performance mode. You may find the guide @ https://github.com/google/benchmark/blob/2dd015df/docs/reducing_variance.md helpful.
 
-> **Note** 
-`make perf` - was issued when collecting following benchmark results. Notice, *CYCLES* column, denoting latency of FrodoKEM routines.
+> [!NOTE]
+> `make perf` - was issued when collecting following benchmark results. Notice, *CYCLES* column, denoting latency of FrodoKEM routines, in terms of CPU cycles h/w event.
 
-### On *12th Gen Intel(R) Core(TM) i7-1260P* [ Compiled with GCC-13.2.0 ]
+### On 12th Gen Intel(R) Core(TM) i7-1260P
+
+Compiled with **gcc version 13.2.0 (Ubuntu 13.2.0-4ubuntu3)**.
 
 ```bash
-2023-11-14T21:29:29+05:30
+$ uname -srm
+Linux 6.5.0-17-generic x86_64
+```
+
+```bash
+2024-02-10T19:26:22+04:00
 Running ./build/perf.out
-Run on (16 X 922.501 MHz CPU s)
+Run on (16 X 3402.11 MHz CPU s)
 CPU Caches:
   L1 Data 48 KiB (x8)
   L1 Instruction 32 KiB (x8)
   L2 Unified 1280 KiB (x8)
   L3 Unified 18432 KiB (x1)
-Load Average: 0.37, 0.51, 0.54
+Load Average: 0.41, 0.45, 0.45
 -----------------------------------------------------------------------------------------------
 Benchmark                         Time             CPU   Iterations     CYCLES items_per_second
 -----------------------------------------------------------------------------------------------
-frodo1344-decaps_mean          7.03 ms         7.02 ms            8   31.6641M        142.385/s
-frodo1344-decaps_median        7.03 ms         7.03 ms            8   31.7431M         142.23/s
-frodo1344-decaps_stddev       0.067 ms        0.067 ms            8   183.412k        1.36044/s
-frodo1344-decaps_cv            0.95 %          0.96 %             8      0.58%            0.96%
-frodo640-keygen_mean           1.64 ms         1.64 ms            8   7.35495M        609.252/s
-frodo640-keygen_median         1.64 ms         1.64 ms            8   7.35036M        610.607/s
-frodo640-keygen_stddev        0.025 ms        0.025 ms            8   13.9441k        9.41282/s
-frodo640-keygen_cv             1.55 %          1.54 %             8      0.19%            1.54%
-frodo976-decaps_mean           3.78 ms         3.78 ms            8   16.4306M        264.838/s
-frodo976-decaps_median         3.74 ms         3.73 ms            8   16.4386M        267.761/s
-frodo976-decaps_stddev        0.122 ms        0.123 ms            8   54.1183k        8.55308/s
-frodo976-decaps_cv             3.24 %          3.25 %             8      0.33%            3.23%
-efrodo640-encaps_mean          1.66 ms         1.66 ms            8   7.31615M        603.311/s
-efrodo640-encaps_median        1.64 ms         1.64 ms            8   7.31189M        609.597/s
-efrodo640-encaps_stddev       0.053 ms        0.053 ms            8   16.7025k        19.1731/s
-efrodo640-encaps_cv            3.20 %          3.22 %             8      0.23%            3.18%
-efrodo1344-decaps_mean         7.13 ms         7.13 ms            8   31.6902M        140.424/s
-efrodo1344-decaps_median       7.04 ms         7.04 ms            8   31.6094M        141.959/s
-efrodo1344-decaps_stddev      0.247 ms        0.248 ms            8   211.507k        4.75742/s
-efrodo1344-decaps_cv           3.46 %          3.48 %             8      0.67%            3.39%
-efrodo640-decaps_mean          1.64 ms         1.64 ms            8   7.23458M         610.44/s
-efrodo640-decaps_median        1.63 ms         1.63 ms            8   7.23981M        613.455/s
-efrodo640-decaps_stddev       0.036 ms        0.036 ms            8   17.2304k        12.9376/s
-efrodo640-decaps_cv            2.19 %          2.19 %             8      0.24%            2.12%
-efrodo1344-keygen_mean         6.84 ms         6.84 ms            8   30.3509M        146.312/s
-efrodo1344-keygen_median       6.74 ms         6.74 ms            8   30.3862M        148.345/s
-efrodo1344-keygen_stddev      0.236 ms        0.236 ms            8   127.486k        4.92388/s
-efrodo1344-keygen_cv           3.45 %          3.45 %             8      0.42%            3.37%
-efrodo976-decaps_mean          3.76 ms         3.76 ms            8   16.4413M        266.382/s
-efrodo976-decaps_median        3.71 ms         3.71 ms            8   16.4439M        269.299/s
-efrodo976-decaps_stddev       0.112 ms        0.112 ms            8   40.2691k        7.82576/s
-efrodo976-decaps_cv            2.98 %          2.98 %             8      0.24%            2.94%
-frodo976-encaps_mean           3.73 ms         3.73 ms            8   16.4816M        268.566/s
-frodo976-encaps_median         3.73 ms         3.72 ms            8   16.4683M        268.499/s
-frodo976-encaps_stddev        0.090 ms        0.091 ms            8   63.4466k        6.47054/s
-frodo976-encaps_cv             2.42 %          2.44 %             8      0.38%            2.41%
-efrodo1344-encaps_mean         7.03 ms         7.03 ms            8   31.7188M        142.404/s
-efrodo1344-encaps_median       6.97 ms         6.97 ms            8   31.6327M        143.487/s
-efrodo1344-encaps_stddev      0.220 ms        0.220 ms            8    172.29k        4.33126/s
-efrodo1344-encaps_cv           3.14 %          3.14 %             8      0.54%            3.04%
-efrodo976-keygen_mean          3.78 ms         3.78 ms            8   16.5446M        264.753/s
-efrodo976-keygen_median        3.72 ms         3.72 ms            8   16.5213M        268.645/s
-efrodo976-keygen_stddev       0.128 ms        0.128 ms            8   86.7033k        8.91705/s
-efrodo976-keygen_cv            3.40 %          3.39 %             8      0.52%            3.37%
-frodo1344-keygen_mean          7.03 ms         7.03 ms            8   29.3735M        142.732/s
-frodo1344-keygen_median        6.91 ms         6.91 ms            8   30.3793M        144.817/s
-frodo1344-keygen_stddev       0.426 ms        0.426 ms            8     2.884M        8.17556/s
-frodo1344-keygen_cv            6.06 %          6.06 %             8      9.82%            5.73%
-efrodo976-encaps_mean          3.85 ms         3.85 ms            8    16.546M        259.953/s
-efrodo976-encaps_median        3.86 ms         3.86 ms            8    16.543M        259.094/s
-efrodo976-encaps_stddev       0.100 ms        0.101 ms            8   62.8691k        6.80452/s
-efrodo976-encaps_cv            2.60 %          2.61 %             8      0.38%            2.62%
-frodo976-keygen_mean           3.77 ms         3.77 ms            8   16.7192M        265.543/s
-frodo976-keygen_median         3.76 ms         3.76 ms            8   16.7355M        266.287/s
-frodo976-keygen_stddev        0.118 ms        0.119 ms            8   56.5632k        8.27718/s
-frodo976-keygen_cv             3.13 %          3.17 %             8      0.34%            3.12%
-frodo640-encaps_mean           1.68 ms         1.68 ms            8   7.30596M        596.086/s
-frodo640-encaps_median         1.66 ms         1.66 ms            8   7.31084M        601.596/s
-frodo640-encaps_stddev        0.044 ms        0.044 ms            8   39.5615k         15.226/s
-frodo640-encaps_cv             2.62 %          2.62 %             8      0.54%            2.55%
-efrodo640-keygen_mean          1.69 ms         1.69 ms            8   7.38062M        592.313/s
-efrodo640-keygen_median        1.67 ms         1.67 ms            8   7.38694M        598.462/s
-efrodo640-keygen_stddev       0.050 ms        0.050 ms            8   23.2683k        17.4152/s
-efrodo640-keygen_cv            2.96 %          2.96 %             8      0.32%            2.94%
-frodo640-decaps_mean           1.70 ms         1.70 ms            8   7.24945M        589.592/s
-frodo640-decaps_median         1.72 ms         1.72 ms            8   7.24458M        582.119/s
-frodo640-decaps_stddev        0.045 ms        0.045 ms            8   12.5421k        16.2101/s
-frodo640-decaps_cv             2.66 %          2.66 %             8      0.17%            2.75%
-frodo1344-encaps_mean          7.21 ms         7.21 ms            8   31.7763M        138.838/s
-frodo1344-encaps_median        7.08 ms         7.08 ms            8   31.8189M        141.354/s
-frodo1344-encaps_stddev       0.303 ms        0.303 ms            8   217.814k        5.74848/s
-frodo1344-encaps_cv            4.20 %          4.20 %             8      0.69%            4.14%
+frodo640-keygen_mean           1.71 ms         1.71 ms           10   7.74802M        586.498/s
+frodo640-keygen_median         1.71 ms         1.71 ms           10   7.74615M         583.55/s
+frodo640-keygen_stddev        0.029 ms        0.029 ms           10   25.4957k        9.99331/s
+frodo640-keygen_cv             1.68 %          1.69 %            10      0.33%            1.70%
+frodo640-keygen_min            1.66 ms         1.66 ms           10   7.71436M        573.477/s
+frodo640-keygen_max            1.74 ms         1.74 ms           10   7.79528M         601.98/s
+frodo1344-decaps_mean          8.02 ms         8.02 ms           10   36.5374M         124.76/s
+frodo1344-decaps_median        8.04 ms         8.04 ms           10   36.5194M        124.375/s
+frodo1344-decaps_stddev       0.080 ms        0.082 ms           10   67.3266k         1.2775/s
+frodo1344-decaps_cv            1.00 %          1.02 %            10      0.18%            1.02%
+frodo1344-decaps_min           7.89 ms         7.89 ms           10   36.4832M        123.162/s
+frodo1344-decaps_max           8.12 ms         8.12 ms           10   36.7186M        126.701/s
+frodo640-encaps_mean           1.88 ms         1.88 ms           10   8.53185M        532.882/s
+frodo640-encaps_median         1.87 ms         1.87 ms           10   8.51765M        533.897/s
+frodo640-encaps_stddev        0.020 ms        0.020 ms           10   43.7981k        5.62163/s
+frodo640-encaps_cv             1.06 %          1.06 %            10      0.51%            1.05%
+frodo640-encaps_min            1.86 ms         1.86 ms           10   8.50055M        522.831/s
+frodo640-encaps_max            1.91 ms         1.91 ms           10   8.64288M         538.54/s
+efrodo640-encaps_mean          1.87 ms         1.87 ms           10   8.43104M        535.438/s
+efrodo640-encaps_median        1.87 ms         1.87 ms           10   8.42545M        534.381/s
+efrodo640-encaps_stddev       0.024 ms        0.024 ms           10   18.7001k        6.89875/s
+efrodo640-encaps_cv            1.29 %          1.28 %            10      0.22%            1.29%
+efrodo640-encaps_min           1.83 ms         1.83 ms           10   8.41349M        524.765/s
+efrodo640-encaps_max           1.91 ms         1.91 ms           10   8.48126M        546.819/s
+frodo640-decaps_mean           1.87 ms         1.87 ms           10   8.47086M        535.726/s
+frodo640-decaps_median         1.86 ms         1.86 ms           10   8.45572M        537.232/s
+frodo640-decaps_stddev        0.026 ms        0.026 ms           10   31.7133k        7.34445/s
+frodo640-decaps_cv             1.37 %          1.38 %            10      0.37%            1.37%
+frodo640-decaps_min            1.84 ms         1.84 ms           10   8.44128M        524.527/s
+frodo640-decaps_max            1.91 ms         1.91 ms           10   8.54215M         544.78/s
+frodo976-decaps_mean           4.15 ms         4.15 ms           10   18.7267M        241.215/s
+frodo976-decaps_median         4.15 ms         4.14 ms           10   18.6776M        241.341/s
+frodo976-decaps_stddev        0.028 ms        0.027 ms           10   108.363k        1.59498/s
+frodo976-decaps_cv             0.67 %          0.66 %            10      0.58%            0.66%
+frodo976-decaps_min            4.10 ms         4.10 ms           10   18.6132M        238.397/s
+frodo976-decaps_max            4.19 ms         4.19 ms           10   18.8825M        243.679/s
+frodo976-keygen_mean           3.70 ms         3.70 ms           10   16.7474M        270.513/s
+frodo976-keygen_median         3.71 ms         3.71 ms           10   16.7151M        269.694/s
+frodo976-keygen_stddev        0.057 ms        0.058 ms           10   96.2747k        4.26029/s
+frodo976-keygen_cv             1.55 %          1.56 %            10      0.57%            1.57%
+frodo976-keygen_min            3.60 ms         3.59 ms           10   16.6802M          265.4/s
+frodo976-keygen_max            3.77 ms         3.77 ms           10   16.9935M        278.169/s
+efrodo1344-keygen_mean         6.79 ms         6.79 ms           10   30.9048M         147.42/s
+efrodo1344-keygen_median       6.78 ms         6.77 ms           10   30.9134M        147.623/s
+efrodo1344-keygen_stddev      0.136 ms        0.137 ms           10     81.51k        2.96157/s
+efrodo1344-keygen_cv           2.01 %          2.01 %            10      0.26%            2.01%
+efrodo1344-keygen_min          6.61 ms         6.61 ms           10    30.702M        142.979/s
+efrodo1344-keygen_max          6.99 ms         6.99 ms           10   30.9969M        151.305/s
+efrodo976-encaps_mean          3.76 ms         3.76 ms           10   16.9425M        266.308/s
+efrodo976-encaps_median        3.76 ms         3.76 ms           10   16.9365M        266.157/s
+efrodo976-encaps_stddev       0.034 ms        0.034 ms           10   82.7268k        2.41767/s
+efrodo976-encaps_cv            0.91 %          0.91 %            10      0.49%            0.91%
+efrodo976-encaps_min           3.70 ms         3.70 ms           10   16.8102M         263.35/s
+efrodo976-encaps_max           3.80 ms         3.80 ms           10   17.0974M        270.504/s
+frodo1344-encaps_mean          7.20 ms         7.19 ms           10   32.7047M        139.013/s
+frodo1344-encaps_median        7.18 ms         7.17 ms           10   32.7156M        139.388/s
+frodo1344-encaps_stddev       0.066 ms        0.065 ms           10   132.534k        1.25181/s
+frodo1344-encaps_cv            0.91 %          0.91 %            10      0.41%            0.90%
+frodo1344-encaps_min           7.11 ms         7.11 ms           10   32.4692M        136.245/s
+frodo1344-encaps_max           7.34 ms         7.34 ms           10   32.9536M        140.595/s
+frodo1344-keygen_mean          6.92 ms         6.92 ms           10   31.4241M        144.563/s
+frodo1344-keygen_median        6.93 ms         6.93 ms           10   31.4107M        144.306/s
+frodo1344-keygen_stddev       0.130 ms        0.132 ms           10   207.177k        2.76122/s
+frodo1344-keygen_cv            1.88 %          1.90 %            10      0.66%            1.91%
+frodo1344-keygen_min           6.74 ms         6.73 ms           10   31.1381M        140.599/s
+frodo1344-keygen_max           7.11 ms         7.11 ms           10   31.6868M        148.519/s
+efrodo976-decaps_mean          4.16 ms         4.16 ms           10   18.7198M        240.686/s
+efrodo976-decaps_median        4.14 ms         4.14 ms           10     18.66M        241.434/s
+efrodo976-decaps_stddev       0.048 ms        0.048 ms           10   142.737k        2.73773/s
+efrodo976-decaps_cv            1.15 %          1.15 %            10      0.76%            1.14%
+efrodo976-decaps_min           4.10 ms         4.09 ms           10    18.586M        236.141/s
+efrodo976-decaps_max           4.24 ms         4.23 ms           10   18.9842M        244.202/s
+efrodo1344-encaps_mean         7.13 ms         7.12 ms           10   32.2679M        140.389/s
+efrodo1344-encaps_median       7.10 ms         7.10 ms           10   32.2884M        140.784/s
+efrodo1344-encaps_stddev      0.082 ms        0.083 ms           10    117.12k        1.62008/s
+efrodo1344-encaps_cv           1.15 %          1.16 %            10      0.36%            1.15%
+efrodo1344-encaps_min          7.03 ms         7.03 ms           10   32.0382M        137.153/s
+efrodo1344-encaps_max          7.29 ms         7.29 ms           10   32.4774M        142.337/s
+efrodo640-keygen_mean          1.71 ms         1.71 ms           10   7.85829M        583.487/s
+efrodo640-keygen_median        1.69 ms         1.69 ms           10   7.84978M        590.068/s
+efrodo640-keygen_stddev       0.037 ms        0.037 ms           10   38.9127k        12.3362/s
+efrodo640-keygen_cv            2.15 %          2.15 %            10      0.50%            2.11%
+efrodo640-keygen_min           1.68 ms         1.68 ms           10   7.80783M        562.934/s
+efrodo640-keygen_max           1.78 ms         1.78 ms           10    7.9195M        594.743/s
+efrodo1344-decaps_mean         8.14 ms         8.14 ms           10   36.0913M        123.037/s
+efrodo1344-decaps_median       8.09 ms         8.09 ms           10   36.5636M        123.608/s
+efrodo1344-decaps_stddev      0.272 ms        0.268 ms           10   1.58443M        3.82054/s
+efrodo1344-decaps_cv           3.35 %          3.30 %            10      4.39%            3.11%
+efrodo1344-decaps_min          7.91 ms         7.91 ms           10   31.5901M        113.052/s
+efrodo1344-decaps_max          8.86 ms         8.85 ms           10   36.7587M        126.396/s
+efrodo640-decaps_mean          1.87 ms         1.87 ms           10    8.4754M        535.952/s
+efrodo640-decaps_median        1.86 ms         1.86 ms           10   8.46541M        538.322/s
+efrodo640-decaps_stddev       0.028 ms        0.028 ms           10    28.065k        7.98879/s
+efrodo640-decaps_cv            1.50 %          1.50 %            10      0.33%            1.49%
+efrodo640-decaps_min           1.83 ms         1.83 ms           10    8.4358M        523.462/s
+efrodo640-decaps_max           1.91 ms         1.91 ms           10   8.52251M        545.331/s
+efrodo976-keygen_mean          3.69 ms         3.69 ms           10   16.7999M        270.907/s
+efrodo976-keygen_median        3.69 ms         3.69 ms           10    16.719M        271.189/s
+efrodo976-keygen_stddev       0.039 ms        0.039 ms           10   179.092k        2.83697/s
+efrodo976-keygen_cv            1.05 %          1.06 %            10      1.07%            1.05%
+efrodo976-keygen_min           3.64 ms         3.64 ms           10   16.6349M        265.018/s
+efrodo976-keygen_max           3.77 ms         3.77 ms           10   17.1272M        274.386/s
+frodo976-encaps_mean           3.74 ms         3.73 ms           10   16.8268M        267.756/s
+frodo976-encaps_median         3.73 ms         3.73 ms           10   16.7986M         268.21/s
+frodo976-encaps_stddev        0.032 ms        0.031 ms           10   122.764k         2.2137/s
+frodo976-encaps_cv             0.85 %          0.83 %            10      0.73%            0.83%
+frodo976-encaps_min            3.70 ms         3.70 ms           10   16.6643M        263.649/s
+frodo976-encaps_max            3.79 ms         3.79 ms           10   17.0113M        270.411/s
 ```
 
-### On *12th Gen Intel(R) Core(TM) i7-1260P* [ Compiled with Clang-17.0.2 ]
+### On ARM Cortex-A72 (i.e. Raspberry Pi 4B)
+
+Compiled with **gcc version 13.2.0 (Ubuntu 13.2.0-4ubuntu3)**.
 
 ```bash
-2023-11-14T21:16:22+05:30
-Running ./build/perf.out
-Run on (16 X 3895.3 MHz CPU s)
-CPU Caches:
-  L1 Data 48 KiB (x8)
-  L1 Instruction 32 KiB (x8)
-  L2 Unified 1280 KiB (x8)
-  L3 Unified 18432 KiB (x1)
-Load Average: 0.53, 0.48, 0.54
------------------------------------------------------------------------------------------------
-Benchmark                         Time             CPU   Iterations     CYCLES items_per_second
------------------------------------------------------------------------------------------------
-frodo1344-keygen_mean          6.46 ms         6.46 ms            8   29.3472M        154.806/s
-frodo1344-keygen_median        6.43 ms         6.43 ms            8   29.3053M        155.473/s
-frodo1344-keygen_stddev       0.083 ms        0.083 ms            8   159.294k        1.96474/s
-frodo1344-keygen_cv            1.29 %          1.28 %             8      0.54%            1.27%
-frodo1344-encaps_mean          13.0 ms         13.0 ms            8     59.75M        76.9326/s
-frodo1344-encaps_median        13.0 ms         13.0 ms            8   59.7468M        77.0064/s
-frodo1344-encaps_stddev       0.118 ms        0.118 ms            8    69.249k       0.695325/s
-frodo1344-encaps_cv            0.91 %          0.91 %             8      0.12%            0.90%
-efrodo976-decaps_mean          5.85 ms         5.85 ms            8    26.249M        170.947/s
-efrodo976-decaps_median        5.82 ms         5.82 ms            8   26.2234M        171.677/s
-efrodo976-decaps_stddev       0.072 ms        0.072 ms            8    77.012k        2.08752/s
-efrodo976-decaps_cv            1.23 %          1.23 %             8      0.29%            1.22%
-efrodo640-encaps_mean          2.92 ms         2.92 ms            8   13.2454M        342.644/s
-efrodo640-encaps_median        2.90 ms         2.90 ms            8   13.2375M        344.583/s
-efrodo640-encaps_stddev       0.042 ms        0.042 ms            8   27.4564k        4.87626/s
-efrodo640-encaps_cv            1.45 %          1.45 %             8      0.21%            1.42%
-efrodo1344-encaps_mean         13.2 ms         13.2 ms            8   60.0583M        75.9014/s
-efrodo1344-encaps_median       13.1 ms         13.1 ms            8   60.0247M        76.3338/s
-efrodo1344-encaps_stddev      0.280 ms        0.280 ms            8   340.834k        1.60256/s
-efrodo1344-encaps_cv           2.12 %          2.13 %             8      0.57%            2.11%
-frodo640-decaps_mean           2.90 ms         2.90 ms            8   13.2159M        344.856/s
-frodo640-decaps_median         2.89 ms         2.89 ms            8   13.1884M        346.257/s
-frodo640-decaps_stddev        0.046 ms        0.046 ms            8   59.5386k        5.39528/s
-frodo640-decaps_cv             1.59 %          1.59 %             8      0.45%            1.56%
-efrodo640-decaps_mean          2.90 ms         2.90 ms            8   13.1848M        345.368/s
-efrodo640-decaps_median        2.90 ms         2.90 ms            8    13.188M        345.105/s
-efrodo640-decaps_stddev       0.025 ms        0.026 ms            8   16.4474k        3.04985/s
-efrodo640-decaps_cv            0.88 %          0.88 %             8      0.12%            0.88%
-frodo1344-decaps_mean          13.1 ms         13.1 ms            8   59.7862M        76.5473/s
-frodo1344-decaps_median        13.0 ms         13.0 ms            8   59.7214M        76.9549/s
-frodo1344-decaps_stddev       0.215 ms        0.214 ms            8   200.706k        1.24366/s
-frodo1344-decaps_cv            1.65 %          1.64 %             8      0.34%            1.62%
-efrodo1344-keygen_mean         6.64 ms         6.64 ms            8   29.3757M        150.662/s
-efrodo1344-keygen_median       6.61 ms         6.61 ms            8   29.2875M        151.357/s
-efrodo1344-keygen_stddev      0.180 ms        0.179 ms            8   191.606k        4.07208/s
-efrodo1344-keygen_cv           2.70 %          2.70 %             8      0.65%            2.70%
-frodo640-encaps_mean           2.91 ms         2.91 ms            8   13.2555M        343.543/s
-frodo640-encaps_median         2.92 ms         2.92 ms            8   13.2437M        342.921/s
-frodo640-encaps_stddev        0.026 ms        0.026 ms            8   30.5832k        3.08818/s
-frodo640-encaps_cv             0.89 %          0.90 %             8      0.23%            0.90%
-efrodo640-keygen_mean          1.67 ms         1.67 ms            8   7.47165M        599.936/s
-efrodo640-keygen_median        1.66 ms         1.66 ms            8   7.47122M        601.893/s
-efrodo640-keygen_stddev       0.017 ms        0.017 ms            8   5.19107k        6.20448/s
-efrodo640-keygen_cv            1.04 %          1.04 %             8      0.07%            1.03%
-frodo976-decaps_mean           5.84 ms         5.84 ms            8   26.2327M        171.355/s
-frodo976-decaps_median         5.80 ms         5.80 ms            8   26.2229M        172.457/s
-frodo976-decaps_stddev        0.078 ms        0.078 ms            8   44.2111k        2.28259/s
-frodo976-decaps_cv             1.34 %          1.34 %             8      0.17%            1.33%
-efrodo1344-decaps_mean         13.2 ms         13.2 ms            8   59.9126M        75.7504/s
-efrodo1344-decaps_median       13.2 ms         13.2 ms            8   59.8539M        75.6771/s
-efrodo1344-decaps_stddev      0.202 ms        0.203 ms            8   237.834k         1.1655/s
-efrodo1344-decaps_cv           1.53 %          1.54 %             8      0.40%            1.54%
-frodo640-keygen_mean           1.66 ms         1.66 ms            8   7.43802M         601.67/s
-frodo640-keygen_median         1.67 ms         1.67 ms            8   7.44746M        598.454/s
-frodo640-keygen_stddev        0.033 ms        0.033 ms            8   38.2173k        11.9799/s
-frodo640-keygen_cv             2.00 %          1.99 %             8      0.51%            1.99%
-frodo976-keygen_mean           3.67 ms         3.67 ms            8    16.145M        272.685/s
-frodo976-keygen_median         3.68 ms         3.68 ms            8   16.0363M        272.102/s
-frodo976-keygen_stddev        0.036 ms        0.036 ms            8   357.649k        2.70765/s
-frodo976-keygen_cv             0.99 %          0.99 %             8      2.22%            0.99%
-efrodo976-keygen_mean          3.65 ms         3.65 ms            8   16.0231M        274.461/s
-efrodo976-keygen_median        3.65 ms         3.65 ms            8   16.0354M        273.711/s
-efrodo976-keygen_stddev       0.090 ms        0.090 ms            8   161.953k        6.82146/s
-efrodo976-keygen_cv            2.47 %          2.47 %             8      1.01%            2.49%
-efrodo976-encaps_mean          5.86 ms         5.86 ms            8   26.3125M        170.739/s
-efrodo976-encaps_median        5.87 ms         5.87 ms            8   26.3024M        170.433/s
-efrodo976-encaps_stddev       0.062 ms        0.062 ms            8   93.3083k        1.83505/s
-efrodo976-encaps_cv            1.07 %          1.07 %             8      0.35%            1.07%
-frodo976-encaps_mean           5.79 ms         5.79 ms            8   26.2905M        172.766/s
-frodo976-encaps_median         5.77 ms         5.77 ms            8    26.302M        173.237/s
-frodo976-encaps_stddev        0.070 ms        0.070 ms            8   90.1564k        2.07082/s
-frodo976-encaps_cv             1.21 %          1.21 %             8      0.34%            1.20%
+$ uname -srm
+Linux 6.5.0-1009-raspi aarch64
 ```
 
-### On *ARM Cortex-A72 (i.e. Raspberry Pi 4B)* [ Compiled with GCC-13.2.0 ]
-
 ```bash
-2023-11-14T21:40:06+05:30
+2024-02-10T19:40:21+04:00
 Running ./build/perf.out
 Run on (4 X 1800 MHz CPU s)
 CPU Caches:
   L1 Data 32 KiB (x4)
   L1 Instruction 48 KiB (x4)
   L2 Unified 1024 KiB (x1)
-Load Average: 1.39, 1.32, 0.95
-Performance counters not supported.
-------------------------------------------------------------------------------------
-Benchmark                         Time             CPU   Iterations items_per_second
-------------------------------------------------------------------------------------
-frodo640-keygen_mean           6.97 ms         6.97 ms            8        143.467/s
-frodo640-keygen_median         6.97 ms         6.97 ms            8        143.495/s
-frodo640-keygen_stddev        0.010 ms        0.009 ms            8       0.194181/s
-frodo640-keygen_cv             0.14 %          0.14 %             8            0.14%
-efrodo640-keygen_mean          6.97 ms         6.97 ms            8        143.401/s
-efrodo640-keygen_median        6.98 ms         6.98 ms            8        143.356/s
-efrodo640-keygen_stddev       0.005 ms        0.005 ms            8       0.101918/s
-efrodo640-keygen_cv            0.08 %          0.07 %             8            0.07%
-efrodo976-decaps_mean          26.9 ms         26.9 ms            8        37.1446/s
-efrodo976-decaps_median        26.9 ms         26.9 ms            8        37.1436/s
-efrodo976-decaps_stddev       0.017 ms        0.012 ms            8      0.0168801/s
-efrodo976-decaps_cv            0.06 %          0.05 %             8            0.05%
-efrodo976-encaps_mean          26.9 ms         26.9 ms            8        37.1232/s
-efrodo976-encaps_median        26.9 ms         26.9 ms            8          37.12/s
-efrodo976-encaps_stddev       0.017 ms        0.017 ms            8      0.0238676/s
-efrodo976-encaps_cv            0.06 %          0.06 %             8            0.06%
-efrodo1344-keygen_mean         28.6 ms         28.6 ms            8        35.0201/s
-efrodo1344-keygen_median       28.6 ms         28.6 ms            8        35.0034/s
-efrodo1344-keygen_stddev      0.046 ms        0.045 ms            8       0.055295/s
-efrodo1344-keygen_cv           0.16 %          0.16 %             8            0.16%
-efrodo640-encaps_mean          9.12 ms         9.12 ms            8        109.682/s
-efrodo640-encaps_median        9.11 ms         9.11 ms            8        109.746/s
-efrodo640-encaps_stddev       0.029 ms        0.028 ms            8       0.338306/s
-efrodo640-encaps_cv            0.32 %          0.31 %             8            0.31%
-frodo976-decaps_mean           27.0 ms         27.0 ms            8        37.0924/s
-frodo976-decaps_median         27.0 ms         27.0 ms            8        37.1045/s
-frodo976-decaps_stddev        0.045 ms        0.039 ms            8      0.0534145/s
-frodo976-decaps_cv             0.17 %          0.14 %             8            0.14%
-efrodo976-keygen_mean          14.9 ms         14.9 ms            8        66.9203/s
-efrodo976-keygen_median        14.9 ms         14.9 ms            8        66.9517/s
-efrodo976-keygen_stddev       0.032 ms        0.029 ms            8       0.130532/s
-efrodo976-keygen_cv            0.21 %          0.20 %             8            0.20%
-frodo976-keygen_mean           15.0 ms         15.0 ms            8        66.7646/s
-frodo976-keygen_median         15.0 ms         15.0 ms            8        66.7527/s
-frodo976-keygen_stddev        0.017 ms        0.015 ms            8      0.0683373/s
-frodo976-keygen_cv             0.12 %          0.10 %             8            0.10%
-efrodo1344-decaps_mean         46.5 ms         46.5 ms            8        21.5044/s
-efrodo1344-decaps_median       46.7 ms         46.7 ms            8        21.4155/s
-efrodo1344-decaps_stddev      0.325 ms        0.320 ms            8       0.148669/s
-efrodo1344-decaps_cv           0.70 %          0.69 %             8            0.69%
-frodo640-encaps_mean           9.11 ms         9.11 ms            8          109.8/s
-frodo640-encaps_median         9.10 ms         9.10 ms            8        109.843/s
-frodo640-encaps_stddev        0.018 ms        0.019 ms            8       0.224591/s
-frodo640-encaps_cv             0.20 %          0.20 %             8            0.20%
-frodo640-decaps_mean           9.12 ms         9.12 ms            8        109.708/s
-frodo640-decaps_median         9.11 ms         9.11 ms            8        109.729/s
-frodo640-decaps_stddev        0.024 ms        0.024 ms            8       0.289793/s
-frodo640-decaps_cv             0.26 %          0.26 %             8            0.26%
-frodo1344-decaps_mean          46.6 ms         46.5 ms            8        21.4839/s
-frodo1344-decaps_median        46.6 ms         46.6 ms            8        21.4654/s
-frodo1344-decaps_stddev       0.238 ms        0.231 ms            8       0.106829/s
-frodo1344-decaps_cv            0.51 %          0.50 %             8            0.50%
-frodo1344-encaps_mean          46.6 ms         46.6 ms            8        21.4683/s
-frodo1344-encaps_median        46.6 ms         46.6 ms            8        21.4592/s
-frodo1344-encaps_stddev       0.245 ms        0.248 ms            8       0.114247/s
-frodo1344-encaps_cv            0.53 %          0.53 %             8            0.53%
-frodo976-encaps_mean           27.0 ms         27.0 ms            8        37.0742/s
-frodo976-encaps_median         27.0 ms         27.0 ms            8        37.0779/s
-frodo976-encaps_stddev        0.017 ms        0.016 ms            8      0.0219159/s
-frodo976-encaps_cv             0.06 %          0.06 %             8            0.06%
-frodo1344-keygen_mean          28.4 ms         28.4 ms            8        35.1827/s
-frodo1344-keygen_median        28.4 ms         28.4 ms            8        35.1935/s
-frodo1344-keygen_stddev       0.041 ms        0.043 ms            8      0.0529067/s
-frodo1344-keygen_cv            0.14 %          0.15 %             8            0.15%
-efrodo640-decaps_mean          9.09 ms         9.09 ms            8        110.003/s
-efrodo640-decaps_median        9.09 ms         9.09 ms            8        110.058/s
-efrodo640-decaps_stddev       0.018 ms        0.018 ms            8       0.215985/s
-efrodo640-decaps_cv            0.20 %          0.20 %             8            0.20%
-efrodo1344-encaps_mean         46.6 ms         46.6 ms            8        21.4743/s
-efrodo1344-encaps_median       46.7 ms         46.7 ms            8        21.4285/s
-efrodo1344-encaps_stddev      0.239 ms        0.237 ms            8       0.109315/s
-efrodo1344-encaps_cv           0.51 %          0.51 %             8            0.51%
+Load Average: 3.90, 3.07, 1.35
+-----------------------------------------------------------------------------------------------
+Benchmark                         Time             CPU   Iterations     CYCLES items_per_second
+-----------------------------------------------------------------------------------------------
+frodo640-decaps_mean           11.6 ms         11.6 ms           10   20.8035M        86.1919/s
+frodo640-decaps_median         11.6 ms         11.6 ms           10   20.7984M        86.2112/s
+frodo640-decaps_stddev        0.028 ms        0.026 ms           10    43.645k       0.192357/s
+frodo640-decaps_cv             0.24 %          0.22 %            10      0.21%            0.22%
+frodo640-decaps_min            11.6 ms         11.6 ms           10   20.7473M         85.903/s
+frodo640-decaps_max            11.7 ms         11.6 ms           10   20.8671M        86.4585/s
+frodo976-encaps_mean           27.8 ms         27.8 ms           10   49.7831M        35.9634/s
+frodo976-encaps_median         27.8 ms         27.8 ms           10   49.7577M        35.9953/s
+frodo976-encaps_stddev        0.114 ms        0.091 ms           10   102.345k         0.1168/s
+frodo976-encaps_cv             0.41 %          0.33 %            10      0.21%            0.32%
+frodo976-encaps_min            27.8 ms         27.7 ms           10   49.6874M        35.6394/s
+frodo976-encaps_max            28.1 ms         28.1 ms           10   50.0543M        36.0437/s
+efrodo640-encaps_mean          11.6 ms         11.6 ms           10   20.7605M        86.4016/s
+efrodo640-encaps_median        11.6 ms         11.6 ms           10   20.7574M          86.43/s
+efrodo640-encaps_stddev       0.035 ms        0.033 ms           10   53.5772k       0.248893/s
+efrodo640-encaps_cv            0.30 %          0.29 %            10      0.26%            0.29%
+efrodo640-encaps_min           11.5 ms         11.5 ms           10   20.6704M        85.9425/s
+efrodo640-encaps_max           11.6 ms         11.6 ms           10   20.8481M        86.8025/s
+frodo976-keygen_mean           16.1 ms         16.1 ms           10   28.8253M        62.1519/s
+frodo976-keygen_median         16.1 ms         16.1 ms           10   28.8223M        62.1663/s
+frodo976-keygen_stddev        0.030 ms        0.024 ms           10   25.3138k      0.0915808/s
+frodo976-keygen_cv             0.19 %          0.15 %            10      0.09%            0.15%
+frodo976-keygen_min            16.1 ms         16.1 ms           10   28.7932M        61.9907/s
+frodo976-keygen_max            16.2 ms         16.1 ms           10   28.8763M        62.2728/s
+frodo1344-keygen_mean          30.4 ms         30.3 ms           10   54.3517M        32.9614/s
+frodo1344-keygen_median        30.3 ms         30.3 ms           10   54.3528M         32.972/s
+frodo1344-keygen_stddev       0.071 ms        0.050 ms           10   43.3567k      0.0539311/s
+frodo1344-keygen_cv            0.24 %          0.16 %            10      0.08%            0.16%
+frodo1344-keygen_min           30.3 ms         30.3 ms           10   54.2649M        32.8182/s
+frodo1344-keygen_max           30.5 ms         30.5 ms           10   54.4112M        33.0175/s
+efrodo1344-decaps_mean         58.3 ms         58.3 ms           10   104.518M        17.1458/s
+efrodo1344-decaps_median       58.3 ms         58.3 ms           10    104.51M        17.1493/s
+efrodo1344-decaps_stddev      0.041 ms        0.041 ms           10   73.3715k      0.0119627/s
+efrodo1344-decaps_cv           0.07 %          0.07 %            10      0.07%            0.07%
+efrodo1344-decaps_min          58.3 ms         58.3 ms           10   104.426M        17.1235/s
+efrodo1344-decaps_max          58.4 ms         58.4 ms           10   104.634M        17.1573/s
+frodo640-encaps_mean           11.7 ms         11.7 ms           10   20.9929M        85.4197/s
+frodo640-encaps_median         11.7 ms         11.7 ms           10   20.9435M        85.6392/s
+frodo640-encaps_stddev        0.106 ms        0.107 ms           10   189.177k       0.766465/s
+frodo640-encaps_cv             0.91 %          0.92 %            10      0.90%            0.90%
+frodo640-encaps_min            11.6 ms         11.6 ms           10   20.8717M        83.3214/s
+frodo640-encaps_max            12.0 ms         12.0 ms           10   21.5167M        85.9779/s
+efrodo640-decaps_mean          11.7 ms         11.7 ms           10   20.9455M        85.5596/s
+efrodo640-decaps_median        11.7 ms         11.7 ms           10   20.9206M        85.6942/s
+efrodo640-decaps_stddev       0.102 ms        0.096 ms           10   145.277k       0.689053/s
+efrodo640-decaps_cv            0.88 %          0.82 %            10      0.69%            0.81%
+efrodo640-decaps_min           11.6 ms         11.6 ms           10   20.7924M        83.7239/s
+efrodo640-decaps_max           12.0 ms         11.9 ms           10   21.3275M        86.2392/s
+frodo976-decaps_mean           33.2 ms         33.2 ms           10   59.4148M        30.1566/s
+frodo976-decaps_median         33.2 ms         33.2 ms           10   59.4064M        30.1558/s
+frodo976-decaps_stddev        0.035 ms        0.023 ms           10   31.7044k      0.0211804/s
+frodo976-decaps_cv             0.11 %          0.07 %            10      0.05%            0.07%
+frodo976-decaps_min            33.1 ms         33.1 ms           10   59.3744M        30.1205/s
+frodo976-decaps_max            33.2 ms         33.2 ms           10   59.4782M        30.1832/s
+efrodo1344-encaps_mean         47.1 ms         47.1 ms           10   84.2622M         21.248/s
+efrodo1344-encaps_median       47.1 ms         47.1 ms           10    84.252M        21.2463/s
+efrodo1344-encaps_stddev      0.041 ms        0.028 ms           10   51.1552k      0.0125576/s
+efrodo1344-encaps_cv           0.09 %          0.06 %            10      0.06%            0.06%
+efrodo1344-encaps_min          47.0 ms         47.0 ms           10   84.1763M        21.2231/s
+efrodo1344-encaps_max          47.2 ms         47.1 ms           10   84.3703M         21.266/s
+efrodo1344-keygen_mean         30.4 ms         30.3 ms           10   54.3928M         32.954/s
+efrodo1344-keygen_median       30.4 ms         30.3 ms           10   54.3935M        32.9519/s
+efrodo1344-keygen_stddev      0.045 ms        0.035 ms           10   48.2762k      0.0382021/s
+efrodo1344-keygen_cv           0.15 %          0.12 %            10      0.09%            0.12%
+efrodo1344-keygen_min          30.3 ms         30.3 ms           10   54.3087M        32.9139/s
+efrodo1344-keygen_max          30.4 ms         30.4 ms           10   54.4462M         33.022/s
+frodo1344-encaps_mean          47.2 ms         47.2 ms           10   84.5568M        21.1765/s
+frodo1344-encaps_median        47.2 ms         47.2 ms           10   84.5609M        21.1778/s
+frodo1344-encaps_stddev       0.056 ms        0.029 ms           10   36.1765k      0.0130927/s
+frodo1344-encaps_cv            0.12 %          0.06 %            10      0.04%            0.06%
+frodo1344-encaps_min           47.2 ms         47.2 ms           10    84.489M        21.1487/s
+frodo1344-encaps_max           47.4 ms         47.3 ms           10    84.618M        21.1972/s
+efrodo976-decaps_mean          33.4 ms         33.4 ms           10   59.7574M        29.9563/s
+efrodo976-decaps_median        33.4 ms         33.4 ms           10   59.7436M        29.9784/s
+efrodo976-decaps_stddev       0.097 ms        0.068 ms           10   47.6615k      0.0606407/s
+efrodo976-decaps_cv            0.29 %          0.20 %            10      0.08%            0.20%
+efrodo976-decaps_min           33.3 ms         33.3 ms           10   59.6804M        29.8343/s
+efrodo976-decaps_max           33.6 ms         33.5 ms           10   59.8361M        30.0234/s
+efrodo976-keygen_mean          16.1 ms         16.1 ms           10   28.8374M        62.1375/s
+efrodo976-keygen_median        16.1 ms         16.1 ms           10   28.8364M        62.1392/s
+efrodo976-keygen_stddev       0.017 ms        0.015 ms           10   22.3901k      0.0577305/s
+efrodo976-keygen_cv            0.11 %          0.09 %            10      0.08%            0.09%
+efrodo976-keygen_min           16.1 ms         16.1 ms           10   28.8037M        62.0639/s
+efrodo976-keygen_max           16.1 ms         16.1 ms           10   28.8719M        62.2528/s
+efrodo640-keygen_mean          7.54 ms         7.54 ms           10   13.5173M        132.646/s
+efrodo640-keygen_median        7.54 ms         7.54 ms           10   13.5179M        132.679/s
+efrodo640-keygen_stddev       0.012 ms        0.010 ms           10   10.8684k       0.182286/s
+efrodo640-keygen_cv            0.16 %          0.14 %            10      0.08%            0.14%
+efrodo640-keygen_min           7.53 ms         7.53 ms           10   13.5009M        132.191/s
+efrodo640-keygen_max           7.57 ms         7.56 ms           10   13.5409M        132.845/s
+frodo1344-decaps_mean          58.1 ms         58.1 ms           10   104.069M         17.212/s
+frodo1344-decaps_median        58.1 ms         58.1 ms           10   104.051M        17.2186/s
+frodo1344-decaps_stddev       0.124 ms        0.117 ms           10   121.889k      0.0346415/s
+frodo1344-decaps_cv            0.21 %          0.20 %            10      0.12%            0.20%
+frodo1344-decaps_min           57.9 ms         57.9 ms           10   103.855M        17.1258/s
+frodo1344-decaps_max           58.4 ms         58.4 ms           10   104.313M        17.2616/s
+efrodo976-encaps_mean          27.8 ms         27.8 ms           10   49.6825M        36.0079/s
+efrodo976-encaps_median        27.8 ms         27.8 ms           10   49.6649M        36.0326/s
+efrodo976-encaps_stddev       0.096 ms        0.070 ms           10   66.6332k      0.0903453/s
+efrodo976-encaps_cv            0.34 %          0.25 %            10      0.13%            0.25%
+efrodo976-encaps_min           27.7 ms         27.7 ms           10    49.586M        35.8039/s
+efrodo976-encaps_max           28.0 ms         27.9 ms           10   49.8346M        36.1167/s
+frodo640-keygen_mean           7.56 ms         7.56 ms           10   13.5475M        132.276/s
+frodo640-keygen_median         7.56 ms         7.56 ms           10   13.5475M        132.272/s
+frodo640-keygen_stddev        0.018 ms        0.015 ms           10   17.3223k       0.268927/s
+frodo640-keygen_cv             0.24 %          0.20 %            10      0.13%            0.20%
+frodo640-keygen_min            7.54 ms         7.54 ms           10   13.5162M        131.808/s
+frodo640-keygen_max            7.60 ms         7.59 ms           10   13.5737M        132.684/s
 ```
 
-### On *ARM Cortex-A72 (i.e. Raspberry Pi 4B)* [ Compiled with Clang-17.0.2 ]
+### On Apple M1 Max
+
+Compiled with **Apple clang version 15.0.0 (clang-1500.1.0.2.5)**.
 
 ```bash
-2023-11-14T21:42:05+05:30
-Running ./build/perf.out
-Run on (4 X 1800 MHz CPU s)
+$ uname -srm
+Darwin 23.3.0 arm64
+```
+
+```bash
+2024-02-10T19:45:50+04:00
+Running ./build/bench.out
+Run on (10 X 24 MHz CPU s)
 CPU Caches:
-  L1 Data 32 KiB (x4)
-  L1 Instruction 48 KiB (x4)
-  L2 Unified 1024 KiB (x1)
-Load Average: 0.62, 1.05, 0.90
-Performance counters not supported.
+  L1 Data 64 KiB
+  L1 Instruction 128 KiB
+  L2 Unified 4096 KiB (x10)
+Load Average: 6.99, 4.42, 4.17
 ------------------------------------------------------------------------------------
 Benchmark                         Time             CPU   Iterations items_per_second
 ------------------------------------------------------------------------------------
-efrodo640-decaps_mean          29.0 ms         29.0 ms            8        34.4418/s
-efrodo640-decaps_median        29.0 ms         29.0 ms            8        34.4555/s
-efrodo640-decaps_stddev       0.035 ms        0.033 ms            8      0.0393049/s
-efrodo640-decaps_cv            0.12 %          0.11 %             8            0.11%
-frodo1344-decaps_mean           134 ms          134 ms            8        7.47997/s
-frodo1344-decaps_median         134 ms          134 ms            8        7.47764/s
-frodo1344-decaps_stddev       0.109 ms        0.098 ms            8       5.46918m/s
-frodo1344-decaps_cv            0.08 %          0.07 %             8            0.07%
-frodo976-keygen_mean           34.8 ms         34.8 ms            8         28.743/s
-frodo976-keygen_median         34.8 ms         34.8 ms            8        28.7421/s
-frodo976-keygen_stddev        0.019 ms        0.014 ms            8      0.0117582/s
-frodo976-keygen_cv             0.05 %          0.04 %             8            0.04%
-efrodo1344-keygen_mean         69.5 ms         69.5 ms            8        14.3815/s
-efrodo1344-keygen_median       69.5 ms         69.5 ms            8        14.3827/s
-efrodo1344-keygen_stddev      0.035 ms        0.037 ms            8       7.69036m/s
-efrodo1344-keygen_cv           0.05 %          0.05 %             8            0.05%
-frodo640-decaps_mean           29.1 ms         29.0 ms            8        34.4237/s
-frodo640-decaps_median         29.0 ms         29.0 ms            8        34.4347/s
-frodo640-decaps_stddev        0.038 ms        0.040 ms            8      0.0473325/s
-frodo640-decaps_cv             0.13 %          0.14 %             8            0.14%
-efrodo976-decaps_mean          56.0 ms         56.0 ms            8        17.8636/s
-efrodo976-decaps_median        56.0 ms         56.0 ms            8        17.8657/s
-efrodo976-decaps_stddev       0.030 ms        0.019 ms            8       6.13093m/s
-efrodo976-decaps_cv            0.05 %          0.03 %             8            0.03%
-frodo640-keygen_mean           15.5 ms         15.5 ms            8         64.358/s
-frodo640-keygen_median         15.5 ms         15.5 ms            8        64.3649/s
-frodo640-keygen_stddev        0.012 ms        0.012 ms            8      0.0502388/s
-frodo640-keygen_cv             0.08 %          0.08 %             8            0.08%
-efrodo976-keygen_mean          35.0 ms         35.0 ms            8        28.5803/s
-efrodo976-keygen_median        35.0 ms         35.0 ms            8        28.5819/s
-efrodo976-keygen_stddev       0.049 ms        0.041 ms            8       0.033305/s
-efrodo976-keygen_cv            0.14 %          0.12 %             8            0.12%
-frodo976-encaps_mean           55.8 ms         55.8 ms            8        17.9101/s
-frodo976-encaps_median         55.8 ms         55.8 ms            8          17.91/s
-frodo976-encaps_stddev        0.030 ms        0.023 ms            8       7.26259m/s
-frodo976-encaps_cv             0.05 %          0.04 %             8            0.04%
-frodo976-decaps_mean           56.1 ms         56.1 ms            8        17.8166/s
-frodo976-decaps_median         56.1 ms         56.1 ms            8        17.8201/s
-frodo976-decaps_stddev        0.050 ms        0.035 ms            8      0.0111291/s
-frodo976-decaps_cv             0.09 %          0.06 %             8            0.06%
-efrodo640-encaps_mean          29.0 ms         29.0 ms            8        34.5191/s
-efrodo640-encaps_median        29.0 ms         29.0 ms            8        34.5295/s
-efrodo640-encaps_stddev       0.050 ms        0.049 ms            8      0.0577552/s
-efrodo640-encaps_cv            0.17 %          0.17 %             8            0.17%
-efrodo1344-decaps_mean          134 ms          134 ms            8        7.48309/s
-efrodo1344-decaps_median        134 ms          134 ms            8        7.48083/s
-efrodo1344-decaps_stddev      0.185 ms        0.174 ms            8       9.75308m/s
-efrodo1344-decaps_cv           0.14 %          0.13 %             8            0.13%
-frodo1344-encaps_mean           134 ms          134 ms            8        7.47452/s
-frodo1344-encaps_median         134 ms          134 ms            8         7.4752/s
-frodo1344-encaps_stddev       0.168 ms        0.153 ms            8       8.54404m/s
-frodo1344-encaps_cv            0.13 %          0.11 %             8            0.11%
-efrodo1344-encaps_mean          134 ms          134 ms            8        7.47717/s
-efrodo1344-encaps_median        134 ms          134 ms            8        7.47543/s
-efrodo1344-encaps_stddev      0.187 ms        0.182 ms            8      0.0101732/s
-efrodo1344-encaps_cv           0.14 %          0.14 %             8            0.14%
-efrodo976-encaps_mean          55.8 ms         55.8 ms            8        17.9132/s
-efrodo976-encaps_median        55.8 ms         55.8 ms            8        17.9164/s
-efrodo976-encaps_stddev       0.037 ms        0.027 ms            8       8.67024m/s
-efrodo976-encaps_cv            0.07 %          0.05 %             8            0.05%
-efrodo640-keygen_mean          15.6 ms         15.6 ms            8        64.3067/s
-efrodo640-keygen_median        15.6 ms         15.5 ms            8        64.3165/s
-efrodo640-keygen_stddev       0.016 ms        0.014 ms            8      0.0569655/s
-efrodo640-keygen_cv            0.10 %          0.09 %             8            0.09%
-frodo1344-keygen_mean          69.9 ms         69.9 ms            8        14.3035/s
-frodo1344-keygen_median        70.0 ms         70.0 ms            8        14.2941/s
-frodo1344-keygen_stddev       0.114 ms        0.112 ms            8       0.023011/s
-frodo1344-keygen_cv            0.16 %          0.16 %             8            0.16%
-frodo640-encaps_mean           29.1 ms         29.1 ms            8        34.4028/s
-frodo640-encaps_median         29.0 ms         29.0 ms            8        34.5066/s
-frodo640-encaps_stddev        0.200 ms        0.198 ms            8       0.232564/s
-frodo640-encaps_cv             0.69 %          0.68 %             8            0.68%
+frodo1344-decaps_mean          15.4 ms         15.3 ms           10        65.2019/s
+frodo1344-decaps_median        15.3 ms         15.3 ms           10        65.4979/s
+frodo1344-decaps_stddev       0.180 ms        0.180 ms           10       0.745988/s
+frodo1344-decaps_cv            1.17 %          1.17 %            10            1.14%
+frodo1344-decaps_min           15.3 ms         15.3 ms           10        63.1579/s
+frodo1344-decaps_max           15.9 ms         15.8 ms           10        65.5337/s
+frodo1344-encaps_mean          15.3 ms         15.3 ms           10         65.496/s
+frodo1344-encaps_median        15.3 ms         15.3 ms           10        65.5554/s
+frodo1344-encaps_stddev       0.045 ms        0.043 ms           10       0.184255/s
+frodo1344-encaps_cv            0.29 %          0.28 %            10            0.28%
+frodo1344-encaps_min           15.3 ms         15.2 ms           10        64.9749/s
+frodo1344-encaps_max           15.5 ms         15.4 ms           10        65.5848/s
+efrodo640-keygen_mean          2.00 ms         1.99 ms           10        502.681/s
+efrodo640-keygen_median        1.99 ms         1.98 ms           10        505.387/s
+efrodo640-keygen_stddev       0.032 ms        0.028 ms           10        6.86121/s
+efrodo640-keygen_cv            1.62 %          1.41 %            10            1.36%
+efrodo640-keygen_min           1.99 ms         1.98 ms           10        483.437/s
+efrodo640-keygen_max           2.09 ms         2.07 ms           10        505.442/s
+frodo640-decaps_mean           3.65 ms         3.64 ms           10        275.062/s
+frodo640-decaps_median         3.64 ms         3.63 ms           10        275.551/s
+frodo640-decaps_stddev        0.018 ms        0.016 ms           10        1.20987/s
+frodo640-decaps_cv             0.48 %          0.44 %            10            0.44%
+frodo640-decaps_min            3.64 ms         3.63 ms           10         271.84/s
+frodo640-decaps_max            3.69 ms         3.68 ms           10        275.755/s
+efrodo1344-decaps_mean         15.3 ms         15.2 ms           10        65.5787/s
+efrodo1344-decaps_median       15.3 ms         15.2 ms           10        65.5991/s
+efrodo1344-decaps_stddev      0.023 ms        0.017 ms           10      0.0714561/s
+efrodo1344-decaps_cv           0.15 %          0.11 %            10            0.11%
+efrodo1344-decaps_min          15.2 ms         15.2 ms           10        65.4398/s
+efrodo1344-decaps_max          15.3 ms         15.3 ms           10        65.6402/s
+frodo976-keygen_mean           4.07 ms         4.06 ms           10        246.485/s
+frodo976-keygen_median         4.07 ms         4.06 ms           10        246.496/s
+frodo976-keygen_stddev        0.004 ms        0.002 ms           10       0.148473/s
+frodo976-keygen_cv             0.11 %          0.06 %            10            0.06%
+frodo976-keygen_min            4.06 ms         4.05 ms           10        246.246/s
+frodo976-keygen_max            4.08 ms         4.06 ms           10         246.64/s
+frodo640-keygen_mean           1.99 ms         1.98 ms           10        504.964/s
+frodo640-keygen_median         1.99 ms         1.98 ms           10        505.631/s
+frodo640-keygen_stddev        0.006 ms        0.005 ms           10        1.19111/s
+frodo640-keygen_cv             0.32 %          0.24 %            10            0.24%
+frodo640-keygen_min            1.98 ms         1.98 ms           10        502.698/s
+frodo640-keygen_max            2.00 ms         1.99 ms           10        505.752/s
+efrodo1344-keygen_mean         7.59 ms         7.56 ms           10        132.279/s
+efrodo1344-keygen_median       7.58 ms         7.55 ms           10        132.416/s
+efrodo1344-keygen_stddev      0.027 ms        0.025 ms           10       0.431867/s
+efrodo1344-keygen_cv           0.35 %          0.33 %            10            0.33%
+efrodo1344-keygen_min          7.55 ms         7.55 ms           10         131.07/s
+efrodo1344-keygen_max          7.65 ms         7.63 ms           10         132.49/s
+frodo976-decaps_mean           5.54 ms         5.52 ms           10        181.069/s
+frodo976-decaps_median         5.53 ms         5.51 ms           10        181.368/s
+frodo976-decaps_stddev        0.026 ms        0.015 ms           10        0.48885/s
+frodo976-decaps_cv             0.47 %          0.27 %            10            0.27%
+frodo976-decaps_min            5.51 ms         5.51 ms           10        179.991/s
+frodo976-decaps_max            5.59 ms         5.56 ms           10        181.432/s
+efrodo640-encaps_mean          3.66 ms         3.64 ms           10        274.572/s
+efrodo640-encaps_median        3.65 ms         3.64 ms           10        274.841/s
+efrodo640-encaps_stddev       0.013 ms        0.012 ms           10       0.868905/s
+efrodo640-encaps_cv            0.34 %          0.32 %            10            0.32%
+efrodo640-encaps_min           3.64 ms         3.64 ms           10        272.149/s
+efrodo640-encaps_max           3.69 ms         3.67 ms           10        275.082/s
+frodo1344-keygen_mean          7.61 ms         7.58 ms           10        131.971/s
+frodo1344-keygen_median        7.58 ms         7.55 ms           10        132.449/s
+frodo1344-keygen_stddev       0.052 ms        0.054 ms           10       0.929096/s
+frodo1344-keygen_cv            0.68 %          0.71 %            10            0.70%
+frodo1344-keygen_min           7.57 ms         7.55 ms           10        129.565/s
+frodo1344-keygen_max           7.74 ms         7.72 ms           10        132.477/s
+efrodo1344-encaps_mean         15.3 ms         15.3 ms           10        65.4314/s
+efrodo1344-encaps_median       15.3 ms         15.3 ms           10        65.5241/s
+efrodo1344-encaps_stddev      0.048 ms        0.052 ms           10       0.221589/s
+efrodo1344-encaps_cv           0.32 %          0.34 %            10            0.34%
+efrodo1344-encaps_min          15.3 ms         15.3 ms           10        64.8406/s
+efrodo1344-encaps_max          15.5 ms         15.4 ms           10        65.5518/s
+frodo976-encaps_mean           5.55 ms         5.53 ms           10        180.743/s
+frodo976-encaps_median         5.55 ms         5.53 ms           10        180.809/s
+frodo976-encaps_stddev        0.007 ms        0.005 ms           10        0.16868/s
+frodo976-encaps_cv             0.13 %          0.09 %            10            0.09%
+frodo976-encaps_min            5.54 ms         5.53 ms           10         180.28/s
+frodo976-encaps_max            5.57 ms         5.55 ms           10        180.854/s
+efrodo640-decaps_mean          3.67 ms         3.65 ms           10        274.383/s
+efrodo640-decaps_median        3.64 ms         3.63 ms           10         275.68/s
+efrodo640-decaps_stddev       0.088 ms        0.045 ms           10        3.26627/s
+efrodo640-decaps_cv            2.39 %          1.22 %            10            1.19%
+efrodo640-decaps_min           3.64 ms         3.63 ms           10        265.425/s
+efrodo640-decaps_max           3.92 ms         3.77 ms           10        275.755/s
+frodo640-encaps_mean           3.65 ms         3.64 ms           10        274.956/s
+frodo640-encaps_median         3.65 ms         3.63 ms           10         275.11/s
+frodo640-encaps_stddev        0.008 ms        0.004 ms           10        0.31175/s
+frodo640-encaps_cv             0.22 %          0.11 %            10            0.11%
+frodo640-encaps_min            3.64 ms         3.63 ms           10        274.123/s
+frodo640-encaps_max            3.66 ms         3.65 ms           10        275.136/s
+efrodo976-encaps_mean          5.59 ms         5.56 ms           10        179.794/s
+efrodo976-encaps_median        5.56 ms         5.53 ms           10        180.765/s
+efrodo976-encaps_stddev       0.096 ms        0.077 ms           10        2.42502/s
+efrodo976-encaps_cv            1.71 %          1.39 %            10            1.35%
+efrodo976-encaps_min           5.55 ms         5.53 ms           10        173.032/s
+efrodo976-encaps_max           5.86 ms         5.78 ms           10        180.831/s
+efrodo976-keygen_mean          4.07 ms         4.06 ms           10        246.432/s
+efrodo976-keygen_median        4.07 ms         4.05 ms           10        246.648/s
+efrodo976-keygen_stddev       0.014 ms        0.007 ms           10       0.402812/s
+efrodo976-keygen_cv            0.35 %          0.16 %            10            0.16%
+efrodo976-keygen_min           4.05 ms         4.05 ms           10        245.645/s
+efrodo976-keygen_max           4.10 ms         4.07 ms           10        246.734/s
+efrodo976-decaps_mean          5.56 ms         5.53 ms           10        180.721/s
+efrodo976-decaps_median        5.53 ms         5.51 ms           10        181.336/s
+efrodo976-decaps_stddev       0.076 ms        0.061 ms           10        1.93287/s
+efrodo976-decaps_cv            1.36 %          1.10 %            10            1.07%
+efrodo976-decaps_min           5.53 ms         5.51 ms           10        175.226/s
+efrodo976-decaps_max           5.77 ms         5.71 ms           10        181.439/s
 ```
 
 ## Usage
 
-FrodoKEM is a header-only C++ library, which is fairly easy to use.
+FrodoKEM is a header-only C++20 library, which is fairly easy to use.
 
 - Clone the repository.
 - Import dependencies, by enabling git submodule.
@@ -634,18 +713,9 @@ main()
 }
 ```
 
-I keep example programs demonstrating usage of {e}FrodoKEM-640 API in `./examples` directory. You may go through it for better understanding of Frodo KEM API.
+I keep example programs demonstrating usage of {e}FrodoKEM-640 API in the [./examples](./examples/) directory. You may go through them for better understanding of Frodo KEM API surface.
 
 ```bash
-$ g++ -std=c++20 -O3 -march=native -Wall -I include -I sha3/include -I subtle/include examples/efrodo640_kem.cpp && ./a.out
-
-eFrodo-640 KEM
-
-Public Key    : 1204c4bda4f262644028a56d28451707c221eb6b554bc76fbcab51c395b356c7980b5ed02ff3feb80e993a48972846f8cbe80cc7eca487cea1ff77cf2c3371dd31799d5093e17beeda4f01843402aa48c40eda13374ef236e84ccb364c5814571cf2be9de2f8c605b9fbfbb8c3cb6d482d4230b65a2c69782d0b878cd5365e6a56f3f5d05a1dc6ebf55948a6be124d17a80e0efc64af43cd900ec503463a59fb1c884e4c51dd27d19c5ad7b88fe5620338a875b9729a6ee8b7a3d8cc989d931a5d03d5cf3938d3022715d6385d1b9b89e64a00b4f96a6309d3dc96ec598bcccf8c71531b7695db49a76e93a5d43229467bc4b51a0e019e8309e99369a6f2e26548998e3f2f7c27e83fcc770af9264e088e716d8807b67f2a831c84886425f90ab05679355b4f3ed3dfd7a801a7229ee033e516c2aeb35cda1531cac5fa1a77dc9971e30d28d9a18373891039097aa896e326927f5c42da72f4a1a1ca96c4abfb551957bc6c3ca1e253464465f5c87c4fa2b14789dbe048a1e2b5bd83f0dc3ae3f98745c769fe641001829c4e46731ab8e44635d8627dc014a854eb861e53f16cfbc1a57eebc7e55a6115eca6b4ebfe794401d20e8c2d7e8831e9677c54a5a27f31539f7e086571468fe6f423d269b21df30148c0a42059de4dadb45489ccc1eddffde261693f7eec27415973c9fb18b5c1b3ba39e1159475d0f3ccd13acd297b18255ce5664adaecb0e3d84ff8fc9b8221be31cb69cd6cafd225f047cdecf0c5b1609c4fd4e0a686e3a989d930d24a88e408cf70989ca5098301460cf17e7579fc86e766407e69c39eacf18853f49543cf7a9dbce4955a9ca3cd171938a6df316656ffd3bec5cd3781e4e9519dd3be8a572a908747308f3e2c9c83e4008cf8d85c578e87953a69bf6d34285befa2475bcc22b199cc67ab166062aaa2c17f31f048fecc6d9e7d7895866c2d554b85f02a3f3f66eba1c8fbf2679c8d317097a737a7323f273ee8e38aa2c94d2423716734b77412b04ea1557d22a973773fe1ece39e81d7785068501dcf96e7ea85f64e29b6a1dcfbe37407d4f2b3f324d8f936137bc378575d83452bbecb3ec4b6b5fdb101bd9d7df0261c4e5664592273a00eefb0d62a6f7a07d00babaf34dd68b1c3ec344865013c648c22093a172e8b01701515638232f7763afd142014b5a1d72afc19f9eb6c40d28f61c11599fe21578d9b471bba219ff361282d937d22d2c42c3c0e80e489edeb813c0263935b09e8f498e459f2019168f3457b53883d817bfcbae51dc6e24fb70a172d1094cf3068264b4a1a5eb7eb2bd8ba574e58dcd600d557e198112469c9231751ac32c371086b73c8c629b205a1c825c63022318a2ea333774b54e0836446380539191c635ef39621e7cd95eee599851d303c4bb005067b9549be388c664546d4a97eb93701c577ee60457a20aaf45a0f60d201166d4bde81bb8fbc2fe3edde00e1ee03be160b65f799e176946b4bc6accb42b22140b2854edd9e954005060b851bba9952e27994ef5a6e17237fa4b88b6692b04e71526fb23de0725831e443a1270b5165f4db6f61656575f2d10f38c35349f6234fd50ca331cda925798e39c70d7926d6b3202facc5becdfc6f5bf89ec0ba4db20e4b5a8a0e484c46ab7305172805be7d882cba91a5e282df25e552e95a0eb23a536b57694b721b84140f2a4b25ca6fba6f1ee423b7400d73fa8a689916ca8a93dac0aa63cf4cea5d187ae6ad9b49e2c879e5d3aa45d68a672bf9435e5733ed492dec5649f6bfa4562a624e7d21435511733e15f4b79fdc4acee54c25f51aa2c245ffa1cb268d8ebcc0d5be7d0ed62686bdc06b119fcf11acec21b37ab068fe2982abf104ce29fe86de753eed73ffcd0441616b21ee3a682ad82c0f46bd5c656a3e2fcbbd11ec91ce4d16805701be0825f511279e18e569d1eb1b3de4dca9e98b240b19fecdc978edd912f1e5be363e67c6ee6d083d34da9b593b27a77620ef5c2b7c0f3e5afc73a96bf91e7133f3edea7b922bf6907695762e5784579fa82dbc67ad56dafe3efec9e595ab249319ad783a20d64e26c4cef9575723b62d5310a33f47081c1e7fe05a4964bdd6a3dda1019aadd56a0a6b17fbd631b9cb365901bbd8996b6f9bc43a10e202be8fedc6587b47b263944448ae6ca7eb4e58c95b0b28820d1ec719ad0b2683e7b00f92342e7adc2989e04cc292ea85a64ef393e21a47a1035ff7ffc776533f41bd75c63968939ae452344896bd3630bd22f0e42ebb04cbe013b645040841453045998afc803c8c8af1a5aa9f544449d7bbc8dc06f8e75e2821a01eeb8da88006ba9f32fc0fac392cef24e41aa8928c20655c5bcd456e8a0c0645acb72b7ba7e9132b2824b222a081a0e787b06d806607b34fe979b62798f4f50d26755f845a6c38dc72e6097616d4dbe0cc16b6ae88dfd29ae89b6199e65bc5ff406b343af5aea79c77f9cb7943ea09da08ab345d5599c7e54f427eab84571ba06f7ba74aa47edccacbb47236427483b333ed4175f684666eeab493ef266c4450076d009cc84b0123f0a72d58e68fba40d8cbf97b2680fcf6f6222ad3270fe775ea0a6fb0651cb51b564d9624427f34ff677204d823f1460368943a6c3fdcaa95f3248027ab6df1ba0997e452f6db1368c7133cbf6d31f931ebb05765d934704c45ccf187ed81ca1b55bac4bd300e87ea5f7618d436adf5a485939f459c69d4e737e8aec6b509c7abb8f350ebb8482c56a40ff7db52692efd92b003c20c8cd0e66f4a9f510a68301749beef7ac395e6eaf4cbfadaf4642797d444adaf7188004c2778fd317e88728933cb7dc508fec9844240519d8fbc1615f8bf0f8fe6dd67a068db384d5b272e05157b20cbefb96dcb8715d3023bb494f5a282101f4f390f200ceccbf48d8de193ef3603502c80d1666c8c5c96dc991d0209d6b7cf039e37375cdef498466d6c76764b37c9d2b1a3c8bc70b7ce71f2feb9bb0ddad8293ef3c81b528e864cc70292dff8e57cd48f14ec9e346fe0e915b1d590b804a4dbec452b767672762b0098d4df559f121b80e4931fe369f0ebbaf6004ca3ba02a88e9c11cf1e1eb943a824bdd8bb4be735f59638548d85249b787b02db4e34a6952a1a50d367209ef46e924d522742b8de8542a6f169e5dbba2cc528eb9e26a63bd87f86b4f191bd2c0627111e3e17ed79b2e35a16a041a7af3f2d50f0794ebda73ec39ce9a83fc38479116136059433189006fb89fc5b285a30052b4cd1f4e3a4e8be71446ae05b7cbc743cccbfeedb4b9a8b7cb81bf6680db1fab650873af2106464a92bc90de4aa441af523728dd0d3621749c7852d50a714f3c4f3fe4479f96b0b6a1cd86b3fc674609fbe59b66582045e1a4924f5ad28a370af66b747962edb93beceaa25b4783a962c770b32a6ebdf93b383e93324cc9529afe65472ef1291dc93845498d4cc013f0ee7c49a706cf5ffdfd4d76ef64b2901677e65450ed4b51c29c2b3f7b98d109fb93214bbda9bd48cc03d7798404cfd70d57b021544d1d3d76144942e20561ba7431a6617526fa42aee2599516479002ca14c8848ab82349d916358e23ce0205b7ff4cdc8846c75581637dcb0aea56b529417d9d2c05516c69ad6b4a3485c6ecbfcf8ae8c69049c568aab4d0d50ec5a91b7f9a6d26c17446e40409efdbca121a30d4d843135bfb33d05ec117094bfa04fe80c7a3aac274de36b855032b93e33763dac2a79764cbb3afe864cac6ad693ebf1391b3d3a3dd8ec71e0a9529131abdc9edf7cb74b475ce2d88401858585443aed267de50751b8f9f96983cc4a9fee7e8c68b4e84d007b843387790e8dc6d5cab02814ba6015372ce54af16677cf30b5cdeff5560b99e5b642a27ff2794008cb88b31e155fdae4e710ec77385e2611b63a72fb6498eaba7cbc299918973dc65ab511db6cc35d607224bdf50f81f3bd671b82128703578feaa7e8b88103c90d3b0e9de903feba269e2486e0f0653e6cb34b261fcb927879bb3992d6af48424829b7344eba90bb7840caa14192239cab0121be2cabc2deb744c68f5ee6c448a4cb31272b86c3a1568c6fea042b6f7b7d1ff6da87d27bf98d177380c40d6cc2bba3ef19564ff811ef93e58d9e0de74bdaf0675da3338db036a98d6601ab8bceba102fe031b4665ec292f5412a43a1fa92064d95980d529aab90907a8bbcbcff1338a1cd887d5991ab6bb3ded6c208346091f31dc733b2e0886366617acf72b0da2716ef5a2e0c04de746ff97b5f88348cb0c2fa14eac29cc4bb181a51296f0316eacb545da35c585c177fc5001d4fb3dd7a2fc401196ca341787cc337435e0fac1427814c90c93af5a71c01c8935b21cb20e625373cbed5928aa2684db4cbffa0f595cfdf063ce3f29a8d1093c0e9dadd2a99deb69a3e752979bbbb549536761941b15470395dd6b06ffb8e4f16e2f82f7ea32e2cae099a74cb9c2859354f137113b0253f68fc85a246bf1c13e765a4abb493e67bc9216dab3230a552ce580f9bcb6f019df4a3886f6c8b41fe7e8cb40bca0c79ff8c6f566d45888b0f86298a026d8a2534eecb9b7d8e7c7b7ad7bb1d23e735427b77c4034eb6d26cd15b29041a3ce3313d0a9a6d204de51ab9d0618f2e88a35e27bbaca1371f4860422b378ad8659ae308e4d50be4bd3f2bb18be73396ef23e620e3c736380c4581f35eb87112668fbf688e5296464082f4524c03ec47ceab7b3690070609eff08b77915c3867dcfcf3b92fd2043004c05a1c0136da694c4e3b7aa54b687ec6435e21dd9b241166bc3bc94ac09310d455064c987206af192b6897a1327f02b786cc429ee695f7f81153c8b5ef45e0ddcaff5132557e55d7dfbe1092b28869e12de171c48018bead1811a71efe757f662e0865582658b57072090d3ae1a77e3e37865833058ffe273917c094ba1e021aa7cff796a584946350f828e742e22796647e4e2963cbf0233ae1e562515ab2e19291fdcb52c5685bb9ef84493b87bff6c9f7d1ec9b40ac1d57e9e36636217db90ecb8afbd21a943ca2fd5c417b23cf4ae71c393da5f2f136c14a13e76087987b6f9b807a3e55ca3f1944318ba346884ae33ccc241cdc161bfa8b4386a969b0d05e4364a3c0489e8930dc0be447f0e8c22ce0eec3b0e94966c6b8e76b0f2ea9e31c4cd8caf9aef9aa4cb8da271b5c5a30f1a3a211a5f84c5b1f8d747c54a09404ec685da7d6d2c6c934bbe58633be3990fa8bac1c3386f70d1f48d5be21302c54b95e41c91a55f49109cb3e0f494bed62c6e2d0c72916d768b323c9c445ce7b1c5054d5845cd36743b0bb6caf06b9364dc36c05d56d443801264597da6d30c8335eddfb104e3adecf4b714fd6a3b8a9f6c9f73ff82205e593a78a392a6b694e23e01e7e0c44e6ac5dd36ebde19708b33cd9e207fcda879ecaad9b0b39fd0a1390dec8a06b76852a67a1ce45f5954018c7533b38a3e6d75ef587de3841be6b5689ee61292a7f08de2d0a599726e960a0c64e60c21091f62ddbbc027cd5a6eeb1cb6f1839eaee2a79ec389ae14366c9532ef86e6c1c3afa4c5a9d5d06fdeba6581521ce44b71e187794128789000aea941e2fd72cb8ceecaaf8837a22c1f70c22b25d99a0dd0b1419e3db41915d578232737e38c66aaa2079315e3ad1b9834f3525b23eb6a8ae9348d8a192587f9e67bc56eee6efc255e1a24d6c65996cecd851ee3256dd9efa92362088f2cc14848ed2fdccd90769200708b03f2b30c42242bbbd6112d644f2cba193c81e73943d124e907df7486f6cdd6ea1ab83947e7b7f4b97eac528292256b0fc74690be5dfd873e876b7a12ad63da60f1c18f4c2fb511fcf85d3623022e74eef5e7559ccb662defa52bd64d38d44a9923106b9a99ab2c00cf68ce306c2956a0eedf7f7c2b151061bb01c4431a40ff6d3d03474343926fd5280c8d5b2750c1b1ff066f633d083ffd312ca1b337e122db7deeb55e79b3cfd4cb6b5f1b20f2a3c379899d3beacf2c480f9f13395b1e1c04ef1baad69262116a4661c7c915bb6493d40533fc3d6eb1c1e5ce3df25523db2b4172f83d28ada3feefe2d4342308e34c7f27dfd68081dc2f878b843daefbd05bc7d7251d502e341a40ff6ae5b119a3ebb00b99248b1e840dc4bb92d46c9081ab5812059088accb4f8b4e132f57d2294ad6caaf32aca5dbe1557c877da986afca0533a4e749d3d9328a36864b119ef39d2e1ebd314621c14154d1ab2a19b9053f427b854a8b9260c8247fbae53f61037b83e047739cd49a776feed93111397151e6a3ac13f2b6706b5a2127674385650c83e4d198689cf71e7ee9dd842713b8913ffca48a4bd87ac80b2703bb35589f4314545bebbd9b7173c361b68abf638e96a2cb5a40a61a31c6dae63a15b33240798b05823bbb618938c65cabfcc800e8d7f03c51ec9ebbdf5784232f7fa574ec4bd74321ec162a5ce1b5a7a509c45ab8838ce6770135611d35264c53743d21599a5e29f9872323265c7b921b3eb150c6a1f3795310f41dce31aefb35f16e634a500821f994f139cf3344697fdbbce2ad36cf6efe60d32f3dd7d252e856969b26af01d7835d458e628814262e130ab8271b39a2f98bdb158041742eb5b8c716cff6c78763a08411cbdcc980f4b69e2720ca107be5f3c3e62240602c5f18d5223ea14de1b8777ecf0a4f7adf7bd706eeb542e8e7a3a81c9cd57adbbbfe3dca9edd4634fff01eea0e3ceebd58fbf101ac4d0508994c884233dbbecaa8f328522462b7e91949517f61eac072a2956c03b7873b3132e1de354e7404d8c020f90006bf40829121abba7ab640b6fe4f12910b5c515216877438f970cc3843d27a62f10360687375ec139d66ffae200f5cb7f4d892061e9d61ccfb837efd36754315d1ca92963f7a9be78b72c83bd1966749e5c3bcc01a6006131d58bee8cb29496445de0ae22509f7515afb3e8332699ac10cc4f81e011f135bd0e04a56b47dd6a9b785a9b7774a79dc0b225534aa823badf80a2176f3ff858550e8239bc4c101b668cea884dd72258b8e3c830feb53f565a2d9ed99d50728f4fd2782293295b35c6d23b1bb871d39930dac2426ee6d34463473d678a89343f81eaebc6ec3431aacc5f8f8b2e998b1cd6350edec8a49d5a0d6b1177cbe238c78e2b058110e3d411d6803c06fe8402bee8dfce3a078af0bd3ec60db4644f75de302d4e4866a1d22fe272f61ee7cc0baea7641f88e69dbfc07572d53562742afe21ce3a54e83bd66c9d7206d8a4813b956338ea7dc3e965d133510f24f792cb383371680b76fd46e23852d37ef2cbc091b6d288fd183b54e7607d2d8c31ec647e3f316f21d319a7f80364434c8d97a5e7850bf80002dd032b233bcd95cdf5898492eeb0176714482c2aa2812b5da9a8e122abc49da1ff0a2ebc5885ca34bedc923efd16f6cbddadf3e5ae77563ff7cf5a0ef9623a278f3e6f9154fdf5a695824a6be2260ba70744a09c4577de84155f4b3e28b87e2bbef4f7001535b1c850fd84c1463bb3cdb1131ad22afc9defa13877c1f1ff0256e35688fa342f138b3485a374f459f8097b740c60743b4342b8ea932a10c7f81bfb25f8fc8325fae4a6ac50e9565b299a49b17e97595937c50ad6b40b605a1540a2446fc4b62e430fde162b093580fc43aedb20798b59b7ba1b5b56fff3a303ff0e94e6205adc3cf368c25d24045518d350350521383e41d0fa2d4472116dfa9e999f7a60d28d5f693724b1d22b0f6922c63bac66e8b7e04070f384c1712bfd07785d719497066f23d9616e28f6741b78263d70553532b7e3ded28e1d937c4d3b67b970487329082be690c89fccb0e898ef2d6d90c7a0a0fa4893e2188e8d84cfdba8b625664f5f3b4f7e0ae704c5d790dd0bead6b93c05fa8d4b5ee731a7d305798637bd7940ac816664a910b753b64eb5e5a14d7a752e80e56bdf05cf1fde826c265fd8b8798b9449b105356cf2e7651e9a33d6aea6221b4fa1d59037a21b99873d1cc28b560eda4485c4121753f550fc7f53debcec18429a7e49864986b1f33844b0b09866158bba5be5bd4496ac9c7eca5329696cc2c6459489f562fe9934d54730ccb8c9a65e3045a37db7a70e7bf07e3123e0720d27824998f17809faa97f9b311ad9093f279022292c3bbd910d2fc424c9e1e0a8b00429c719c7ab08aae6d00a9e9e9a8bd045c7e34807117ab4e4468d7bc9648491f5737d0f9398d59e80e7c2bf83695331f08a325669cbed530f6ee0ae85c455b0bfe297678813b8ce082f742e6ddf9d81188a4e312b43acb294fcbe153b6acf640d5f1b28a3453e8d273e3daf49cb36ecf18959214480a7e9a7c5529b423af6ad943c6d7ca31741477f7fa57c1f8ec669f9feff1682dab8e08ef5fadd37cd2a362fc35aafa23d4e0b295fa70da795522eeb145322e0fadab551945b14623cddfbfa252a517069598a81c799188f24dd02376afb00b85b30af11d1052e2d46e454900cbec9c890205cd8e26c964dd2fb4baa92d560b9a6462edc7f1c6ead12e8144981526100588546cc629475f1c9f1efee320e2525bacd8c681c8fb68e0a33f822ea3a6900b2e7cebcdb22f76c77453d09ad3bf8fc53f870dd6e54589e97ba8149a03512c672c57761218e14a30f8d8a105777ac8baafcdfdcc904cc9e33d4846d7fd76037d5c376f77533c53d29dbed2e3837eccee9ae30fb07d7a0b121cd8a3c479106edee6fb9ba8ce0400e91dbdb599333784480ec2fb6f4e1d0164d9823f95ee3377c91a90aac187aaddbfc6cfa70ad609c76f8dd697d0de442e48ffdec7420e35a89d8fbd8b6cb7ed9e24724b66565f62023a941eea232f65b6b89c2b786eee9e66da92a4765e5b976801144f6a06f578c1b5d4240a2097eae7300bbda8ac759f6ddfd4b4dbede79d0d8a43245d409090da8151d81428f7351b89d66c70fd712705068caeaae7ff3d155119b6abf234e60f4caf98a6404b486451df51c7e499a59341fac430be3879fccef189d12dbd1cae81cdcb788889916329b0fb37bd8042a2ab11ff24ee236cfe366fe2d2463c92774e5afb4385bd5a747ad4c4c8ef977dbbb8c11f8bc3340d7465510b12462fe2e8e21768e48fa2aae8b185bd61c7ffe738e6c3293cd9ae7f94c1b9832907b1b320b83c16393133ee723b3212b1c8e41d2f2c36163328d77485cc326ead2f8398134a72ed6d88172b55d97db2874fd539a347f80043e7b5764e593b3cf6de7b3409c6f6a46075f9a4365276c3f623737c4c49e8556b6d046be62f9b7a0b9fa738c4d8c6005a73db7d5448b1800b9bd045368b88089907c6528d9684a56791f3f68c2b419af8f7bee8ddedf491fe276a455d7b992831639ac2c00f822ab0ddb9ec48d8e7d196e7b608bce12bfb75181bd932aa5b36da99f6258c238a3885884af1335b30143c7ac2284fab4a419d21c0cdf57276decfa6231f83396626f2f3cfe5c7c05c3cd7811eabab9c6061c4c0ba8adad1373aee0016ef1999561150448cec2c6fd1fdba525710d1e924d77399f44294c4693cb3cae0f1737b801e0f779e0ca2cf24b442af65177b6f140673f984fb8d3071cb6b863f8ae37996e8f50cf1cafb3bb51c05d450c9f9d2aef13eaec51647e52c5591fadd4754fd4119eb40f4564e004627e368a30bd8f9af33275045f98b0cfd32a5d5d045024b790e0fe43827d03d572f75f730b9238310932ef23f752292847f5de9fd7ac3a4237f4f9907c2e87b578ee80d661f8d3f081d7efb87a1f224ea95c74681c99804e2cfdf13a8c29cb0366a0a0dfbbcaf237669f793ed55d7755aa19d62f9b223638e97045c4ebf1fadb8c0fa88a8640a7f2937abf69f1758f0e67fca3402bd3d61d92fd5319ca5d41dd9d9af1c6a79987f712b47186ffa9714cac49b7dc0a5e44894aded286e3fac07ab192805087273fef2a107234062fb0e7494df67f01607c1f379fa498f7f9a230b50e57857664db86fb8436013f6fbc6a92c222b33b6f4048881c0211c7fcbcaaaa8fd7695308c8138f94397aaef7d726a40121feb11b8abdbe51db853c6227a49cfb88d8be009dba50ccba19a08c18c6980485a258238871df9f960cc79fe6f94a02d953fcf65134c4b18e9789e7ea6baea3a2831dde30525f2525dbf3151863b95f368b62165bf0eebc00a61518cb0066f67bed7337fa017a0c1bbaeeaba894ced376652d231f5a76c812611fc70090bd85f1ba3c1a21a65814819ae1bdbfc8f10ed3cd93828158ad56f665b342d12d09df7d27e1e6d78b2a34945c15294a2b97b701273545d01250d39ecef087095335eb57bc308edbddd71fdde9f31b45cae4d6435b19a310b75b5bd29e99c085fb0ca221339538b43bceeddc2809436b8ab6b1077efd86dc30f5a0d2d15636b1a3169b39df91b077b2b96d81a8afddf9e8208a6cb239b915f675c8049f10d44c224298087db57b35cf1a40cfa00adbba8fcfae67a13fa316d7ff912354dfa193cf450d9c620e5b6e3509deee8d8b41f593cc0cdef64513e41eda850d9e78c897dff22c82eabcdec8cb34db1ce31a6a62fb33edbd65b933a6c4d6f287c11033076f2a6d40bba56f6a05b33eaa6637f8dbfe42778917abe5370facb3d45614253ed788c5ff4e838cdddd3511062fa37345673ef56e7881745ef9a81b0927d9acfcc5aa20dddab648b0c6f6b8e30d039961c8090c37a9f2cae9389c74ad636835327efeb6b8b3528733be7ddc7aaa40f6efc63dd283597ec4cbcc582a5189de03afce44c6905eee54173b9982c818775a5af4e322f967fe8bfa1f4f2995b36b1479c71e080ae34fd5e0823db7aa3cbd7079c9787d1fda0989a1652f382c1e1c717f912911ff62b734175af94c207c3f18e06e4ab139ed2025c9dec92ef3d63504b4baf5f4246becac01d08d539b1a602e40e4fa6c53a84c5ba31fd857921f703d0603489052ace83a6706522f98abe67215ca0a0656e3153b014be04b344657e60e85a661d758a482f6e00340cc2a5b5f316b5c4a2cd06278b4b3e6d3796bd38b316c2c6031c4a60df28a39b26ec29f055c0a39877ccee8edccb3926d0031b412068e071b2b5c7ec1ab10c66a88c314e23abe958d9fae614ac034e4412fc632765e203553ca776471e39dc4ecc77ee4a74342d1e58ae470c32a6874ea409fe3f51343542d9a98c9de86707479eaf05ad08d3c60e3708f62b4f30821a0cfece5953fc25508285fabfe176ded08064ce4fb28a0702e40c434af964e317d1cf032707978eb56c0fb16bfb763b7e1728adc8698f3fab7388de94783a6da4bc7bbd458683a53df34b5a68636cdf9dc0d07dfe02babd3a1c2f103f155d5c6a43771f9c0acc95be8ca80090f975e234b90876bc5be84afbfe67a8ebe51e59bf59447198a5e2b43dd0fb3aeff1acebe16399786988107f5c9484731671dc956ba57e1d4998869130fd39825ecccff9ba5c2b693a5e145873c2d5dc217f00331c7a61d3296a49f18caea95d343306a790b28cef9eb4ad18ea33021382cb39e9f2c7e3de2320943350c8fd7fa453227d140fd56ce7b890a935844149129b9019117b56912a035e036e7296fabe4a7636985853a773fdeb2dbb92c4164b638863544f0801edb450458e414aacdbdb6d1ada551ddf086c97f3baa6ada76b9f2654c1dd18b12d3d1a19b4f26b07ee5da5a57b97c925c8bb788cb0d8f52fe2cad99e94d0b52a04a93bb3f93fc735332529a5814a757c5b9096eb2d7f34883b3fa3d5b316f48ade211d417ab87027c8bfa15fe34d7c72a2f944997aa9d90a75c624ea3d27709ecde7e75f9e582335e723b4b49eb5f185c3ac681d016174c55398a728e07b5775e25bc68741d9c390056be8c65d12e39d15929a4e5e36e7f6d85df992d537493334a334480e8d2ce7ca1321de38aabbb62b3b8b93093fb3990fd513830820a5417ef1a35fef85234d238a2d33a8f59d32adcc48d7496bf93845697650fec66087268ac133c3fe77ec0fe956a86106cdd3068239adaf12a7f11bce0c0d7b53911bcc3dacde45d12088ad8a29370533b986840ee80452aa3376cd90a404e122cd6c30e58522c3d23815e0f6a6db882dad068954e1966b6f2db970e6453f569bbfda2aadd4638bda90decf42c8d68c10f46758961aa833066ea07d9df895f00292109b5d70b4ca09ab6edd3b727473d863b43f6201ef1a24edd13b480b71d106baff9f81ef5c81908ae3575a70ec688b64f326cebdd5765df22a9d19409bdfe26b3fed7a0980b48bc7362f94d297eee058f3733aef5ba1810f53e257a9388e854f00a79d8b791c3f8f3c373a07dcda81a68c1b83165084368557ac10f731e7f0e700f34bff07c5858ded9db7dc4884d59d276e5157e1979ee040882e902b8ee276143d367fb3352395d3cd5811ad73494cb0c87552a8f7fafd7f18074ef74c91ae75df04d03c978c49126be827bb881980fec4c6427832fb3a43db9d8a20e07b6a084cb4981996e1ec1fa29be2a679bd7f0ed7143cb46f58425b0bac08577906d5ddfe35db64ce8cca0b9c3f8411822bb3966bc0c733f420d412759f957a93bb96515f51b39bee9ac144e26c5265c88325e64433e16cdb1954016b871cc8c7473da3bdbd8c551ed124d28950cb75f03801dc8c56d5740d05f5ab2c45e3beb8a5ba78ec1b2abf2d82fda016359ea0517b2faba282a144667b8426bd6e59dd93b97085b65bd22ac15ee7f90d8fa8bad6027ef808a1bb3d7eaf358f29029076fa9836e995610002f51a074e1b8b900d6191f9bcf2b7e9e5cacb4966c4160c066f2be495fc5708096281a3b180651babfd4e9593113936b9d95ec56d5b597fb524df9dfdcb27754f568db840808510c3a40df123e77455b1ee197d1bd82fc6acfa8b65a37caeee7b37ef0a053527f2971113d8ab536f300dae5fe307c3cf5fc22798cc3cb0dab53dd427105636cf5ce1677b931e9f1a1cf5b77a8a34ddd92b1a65edcf5d50e91fa39645d8594d28fcc565a944a0a726d4adb5818d6122c992725c7968bb606f9c9b58d5dd32bc7138add988f340ec46fbd1bb7ecb7d1702f6cb5e62641253001d88121925163bc0c8100be0c705af34037ed8dbdb0904ffc221868ff3c51f0c2a4935e28a7017afc046b349034c1fd480130c92eddb4d081de706d6e43514e7e3b860a1a5cd207c132512be65707f8b18932acc56beef477e916d236aaa97599e6a6b23ad38b28c778b855df91b1ddc0374d35b954da2aed76d4d2265e8d91ee4a1128224fd2074ca6fa3721bb711b6b757855bae7b17a3483da1f168cfe4718818576b053f76904ae39ddce811df50bf7afcd378d8ca575543b8c9b8985d2aa7bd65938d42dd3a71580d15523c1f8e7a3ca0d855a6cc518ee1e2d540a6392c4ff9db06cb0be017de6272c4c5a51e398e35f5a85bc52ee50c774fabb5a77762e49bdf1c7b4b69f5bff921dfa5d2fc34c9b57badf06c6a42f2247fcc3fd998c886ed55fb9422ef864e2904c4d37396eddc9237485986c7468395a46dc85783657bc72564e02b50f6aa24b34c077df5dcb3950afea4fbfa8548332337995c4f8e245af05f9ffc75062f4d61618f3394ec4556e
-Secret Key    : feb7b9abb3eec52b1c089eb3a891cd651204c4bda4f262644028a56d28451707c221eb6b554bc76fbcab51c395b356c7980b5ed02ff3feb80e993a48972846f8cbe80cc7eca487cea1ff77cf2c3371dd31799d5093e17beeda4f01843402aa48c40eda13374ef236e84ccb364c5814571cf2be9de2f8c605b9fbfbb8c3cb6d482d4230b65a2c69782d0b878cd5365e6a56f3f5d05a1dc6ebf55948a6be124d17a80e0efc64af43cd900ec503463a59fb1c884e4c51dd27d19c5ad7b88fe5620338a875b9729a6ee8b7a3d8cc989d931a5d03d5cf3938d3022715d6385d1b9b89e64a00b4f96a6309d3dc96ec598bcccf8c71531b7695db49a76e93a5d43229467bc4b51a0e019e8309e99369a6f2e26548998e3f2f7c27e83fcc770af9264e088e716d8807b67f2a831c84886425f90ab05679355b4f3ed3dfd7a801a7229ee033e516c2aeb35cda1531cac5fa1a77dc9971e30d28d9a18373891039097aa896e326927f5c42da72f4a1a1ca96c4abfb551957bc6c3ca1e253464465f5c87c4fa2b14789dbe048a1e2b5bd83f0dc3ae3f98745c769fe641001829c4e46731ab8e44635d8627dc014a854eb861e53f16cfbc1a57eebc7e55a6115eca6b4ebfe794401d20e8c2d7e8831e9677c54a5a27f31539f7e086571468fe6f423d269b21df30148c0a42059de4dadb45489ccc1eddffde261693f7eec27415973c9fb18b5c1b3ba39e1159475d0f3ccd13acd297b18255ce5664adaecb0e3d84ff8fc9b8221be31cb69cd6cafd225f047cdecf0c5b1609c4fd4e0a686e3a989d930d24a88e408cf70989ca5098301460cf17e7579fc86e766407e69c39eacf18853f49543cf7a9dbce4955a9ca3cd171938a6df316656ffd3bec5cd3781e4e9519dd3be8a572a908747308f3e2c9c83e4008cf8d85c578e87953a69bf6d34285befa2475bcc22b199cc67ab166062aaa2c17f31f048fecc6d9e7d7895866c2d554b85f02a3f3f66eba1c8fbf2679c8d317097a737a7323f273ee8e38aa2c94d2423716734b77412b04ea1557d22a973773fe1ece39e81d7785068501dcf96e7ea85f64e29b6a1dcfbe37407d4f2b3f324d8f936137bc378575d83452bbecb3ec4b6b5fdb101bd9d7df0261c4e5664592273a00eefb0d62a6f7a07d00babaf34dd68b1c3ec344865013c648c22093a172e8b01701515638232f7763afd142014b5a1d72afc19f9eb6c40d28f61c11599fe21578d9b471bba219ff361282d937d22d2c42c3c0e80e489edeb813c0263935b09e8f498e459f2019168f3457b53883d817bfcbae51dc6e24fb70a172d1094cf3068264b4a1a5eb7eb2bd8ba574e58dcd600d557e198112469c9231751ac32c371086b73c8c629b205a1c825c63022318a2ea333774b54e0836446380539191c635ef39621e7cd95eee599851d303c4bb005067b9549be388c664546d4a97eb93701c577ee60457a20aaf45a0f60d201166d4bde81bb8fbc2fe3edde00e1ee03be160b65f799e176946b4bc6accb42b22140b2854edd9e954005060b851bba9952e27994ef5a6e17237fa4b88b6692b04e71526fb23de0725831e443a1270b5165f4db6f61656575f2d10f38c35349f6234fd50ca331cda925798e39c70d7926d6b3202facc5becdfc6f5bf89ec0ba4db20e4b5a8a0e484c46ab7305172805be7d882cba91a5e282df25e552e95a0eb23a536b57694b721b84140f2a4b25ca6fba6f1ee423b7400d73fa8a689916ca8a93dac0aa63cf4cea5d187ae6ad9b49e2c879e5d3aa45d68a672bf9435e5733ed492dec5649f6bfa4562a624e7d21435511733e15f4b79fdc4acee54c25f51aa2c245ffa1cb268d8ebcc0d5be7d0ed62686bdc06b119fcf11acec21b37ab068fe2982abf104ce29fe86de753eed73ffcd0441616b21ee3a682ad82c0f46bd5c656a3e2fcbbd11ec91ce4d16805701be0825f511279e18e569d1eb1b3de4dca9e98b240b19fecdc978edd912f1e5be363e67c6ee6d083d34da9b593b27a77620ef5c2b7c0f3e5afc73a96bf91e7133f3edea7b922bf6907695762e5784579fa82dbc67ad56dafe3efec9e595ab249319ad783a20d64e26c4cef9575723b62d5310a33f47081c1e7fe05a4964bdd6a3dda1019aadd56a0a6b17fbd631b9cb365901bbd8996b6f9bc43a10e202be8fedc6587b47b263944448ae6ca7eb4e58c95b0b28820d1ec719ad0b2683e7b00f92342e7adc2989e04cc292ea85a64ef393e21a47a1035ff7ffc776533f41bd75c63968939ae452344896bd3630bd22f0e42ebb04cbe013b645040841453045998afc803c8c8af1a5aa9f544449d7bbc8dc06f8e75e2821a01eeb8da88006ba9f32fc0fac392cef24e41aa8928c20655c5bcd456e8a0c0645acb72b7ba7e9132b2824b222a081a0e787b06d806607b34fe979b62798f4f50d26755f845a6c38dc72e6097616d4dbe0cc16b6ae88dfd29ae89b6199e65bc5ff406b343af5aea79c77f9cb7943ea09da08ab345d5599c7e54f427eab84571ba06f7ba74aa47edccacbb47236427483b333ed4175f684666eeab493ef266c4450076d009cc84b0123f0a72d58e68fba40d8cbf97b2680fcf6f6222ad3270fe775ea0a6fb0651cb51b564d9624427f34ff677204d823f1460368943a6c3fdcaa95f3248027ab6df1ba0997e452f6db1368c7133cbf6d31f931ebb05765d934704c45ccf187ed81ca1b55bac4bd300e87ea5f7618d436adf5a485939f459c69d4e737e8aec6b509c7abb8f350ebb8482c56a40ff7db52692efd92b003c20c8cd0e66f4a9f510a68301749beef7ac395e6eaf4cbfadaf4642797d444adaf7188004c2778fd317e88728933cb7dc508fec9844240519d8fbc1615f8bf0f8fe6dd67a068db384d5b272e05157b20cbefb96dcb8715d3023bb494f5a282101f4f390f200ceccbf48d8de193ef3603502c80d1666c8c5c96dc991d0209d6b7cf039e37375cdef498466d6c76764b37c9d2b1a3c8bc70b7ce71f2feb9bb0ddad8293ef3c81b528e864cc70292dff8e57cd48f14ec9e346fe0e915b1d590b804a4dbec452b767672762b0098d4df559f121b80e4931fe369f0ebbaf6004ca3ba02a88e9c11cf1e1eb943a824bdd8bb4be735f59638548d85249b787b02db4e34a6952a1a50d367209ef46e924d522742b8de8542a6f169e5dbba2cc528eb9e26a63bd87f86b4f191bd2c0627111e3e17ed79b2e35a16a041a7af3f2d50f0794ebda73ec39ce9a83fc38479116136059433189006fb89fc5b285a30052b4cd1f4e3a4e8be71446ae05b7cbc743cccbfeedb4b9a8b7cb81bf6680db1fab650873af2106464a92bc90de4aa441af523728dd0d3621749c7852d50a714f3c4f3fe4479f96b0b6a1cd86b3fc674609fbe59b66582045e1a4924f5ad28a370af66b747962edb93beceaa25b4783a962c770b32a6ebdf93b383e93324cc9529afe65472ef1291dc93845498d4cc013f0ee7c49a706cf5ffdfd4d76ef64b2901677e65450ed4b51c29c2b3f7b98d109fb93214bbda9bd48cc03d7798404cfd70d57b021544d1d3d76144942e20561ba7431a6617526fa42aee2599516479002ca14c8848ab82349d916358e23ce0205b7ff4cdc8846c75581637dcb0aea56b529417d9d2c05516c69ad6b4a3485c6ecbfcf8ae8c69049c568aab4d0d50ec5a91b7f9a6d26c17446e40409efdbca121a30d4d843135bfb33d05ec117094bfa04fe80c7a3aac274de36b855032b93e33763dac2a79764cbb3afe864cac6ad693ebf1391b3d3a3dd8ec71e0a9529131abdc9edf7cb74b475ce2d88401858585443aed267de50751b8f9f96983cc4a9fee7e8c68b4e84d007b843387790e8dc6d5cab02814ba6015372ce54af16677cf30b5cdeff5560b99e5b642a27ff2794008cb88b31e155fdae4e710ec77385e2611b63a72fb6498eaba7cbc299918973dc65ab511db6cc35d607224bdf50f81f3bd671b82128703578feaa7e8b88103c90d3b0e9de903feba269e2486e0f0653e6cb34b261fcb927879bb3992d6af48424829b7344eba90bb7840caa14192239cab0121be2cabc2deb744c68f5ee6c448a4cb31272b86c3a1568c6fea042b6f7b7d1ff6da87d27bf98d177380c40d6cc2bba3ef19564ff811ef93e58d9e0de74bdaf0675da3338db036a98d6601ab8bceba102fe031b4665ec292f5412a43a1fa92064d95980d529aab90907a8bbcbcff1338a1cd887d5991ab6bb3ded6c208346091f31dc733b2e0886366617acf72b0da2716ef5a2e0c04de746ff97b5f88348cb0c2fa14eac29cc4bb181a51296f0316eacb545da35c585c177fc5001d4fb3dd7a2fc401196ca341787cc337435e0fac1427814c90c93af5a71c01c8935b21cb20e625373cbed5928aa2684db4cbffa0f595cfdf063ce3f29a8d1093c0e9dadd2a99deb69a3e752979bbbb549536761941b15470395dd6b06ffb8e4f16e2f82f7ea32e2cae099a74cb9c2859354f137113b0253f68fc85a246bf1c13e765a4abb493e67bc9216dab3230a552ce580f9bcb6f019df4a3886f6c8b41fe7e8cb40bca0c79ff8c6f566d45888b0f86298a026d8a2534eecb9b7d8e7c7b7ad7bb1d23e735427b77c4034eb6d26cd15b29041a3ce3313d0a9a6d204de51ab9d0618f2e88a35e27bbaca1371f4860422b378ad8659ae308e4d50be4bd3f2bb18be73396ef23e620e3c736380c4581f35eb87112668fbf688e5296464082f4524c03ec47ceab7b3690070609eff08b77915c3867dcfcf3b92fd2043004c05a1c0136da694c4e3b7aa54b687ec6435e21dd9b241166bc3bc94ac09310d455064c987206af192b6897a1327f02b786cc429ee695f7f81153c8b5ef45e0ddcaff5132557e55d7dfbe1092b28869e12de171c48018bead1811a71efe757f662e0865582658b57072090d3ae1a77e3e37865833058ffe273917c094ba1e021aa7cff796a584946350f828e742e22796647e4e2963cbf0233ae1e562515ab2e19291fdcb52c5685bb9ef84493b87bff6c9f7d1ec9b40ac1d57e9e36636217db90ecb8afbd21a943ca2fd5c417b23cf4ae71c393da5f2f136c14a13e76087987b6f9b807a3e55ca3f1944318ba346884ae33ccc241cdc161bfa8b4386a969b0d05e4364a3c0489e8930dc0be447f0e8c22ce0eec3b0e94966c6b8e76b0f2ea9e31c4cd8caf9aef9aa4cb8da271b5c5a30f1a3a211a5f84c5b1f8d747c54a09404ec685da7d6d2c6c934bbe58633be3990fa8bac1c3386f70d1f48d5be21302c54b95e41c91a55f49109cb3e0f494bed62c6e2d0c72916d768b323c9c445ce7b1c5054d5845cd36743b0bb6caf06b9364dc36c05d56d443801264597da6d30c8335eddfb104e3adecf4b714fd6a3b8a9f6c9f73ff82205e593a78a392a6b694e23e01e7e0c44e6ac5dd36ebde19708b33cd9e207fcda879ecaad9b0b39fd0a1390dec8a06b76852a67a1ce45f5954018c7533b38a3e6d75ef587de3841be6b5689ee61292a7f08de2d0a599726e960a0c64e60c21091f62ddbbc027cd5a6eeb1cb6f1839eaee2a79ec389ae14366c9532ef86e6c1c3afa4c5a9d5d06fdeba6581521ce44b71e187794128789000aea941e2fd72cb8ceecaaf8837a22c1f70c22b25d99a0dd0b1419e3db41915d578232737e38c66aaa2079315e3ad1b9834f3525b23eb6a8ae9348d8a192587f9e67bc56eee6efc255e1a24d6c65996cecd851ee3256dd9efa92362088f2cc14848ed2fdccd90769200708b03f2b30c42242bbbd6112d644f2cba193c81e73943d124e907df7486f6cdd6ea1ab83947e7b7f4b97eac528292256b0fc74690be5dfd873e876b7a12ad63da60f1c18f4c2fb511fcf85d3623022e74eef5e7559ccb662defa52bd64d38d44a9923106b9a99ab2c00cf68ce306c2956a0eedf7f7c2b151061bb01c4431a40ff6d3d03474343926fd5280c8d5b2750c1b1ff066f633d083ffd312ca1b337e122db7deeb55e79b3cfd4cb6b5f1b20f2a3c379899d3beacf2c480f9f13395b1e1c04ef1baad69262116a4661c7c915bb6493d40533fc3d6eb1c1e5ce3df25523db2b4172f83d28ada3feefe2d4342308e34c7f27dfd68081dc2f878b843daefbd05bc7d7251d502e341a40ff6ae5b119a3ebb00b99248b1e840dc4bb92d46c9081ab5812059088accb4f8b4e132f57d2294ad6caaf32aca5dbe1557c877da986afca0533a4e749d3d9328a36864b119ef39d2e1ebd314621c14154d1ab2a19b9053f427b854a8b9260c8247fbae53f61037b83e047739cd49a776feed93111397151e6a3ac13f2b6706b5a2127674385650c83e4d198689cf71e7ee9dd842713b8913ffca48a4bd87ac80b2703bb35589f4314545bebbd9b7173c361b68abf638e96a2cb5a40a61a31c6dae63a15b33240798b05823bbb618938c65cabfcc800e8d7f03c51ec9ebbdf5784232f7fa574ec4bd74321ec162a5ce1b5a7a509c45ab8838ce6770135611d35264c53743d21599a5e29f9872323265c7b921b3eb150c6a1f3795310f41dce31aefb35f16e634a500821f994f139cf3344697fdbbce2ad36cf6efe60d32f3dd7d252e856969b26af01d7835d458e628814262e130ab8271b39a2f98bdb158041742eb5b8c716cff6c78763a08411cbdcc980f4b69e2720ca107be5f3c3e62240602c5f18d5223ea14de1b8777ecf0a4f7adf7bd706eeb542e8e7a3a81c9cd57adbbbfe3dca9edd4634fff01eea0e3ceebd58fbf101ac4d0508994c884233dbbecaa8f328522462b7e91949517f61eac072a2956c03b7873b3132e1de354e7404d8c020f90006bf40829121abba7ab640b6fe4f12910b5c515216877438f970cc3843d27a62f10360687375ec139d66ffae200f5cb7f4d892061e9d61ccfb837efd36754315d1ca92963f7a9be78b72c83bd1966749e5c3bcc01a6006131d58bee8cb29496445de0ae22509f7515afb3e8332699ac10cc4f81e011f135bd0e04a56b47dd6a9b785a9b7774a79dc0b225534aa823badf80a2176f3ff858550e8239bc4c101b668cea884dd72258b8e3c830feb53f565a2d9ed99d50728f4fd2782293295b35c6d23b1bb871d39930dac2426ee6d34463473d678a89343f81eaebc6ec3431aacc5f8f8b2e998b1cd6350edec8a49d5a0d6b1177cbe238c78e2b058110e3d411d6803c06fe8402bee8dfce3a078af0bd3ec60db4644f75de302d4e4866a1d22fe272f61ee7cc0baea7641f88e69dbfc07572d53562742afe21ce3a54e83bd66c9d7206d8a4813b956338ea7dc3e965d133510f24f792cb383371680b76fd46e23852d37ef2cbc091b6d288fd183b54e7607d2d8c31ec647e3f316f21d319a7f80364434c8d97a5e7850bf80002dd032b233bcd95cdf5898492eeb0176714482c2aa2812b5da9a8e122abc49da1ff0a2ebc5885ca34bedc923efd16f6cbddadf3e5ae77563ff7cf5a0ef9623a278f3e6f9154fdf5a695824a6be2260ba70744a09c4577de84155f4b3e28b87e2bbef4f7001535b1c850fd84c1463bb3cdb1131ad22afc9defa13877c1f1ff0256e35688fa342f138b3485a374f459f8097b740c60743b4342b8ea932a10c7f81bfb25f8fc8325fae4a6ac50e9565b299a49b17e97595937c50ad6b40b605a1540a2446fc4b62e430fde162b093580fc43aedb20798b59b7ba1b5b56fff3a303ff0e94e6205adc3cf368c25d24045518d350350521383e41d0fa2d4472116dfa9e999f7a60d28d5f693724b1d22b0f6922c63bac66e8b7e04070f384c1712bfd07785d719497066f23d9616e28f6741b78263d70553532b7e3ded28e1d937c4d3b67b970487329082be690c89fccb0e898ef2d6d90c7a0a0fa4893e2188e8d84cfdba8b625664f5f3b4f7e0ae704c5d790dd0bead6b93c05fa8d4b5ee731a7d305798637bd7940ac816664a910b753b64eb5e5a14d7a752e80e56bdf05cf1fde826c265fd8b8798b9449b105356cf2e7651e9a33d6aea6221b4fa1d59037a21b99873d1cc28b560eda4485c4121753f550fc7f53debcec18429a7e49864986b1f33844b0b09866158bba5be5bd4496ac9c7eca5329696cc2c6459489f562fe9934d54730ccb8c9a65e3045a37db7a70e7bf07e3123e0720d27824998f17809faa97f9b311ad9093f279022292c3bbd910d2fc424c9e1e0a8b00429c719c7ab08aae6d00a9e9e9a8bd045c7e34807117ab4e4468d7bc9648491f5737d0f9398d59e80e7c2bf83695331f08a325669cbed530f6ee0ae85c455b0bfe297678813b8ce082f742e6ddf9d81188a4e312b43acb294fcbe153b6acf640d5f1b28a3453e8d273e3daf49cb36ecf18959214480a7e9a7c5529b423af6ad943c6d7ca31741477f7fa57c1f8ec669f9feff1682dab8e08ef5fadd37cd2a362fc35aafa23d4e0b295fa70da795522eeb145322e0fadab551945b14623cddfbfa252a517069598a81c799188f24dd02376afb00b85b30af11d1052e2d46e454900cbec9c890205cd8e26c964dd2fb4baa92d560b9a6462edc7f1c6ead12e8144981526100588546cc629475f1c9f1efee320e2525bacd8c681c8fb68e0a33f822ea3a6900b2e7cebcdb22f76c77453d09ad3bf8fc53f870dd6e54589e97ba8149a03512c672c57761218e14a30f8d8a105777ac8baafcdfdcc904cc9e33d4846d7fd76037d5c376f77533c53d29dbed2e3837eccee9ae30fb07d7a0b121cd8a3c479106edee6fb9ba8ce0400e91dbdb599333784480ec2fb6f4e1d0164d9823f95ee3377c91a90aac187aaddbfc6cfa70ad609c76f8dd697d0de442e48ffdec7420e35a89d8fbd8b6cb7ed9e24724b66565f62023a941eea232f65b6b89c2b786eee9e66da92a4765e5b976801144f6a06f578c1b5d4240a2097eae7300bbda8ac759f6ddfd4b4dbede79d0d8a43245d409090da8151d81428f7351b89d66c70fd712705068caeaae7ff3d155119b6abf234e60f4caf98a6404b486451df51c7e499a59341fac430be3879fccef189d12dbd1cae81cdcb788889916329b0fb37bd8042a2ab11ff24ee236cfe366fe2d2463c92774e5afb4385bd5a747ad4c4c8ef977dbbb8c11f8bc3340d7465510b12462fe2e8e21768e48fa2aae8b185bd61c7ffe738e6c3293cd9ae7f94c1b9832907b1b320b83c16393133ee723b3212b1c8e41d2f2c36163328d77485cc326ead2f8398134a72ed6d88172b55d97db2874fd539a347f80043e7b5764e593b3cf6de7b3409c6f6a46075f9a4365276c3f623737c4c49e8556b6d046be62f9b7a0b9fa738c4d8c6005a73db7d5448b1800b9bd045368b88089907c6528d9684a56791f3f68c2b419af8f7bee8ddedf491fe276a455d7b992831639ac2c00f822ab0ddb9ec48d8e7d196e7b608bce12bfb75181bd932aa5b36da99f6258c238a3885884af1335b30143c7ac2284fab4a419d21c0cdf57276decfa6231f83396626f2f3cfe5c7c05c3cd7811eabab9c6061c4c0ba8adad1373aee0016ef1999561150448cec2c6fd1fdba525710d1e924d77399f44294c4693cb3cae0f1737b801e0f779e0ca2cf24b442af65177b6f140673f984fb8d3071cb6b863f8ae37996e8f50cf1cafb3bb51c05d450c9f9d2aef13eaec51647e52c5591fadd4754fd4119eb40f4564e004627e368a30bd8f9af33275045f98b0cfd32a5d5d045024b790e0fe43827d03d572f75f730b9238310932ef23f752292847f5de9fd7ac3a4237f4f9907c2e87b578ee80d661f8d3f081d7efb87a1f224ea95c74681c99804e2cfdf13a8c29cb0366a0a0dfbbcaf237669f793ed55d7755aa19d62f9b223638e97045c4ebf1fadb8c0fa88a8640a7f2937abf69f1758f0e67fca3402bd3d61d92fd5319ca5d41dd9d9af1c6a79987f712b47186ffa9714cac49b7dc0a5e44894aded286e3fac07ab192805087273fef2a107234062fb0e7494df67f01607c1f379fa498f7f9a230b50e57857664db86fb8436013f6fbc6a92c222b33b6f4048881c0211c7fcbcaaaa8fd7695308c8138f94397aaef7d726a40121feb11b8abdbe51db853c6227a49cfb88d8be009dba50ccba19a08c18c6980485a258238871df9f960cc79fe6f94a02d953fcf65134c4b18e9789e7ea6baea3a2831dde30525f2525dbf3151863b95f368b62165bf0eebc00a61518cb0066f67bed7337fa017a0c1bbaeeaba894ced376652d231f5a76c812611fc70090bd85f1ba3c1a21a65814819ae1bdbfc8f10ed3cd93828158ad56f665b342d12d09df7d27e1e6d78b2a34945c15294a2b97b701273545d01250d39ecef087095335eb57bc308edbddd71fdde9f31b45cae4d6435b19a310b75b5bd29e99c085fb0ca221339538b43bceeddc2809436b8ab6b1077efd86dc30f5a0d2d15636b1a3169b39df91b077b2b96d81a8afddf9e8208a6cb239b915f675c8049f10d44c224298087db57b35cf1a40cfa00adbba8fcfae67a13fa316d7ff912354dfa193cf450d9c620e5b6e3509deee8d8b41f593cc0cdef64513e41eda850d9e78c897dff22c82eabcdec8cb34db1ce31a6a62fb33edbd65b933a6c4d6f287c11033076f2a6d40bba56f6a05b33eaa6637f8dbfe42778917abe5370facb3d45614253ed788c5ff4e838cdddd3511062fa37345673ef56e7881745ef9a81b0927d9acfcc5aa20dddab648b0c6f6b8e30d039961c8090c37a9f2cae9389c74ad636835327efeb6b8b3528733be7ddc7aaa40f6efc63dd283597ec4cbcc582a5189de03afce44c6905eee54173b9982c818775a5af4e322f967fe8bfa1f4f2995b36b1479c71e080ae34fd5e0823db7aa3cbd7079c9787d1fda0989a1652f382c1e1c717f912911ff62b734175af94c207c3f18e06e4ab139ed2025c9dec92ef3d63504b4baf5f4246becac01d08d539b1a602e40e4fa6c53a84c5ba31fd857921f703d0603489052ace83a6706522f98abe67215ca0a0656e3153b014be04b344657e60e85a661d758a482f6e00340cc2a5b5f316b5c4a2cd06278b4b3e6d3796bd38b316c2c6031c4a60df28a39b26ec29f055c0a39877ccee8edccb3926d0031b412068e071b2b5c7ec1ab10c66a88c314e23abe958d9fae614ac034e4412fc632765e203553ca776471e39dc4ecc77ee4a74342d1e58ae470c32a6874ea409fe3f51343542d9a98c9de86707479eaf05ad08d3c60e3708f62b4f30821a0cfece5953fc25508285fabfe176ded08064ce4fb28a0702e40c434af964e317d1cf032707978eb56c0fb16bfb763b7e1728adc8698f3fab7388de94783a6da4bc7bbd458683a53df34b5a68636cdf9dc0d07dfe02babd3a1c2f103f155d5c6a43771f9c0acc95be8ca80090f975e234b90876bc5be84afbfe67a8ebe51e59bf59447198a5e2b43dd0fb3aeff1acebe16399786988107f5c9484731671dc956ba57e1d4998869130fd39825ecccff9ba5c2b693a5e145873c2d5dc217f00331c7a61d3296a49f18caea95d343306a790b28cef9eb4ad18ea33021382cb39e9f2c7e3de2320943350c8fd7fa453227d140fd56ce7b890a935844149129b9019117b56912a035e036e7296fabe4a7636985853a773fdeb2dbb92c4164b638863544f0801edb450458e414aacdbdb6d1ada551ddf086c97f3baa6ada76b9f2654c1dd18b12d3d1a19b4f26b07ee5da5a57b97c925c8bb788cb0d8f52fe2cad99e94d0b52a04a93bb3f93fc735332529a5814a757c5b9096eb2d7f34883b3fa3d5b316f48ade211d417ab87027c8bfa15fe34d7c72a2f944997aa9d90a75c624ea3d27709ecde7e75f9e582335e723b4b49eb5f185c3ac681d016174c55398a728e07b5775e25bc68741d9c390056be8c65d12e39d15929a4e5e36e7f6d85df992d537493334a334480e8d2ce7ca1321de38aabbb62b3b8b93093fb3990fd513830820a5417ef1a35fef85234d238a2d33a8f59d32adcc48d7496bf93845697650fec66087268ac133c3fe77ec0fe956a86106cdd3068239adaf12a7f11bce0c0d7b53911bcc3dacde45d12088ad8a29370533b986840ee80452aa3376cd90a404e122cd6c30e58522c3d23815e0f6a6db882dad068954e1966b6f2db970e6453f569bbfda2aadd4638bda90decf42c8d68c10f46758961aa833066ea07d9df895f00292109b5d70b4ca09ab6edd3b727473d863b43f6201ef1a24edd13b480b71d106baff9f81ef5c81908ae3575a70ec688b64f326cebdd5765df22a9d19409bdfe26b3fed7a0980b48bc7362f94d297eee058f3733aef5ba1810f53e257a9388e854f00a79d8b791c3f8f3c373a07dcda81a68c1b83165084368557ac10f731e7f0e700f34bff07c5858ded9db7dc4884d59d276e5157e1979ee040882e902b8ee276143d367fb3352395d3cd5811ad73494cb0c87552a8f7fafd7f18074ef74c91ae75df04d03c978c49126be827bb881980fec4c6427832fb3a43db9d8a20e07b6a084cb4981996e1ec1fa29be2a679bd7f0ed7143cb46f58425b0bac08577906d5ddfe35db64ce8cca0b9c3f8411822bb3966bc0c733f420d412759f957a93bb96515f51b39bee9ac144e26c5265c88325e64433e16cdb1954016b871cc8c7473da3bdbd8c551ed124d28950cb75f03801dc8c56d5740d05f5ab2c45e3beb8a5ba78ec1b2abf2d82fda016359ea0517b2faba282a144667b8426bd6e59dd93b97085b65bd22ac15ee7f90d8fa8bad6027ef808a1bb3d7eaf358f29029076fa9836e995610002f51a074e1b8b900d6191f9bcf2b7e9e5cacb4966c4160c066f2be495fc5708096281a3b180651babfd4e9593113936b9d95ec56d5b597fb524df9dfdcb27754f568db840808510c3a40df123e77455b1ee197d1bd82fc6acfa8b65a37caeee7b37ef0a053527f2971113d8ab536f300dae5fe307c3cf5fc22798cc3cb0dab53dd427105636cf5ce1677b931e9f1a1cf5b77a8a34ddd92b1a65edcf5d50e91fa39645d8594d28fcc565a944a0a726d4adb5818d6122c992725c7968bb606f9c9b58d5dd32bc7138add988f340ec46fbd1bb7ecb7d1702f6cb5e62641253001d88121925163bc0c8100be0c705af34037ed8dbdb0904ffc221868ff3c51f0c2a4935e28a7017afc046b349034c1fd480130c92eddb4d081de706d6e43514e7e3b860a1a5cd207c132512be65707f8b18932acc56beef477e916d236aaa97599e6a6b23ad38b28c778b855df91b1ddc0374d35b954da2aed76d4d2265e8d91ee4a1128224fd2074ca6fa3721bb711b6b757855bae7b17a3483da1f168cfe4718818576b053f76904ae39ddce811df50bf7afcd378d8ca575543b8c9b8985d2aa7bd65938d42dd3a71580d15523c1f8e7a3ca0d855a6cc518ee1e2d540a6392c4ff9db06cb0be017de6272c4c5a51e398e35f5a85bc52ee50c774fabb5a77762e49bdf1c7b4b69f5bff921dfa5d2fc34c9b57badf06c6a42f2247fcc3fd998c886ed55fb9422ef864e2904c4d37396eddc9237485986c7468395a46dc85783657bc72564e02b50f6aa24b34c077df5dcb3950afea4fbfa8548332337995c4f8e245af05f9ffc75062f4d61618f3394ec4556e0600008000c0ffdfff1700f0ff0100fd7fff3f00c0ff4f000000e8fffdffff7f0240ff1f0090ffefff07000000018001c0ff3f00e0ffffff07000200fe7fffbfff9fffefff0f0000000400ff7f01c0fe9f0030000800f8ff0300fefffe3f0020002000f0ff07000e00feff004000e0ffffffefff07000200010000c000c0ff1f00000000000000fe7f01400080002000000004000600fc7f000001e0ffdfff0f0000000400ff7fff7f00c0ffffff0f000000f4ffffff0080ffffff2f00f8ff13000600faffffffff1f003000180010000000ffffff7f0060004000e8ff1b0004000280fffffebfffffff07000000fefffd7f0080018000f0ff27001000020002800040008000f0ff2f0008000200ffff03c0002000f0ff2700fcff0100fcff00c0010000b0ff0f00f0ff0700feff0080002000f0ffe7ff0b0004000200fe3f000000e0fff7fff7ffffff0100004000e0ffefffffff03000600fffffebf000000500028000c00fcff068003c00040ff1f00080000000400fdffff7f00e0ff7f00f8ff0f0002000300004000c0ff2f00300004000200028000c0ffffff0f00e8ff1300faff0180004000c0ff0f0018000c00f4ffffff00c0ff1f00f0fff7ffffff0100fe7f030000a0ffbfff1f000c0006000500010000e0ff7f00f0ff0300fefffefffe7fff3f006000e8ff0700f8ff0400ffbf01a0ffdfffeffffffff9fff9fffd7f006000d0ff170000000400fc7f0280febf00e0ff0f000c00fafffe7f000001a0fffffff7fff7ff01000180000000c0ffefffffff03000200018002c0ff1f00300008000c000000010000c000c0ffffffdfffffff090002000140ff7f00f0ff0700000000000400ffbffe5f00c0ff1700fcff01000000ff7fffdfff0f001000ecff07000080ff7fff1f0040002000f4ff0500ff7ffebf0020000000d8ff0b0002000280fe3f016000d0ff17001c00fefffeff00c0ff1f00f0ff17000000fefffd7f000000c0ffffff0f000000f8fffd7f0080ff3f003000180008000200fd7fffffff3f0010000800ecff0100fc7f00000160000000f0ff03000a00ff7f0340ffbfff2f00080004000600fdff0000016000d0ff27000000fcfffdffff7f000000f0fff7fffbfffbfffffffebfff9fffbfff27001000fcff040002c0ffdfffefff3700fcff0b00fc7f0300000000000008000800feff0000000001e0ff2f000800fcff0300fc7f0040000000c0ff170000000800fb7fff3f01e00000000800100002000600febf00e0ff0f00f8ff030002000380010000e0ffbfff0f00f8fffdffffff010001000000000800040008000200018000c0ffafffefff0b00fcff03000280ffffffffffefff03000600008001000080ffdfff1f00f0fff9fffeffffbfff9f00c0ffe7ff0b00f8ff008001c0feffffffff2f0004000600ffff0080002000c0ff0f0004000c0004000180fe3f00d0ff0700f4ff01000080ff7f00c0ff2f00100008000600fe7f01400040004000f0fffbff05000080ff3f006000f0ff07000400feff0100ffff00e0ff0f002000f0ffffff018000c0ffffff3f0000000c00fcfffefffcfffe1f0000002000fcff0b00fd7fff7f004000e0ffffff0b000200feffffffff7f000000100010000600ffff000000a0ffffffefff0f0000000500004001c0002000200008001200038004800000002000e0ff03000a000580fb3f00a0ffeffff7fffffffffffcffffffff1f006000100004000000ff7f0100ff3f0000000800000000000080fcffff1f00e0ff0700f0fffdff0080010000e0ff0f000000fcff0700ffff0240ff3f0040001000fcfffbff010002c0ff1f000000000000000600fc7f04c0feffffffff2700040006000180ffbfffffff3f00f0ff07000000000000c0ff3f00e0ff1700080000000080fffffe7f00d0fffffffbff0100048000c000200010001800f8ff0300fa7ffebf000000f0ff0f0010000800010000c0ff5f011000f0fff3ff0b000180008000e00020000000fcff010001800140ff7f0030000000f4fff7ffff7fffbfff5f00d0fff7ff0300fcff0180ff3f008000300000000000feff00800000ff1f001000f8ff0700f4ff01000340000000d0ffd7ff0f00fefffb7fff7fffdfffffffffff0b000000ffff004000000050000800fcff05000100ffffff9f00f0ff070000000600fc7f0000002000100000000400fcff0400010001c0ff5f0000001000feff008000c000200020001000f0ff0700fd7ffe7f0060001000d0ff0f00f6ff018000400060ffefff1f00fcffffff028000000040006000e0ff0b0002000280ffff008000400000001000feff0000ff7ffedfffdfffafff0f000000fefffdbf00c0ff1f0018001400f4fffe7f02c0ffffff3f0000001c0000000300000000e0ffefffefff1b00feff00000200004000100020000c00fcfffefffe7f0040007000f8ff0f00fefffd7ffebfff3fffefff0f00fcff03000680ff7f01c0001000280008000400ff7f0280ff7f00c0ff2f0000000000f9fffe7f00e0ff3f00f0fffbfffffffc7fff3fff1f00d0ffeffff7fff9ffff7f00400120001000f0ff0700fcff0280fe7fffffff2f000000f4ffffffff7fff3fff1fff0f0010000c000000fd7f0140004000d0ffefffe7fffdff0300028000c0000000180010000600feff01c000e0ff0f0008000000f8ff0280fe3f006000e0ff1f001400feff038001c0ff7f002000e8ff0300faff07000140002000d0ff2f00f4fffbfffd7f0200ff5f00d0ff170010000c000180feffff9f00f0ff0f000c0006000180fe3f00a0ffefff2700080000000600febf0020003000e8fffbff0500fc7fffff00800010000000f0ff01000080fe7fff5f000000d8ff0b00faffff7f01c0ff9fff0f00e0fff3ff03000500febf00e0ffffff0f00f0ff0300fd7ffc7ffe1f00d0ff0f00f0ff09000280ffffff9f002000f0ff070008000480fe3f00e0ff0f000800f8ff0100ff7f0180ffffffbfffefff030000000080ffbfff3f0010000000fcff010002800080ff9f00500018000000f6fffeff020001a0ffffff2f00f0ff0300faffffffff1f00d0fffffffffff9ffffff010001a0ffbfff0700f8ff01000200ff3f01200020000000f8fffdff05000400ffffff1f00e8ff0300fcff0480febf0040001000f0ffffffffff0000014000e0ff0f00100004000600fb7f0040ffffff2f0010000000f6ff0180feffffffffcfff0f0008000a000000000000e0ff2f00e8fffbffffff01000000ff3f00e0ffe7ff0300fefffd7f000000e0ffdffff7ff0700fefffeff0040ffffff3f000800f4ff03000080ffffffffff2f000800040004000580ffbfff9fff4f00f0ff0b0000000180ffffff3f00b0ff1f00f4ff03000500fe7ffeffffcffff7ff07000400feffff3f01400040001000fcff0300fcff00c000a0ffcfffe7ff1700fcfffd7f00c000c0ff0f000800f0ff0700ff7f014000200040001000000006000400fe3fff7fffffff270014000c000300ff3f0080002000f0ff0300fcfffd7f0000002000e0ff0f00f0ff03000000fe7f01c00020000000f8ff0700030003000000001000f8fffbff0300fe7f01400080ff1f000000f0ffffff0000ff3f0060ffdfff0f000c000600ff7f0100ffdfff0f001000f4ff0300ffff0240002000d0ff0700f4ff1100f7ff01c0ff7f00f0ff17000000fcff0000ffff00c0ff8fffe7ff0f00feff010000400040ffdfff0f000c00f8ff0280fdffff1f00100008001400fcfffeff02c0ff3f00d0ff37000c00feff01000080ffffffbfff1700fcff0d00ffffff3f00e000f0ffefff13000000fffffc7f00e0ff0f00e8fffbff07000180ffbfff7fff1f000800f8ff0100020001c0ff7f00c0fffffffbfffffffd7ffebf002000e0fff7ff0f000800fe7f00c0ff3f00e0ffe7ff07000000fe7ffebfff7f0020002000ecfff9fffd7f00400000003000f8fffbff010005800080ff5f00e0ffe7ff07000200010001400000ff2f0030000000faff000001c0ffdfff2f0020000000fcfffcffff7f006000c0ffefff03000800fd7f00c0fedfffefff1700ecff0900ff7f0040ffffff1f00f8fff7ff010002000080ff3f00f0ff27000c00faff00800180ff7f00400008000400f6ff028002000140000000c0ffffff07000300fe3f01e0ff3f00f8fff3ff010001000080012000400020000400f8ff0480ff7f00e0ffdfffeffff3ff03000480fd3f01a0ff5f00e8ff03000200ffff0280004000200030000800000000000080fedfff5f000800f8ff0100ff7f0100018000200010000800020002000040ff9fffeffff7ff03000200ffff000000c0ffefffefff0700fefffd7f03c00040008000d0ff0300060000000040ff7f0030001000f8fffffffdffff3f00a0ff7fff17000800fcff078001c0febf003000f8ff0b0004000100fe3f016000100028000c000000ff7f0040004000e0ff3700000002000100fdbf00a0ff0f00e8ff17000400008000c0ff1f001000280008000400020000400160002000d8ff0f00fafffe7fffff00e0ff1f000800f4ff0300feffffbfff7f00200010000000fcfffeff0000002000f0ff0f000400fcfffeff01c000200020001800f8ff07000380004000000020002000f8ffffff030001c0ff3f00a0ffe7ffffff0500ff7f0040002000d0ff1700f4ff030000000040ff5f00f0ff1700140002000500ff3fff9f00e0ffffff1700fcfffc7f01c0ffbfff0f00f0ff0300fcff010001c0ffdfffafffefffffff0300018000000040ff1f0008000000fefffc7f01c0fe3f0000002000000000000200ff3fff3f00f0ffffff0b00080001800180ffbfff5f00f0ffffff010000000040006000f0ff0f0000000600fe7fffbfffdfff1f002000040004000100fd3fff7f00200008000400fefffcffff7f00200010001800e8ff0700ff7f038000e0ff2f00d8ffffffffff0380fe3f00e0ff2f003800f0ff050004000000ff7f002000e8ff03000400feff00800000002000100010000600040000c0ff3f0020000000fcfff9ff0200fe3fffbfff1f00e8ff030000000200ffbfffdffffffff7fffbfffdfffcfffebfff5f0010001800f8ffffff028000c0ffbfff1f00e0fffbffffff0180fe3f0020000000f8fffbff03000100feff004000100048000400fefffc7f004001e0ff5f000000000004000580fe7f000000c0ff0f001c0000000080ffffff5f003000f0ff0300020003800180ffdfff4f00f8ff1300feff01000040ffffff8fff270004000400fc7fff7ffe7f00f0ff0f00f8fffbff0380ffffffffff0f0008001000f6fffe7f00c000a0ffdfffeffffbfffbff0000fffffe7f00f0ffffffffff0500ff7f0140018000100030000c000000ff7f0180ff1f0000001800fcff03000180ff3f00e0ffffff170000000000ffff00400040ffdfff0700fcff0100028001800080005000080010000400020000c000600010000000f0ff07000000010000a0001000f0ff1300fcfffcffffbfffffffbfff17000400feff0180ff3f00000030001000f4fff7fffffffeffff5f00d0ff0700f4fffffffdfffd7f002000f0ffeffff3fff7fffffffdff00c0ff0f00f8ffffff0500ffffffffff5f000000f0fffffffbff03800140004000c0ff27000000faff0180ffbf0020001000000000000600feffff3f01a000e0ffe7fff3fffdff008000000060001000f8ffffffffff03800040fedfffdfff07000800faff01000000002000c0ff27000c000400fefffffffeffffffff070000000200ffff01400040000000e8ff0300faff0100ff3f00e0ff4f00e0ff03000c00fefffeffffdfffffffe7ffffff0100fc7f01400020011000100004000400ff7f014000c0ffffff2700f4fffdff0280fffffe1f0050000800e8fffffffd7fffbf00c0ff0f000000000004000180feffffffff3f000000f8fffbff0080014000c0ff2f00080000000200fefffebf0060002000f8ff030002000080febf0000001000e8ff0300fcff02000280ff3f0040000000180010000780014000a00020001800fcfffdff0280ff7ffe9f00f0ff07002c00f2ff0000febfff7f0020001000fcff03000180febfff1f0000000800fcfffdff0080feff00c0ffffff0f0000000200fbff008000200040002000fcff010000800140000000100018000000fcff0080fd3f000000e0ffffff1b0000000280018000e0ff0f002000000004000380feffffbfff3f00f8fff3ff0300fbff02c000a0ff0f000800e8ff01000000ff7fff7f00500010000400f6ff010000c0ffffffefff0f0000000200020001c0ff3f0030000000ecfffbff0380fe3fff7f00f0ff17000000feff008002000180003000f0fffbfff7ff088002c0ff3f002000c8ff1300feffff7fff7f00a0ff4f00e8ffebffffff0180ffffffdfff2f00f0ff03000400f8ffff7fff5f004000e0ffffff0100fd7f02000080ffefff0f000400fcff0080ff3ffe9f003000280014000600fc7f0100ff1f003000f8fffbff0900010001c0fe9fff0f00000008001000020003000080ff0f0000001400fcff040001c0fedfffefffeffffbfffbfffa7fffbf01c0ff0f00f0fffffffdfffcff01c00180ff0f00e8ff0f00fefffefffeffff3f00d0ff070008000000fdfffdffff1f00a0ffd7fff7ff0300000000c0ff5f00b0ffd7ff1700060002800080ff7f00200018000000feff038002c0fe1f0050ffefff1f0006000200ffffffdf00f0ff07000c00faff008001c0ff1f00f0ffffff070000000100fefffe3f001000e8ff0b00f8fffd7f0100016000200018000c0002000100000000c0ffdfffdfff07000200ff7ffe3f0120006000f8fff3ff03000100ff3f0080ffdfff0700000000000100004000e0ff1f00d8ff0700000001000080ff7f00f0ff07000c00feff0400ffbfffffff1f0008001400f4fffafffe3f002000e0ff0700f4ff11000180ff3f016000400028000000f8ff030000c0ff9fff0f00d0ff07000400fd7ffeff000000300008000400f6ff04000140ffdfffefff0f000400fcff0200010000c0ff2f00080000000800ffff00000080ffafff07000400fcfffc7fff7f0180ffaffff7ffebfffbff06000080ff7f005000f8ff03000400038000c0ff3f00e0ff0f0014000000ffff0040ff3f002000f0fffbff0700fdffff7fffbfff5f00f0ff0300f6ff0200fe7f004000e0ffffff07000e00fe7f01000080ff0f00f8ff0700feff0500fe3fff3f00e0ffe7ff1f000200fefffeffff7fff1f0038000c00feff0100024000e0ff0f0020001000f8ff02000080006000e0ffeffff3fffffffe7f03000120ffffffffff0b000000feff00800060ffffff27000c00fcff0100fe7f002000200028001000faff06800340fe5f00e0ff1700fcfffbff020000000040ffbfff0700f8fff7fffeff00800000002000e0fffbff0300ffff01c000e0ff3f00000000000400ffff0140ffdfff1f00f0fffbff09000200ff3f00a0ffdfffeffff7ffffff03800000ff3f00f0ff1f000c000200fe7f008001a00040000800fcff050000000180ffbfffbfff0700fcff0700fbff000000000010000800fcfff9ff00800040ffffffffff07000000fcfffd7fff3f00e0ffdfffffff0b00f4ff01000180ffbf00e0ff070008000600020001c0fe3f000000f0fffbfffdfffafffffffe3f003000200020000000fe7fff7f002000b0ff1700f8ff01000300fe3f0020ff0f00f0ff0700040004000180ff7fffffffefff0b0002000100ff3f0000004000d0ffeffffdff0180014000a0ff3f00e8ff03000200ffff01c00020001000f8ff170006000080fefffedfff2f002000f4fffbff0080024001e0ffffff07002000fcff058000c00040ffeffff7ff0700f4ffff7fff7f0160002000180004000000fa7f0180fe9f001000180000000000ff7ffe3f00a0004000f8ffefffffff0400ffffff7f00e0ff1f00fcff07000180fe3fffdfff1f00e8ff0300fefffb7fff3ffebf004000f0ff0b00000000800000ff3f005000f8ff0700020002800180ff1f00d0ffffff17000600028001c00060001000e8fff3ff0d000300ffbf004000d0ff1f00f8fffbfffe7f01400060003000d8fff3ff09000000000000c0ff3f000800f4ff0b0004800240ff1f00000010000800fefffb7fff3f01a000300000000800f8fffdff0080ff3f00e0fffffffbfffffffd7f0200004000200018000000000000000240ff9f00d0ffffff03000c000480fe3f0040ffefffffff0700fcfffaff0480ffffffcfff3f000800fcfffdff008000c0ff2f0010000400080001000080ffdfff0f00e8ff0700feff0080008000000010001800f8fff7ff00000100010000f0ff170010000800fe7f0040012000e0ff3f00f4fffdff0000fe7fffbf003000f8ff0300fcfffaff0140ff1f00f0ffffff03000200feffffbfff7f00d0ffffff17000a00ff7ffebf00a0ff0f00f8fff7ffffffffffff3f0020000000f0ff0f00060001800000010000f0ffffff0700fefffdff01c0ff3f00e0ff1700f4ff0100fe7f0080ffdfff2f00f0ff07000400010002c0ff3f00c0fff7ff0f00fcffff7f014001200000003000ecff0b00ffff0040ff3f00f0ff17000000f8ff0580000000c0ff1f001000ecff05000280018000e0ffefff270008000200fdff000000a0ff3f00f8ffe7fff7ff0000ff3f00a0ffefffdfff0f00fcfffaffffbfff9fffeffff7ff03000600fd7f0140ff3f0020001000fcfff9ff0580ff3f01200020000800fcff01000100fd7f000000f0ff1700fcff03000000ff3f00e0ff2f00f0ffffff0300fffffdff016000e0ff1700f8ffffff00000180ff5f0010002800f8ff05000780ffffffffff1f000000f4ff09000200014000200000000000f0fff9ffff7f01c0febf00b0ff1f000c00fefffeff0080ff1f00b0ff07000400feff02800000004000c0ffd7fff7ff0100fdff0000004000d0ffffff0b000000fe7f0000004000f0fff7ffefff09000580ff7fff9f003000f8ffefff07000200ff3f01000060000800f4ffffffffff000000c0ff4f00f0ff0300fcff00800040ffffffdfff0f0000000000feff008000200010000800f0fffbff0080008000e0ff2f000800f0fff7ff0100020000600010003000f8ff01000080ffffff1f00d0ffe7ffe3ff05000180ff3f0160003000f8ff0300feff02000000012000c0ff070004000000018000c0fedf00e0ff3700fcfffdff0000febffedffffffff7fffffffffffc7f02800060002000e8ff03000a000480034000a0ff8f00f0ffffff01000280feffffffff0f001000ecff0d0005000040004000d0ff0f00f8ff0500fdff00800020003000f0fffbfffdfffc7ffdffff3f00e0ff0700fcffffff0100ff7fffffffdfff0f00080004000100fdff000000100018000800f4ff0200024000e0ff2f000000f4ff0900000001c0ffbfffefff0700e0ff01000280010000a0ff3f0018000c00f6ffff7f02800060ffefff270000000200030002c0ff5f00f0ff0700040004000280febf00c0ffdffffffff7fffdff028000000020005000e8ffffff0100fe7f00c0ffffff4f000800140008000280ff3f00200020002800ecfff9fffdffff3fff5f001000e8fff3ff0700feff0180ff3f00000008000c00fcff0180000000e0ffffffeffffbff0100fbfffe3f00e00010000800f8ff01000080014000000010000000f4ff01000580febfff1f002000f8ff0f000400fffffeffff9f00400008000800040002800040008000c0ffffff17000800010001c0ff7f00f0fff7ffebfffdfffdffffbf00200050002000f8ff0b00feffffbfff3f00000010001400fcff0000ff7f018000f0ff2700f4fff3ff03800040ff7f00800018000000fefffcff0000ff1f00f0ff0700ecff0100feff004001a0ff3f0008000400feff03000080ff1f002000e8fffbfffdfffe7f0180ff5f0050001800f4ff050000800000ff7f0070000800000000000380fd7fffdfff1f000000f0ffffff010000000140001000e8ff1b00faff0280febf00c0002000f8ff0300040003000040ffffffffff1700f8ffffff0380fffffebf0000002000f4fffbfffffffe3f00e0ffefff0f000000feff0680fe7f0020003000180010000400fc7fff3f0160ffcfff07000000020003800280ffdfffcfffdfff03000400048000400180ff1f0018000c000200ffff010000a0ff1f0020000800f6ff010000c0fe3f00d0ffffff07000800008000000060ffcfff0f00f8ffffff018000c0fe1f0020001000040004000180fefffe1f00a0fff7ff1300f8ff0080ffffff1f005000d8ffffff010002800140ffbfffafff0700f4ff050001000000000000a0ff1f00fcff0300040002c0fedfff5f0008000c000a0000800380ff3f00100000000000f8fffe7fff3f00e0ffdfff0f00f4fffbfffbffff3f00a0ffeffff7ff0f00fefffdff0180ffbfffefff1f00e4ff05000280ffbf00c000f0ffd7ff0300feff018000c0ffffff1f0010000c00fcff04000040000000e0ffe7ff07000000ff7f0040002000c0ffe7fff7ffffff0180ff3f006000f0ff1f00f4ff0b00020000c0ff5f00f0ff0f0004000c00fd7f00c0fe1f007000080000000200ff7f0240002000e0ff1f001000fcfffffffdff002000e0ff0f000c0000000100010000e0ff0f0000001000f6ff0180fdffff7f00000018000800fefffdffffbf0060ff4f001800f0ff0300fffffeffffffff2f00f8fffbff0700fcfffb7f000000f0fffffffbfffbfffc7f020000e0ffffff0f000800feff0380fd7f00a0ff2f001800f0ff09000280ff7f00a0ffbffffffff7ff0300fbffffbf002000d0ff0f00e4ff01000080fe7ffedfff3f0028000c000400fbff000000c0ffdfffffffefff0900fd7f00c0ff5f00d0ff0700f0fff7ffff7fff3f00e0ff3f00f8fffffff3ff020000400020001000f8ff0b0004000380ffbf00a0ffffff0f000000f4fffdffffbf00c0ff1f00f8fff3fffbffff7fffbf000000f0ff1f00180000000100014001600020000800ecffffff0180004001e0ff0f002000ecff0100ffff0180ff5f00e0ffffff0f0002000480fe3f006000300018001000fcff0000fe7fff9fff2f00f8ff0700fcff00000280004000e0ff1f000c00faff0480febf00c0ff3f00080004000000fc7fff3fffdfffcfff1f00f8ff0b00fefffdfffe1f00d0ff1700100004000080008000e0ff3f00f0ff030006000180fffffe1fff3f001800f0ff0300fb7fff3f016000f0ffeffffffffdfffd7ffe3fff7fffcfffffff0b00feffff7f028000c0ffefff070008000400020000c0ff1f000000e8ff1700faff0080ffbfffdfffffff2700080002000100ffbfffdfff4f00080000000200feffff3f00e0ffffffefff03000600ffff00c0ff1f000000f0ffeffffffffd7fffbfffffff0f00d8ff0f00fcff0400ff3fffffffdfffffffebff0300000001c0ff1f00d0ff0700000004000000010000c0ffcfff0f000800f8ff0100ffff0040000000e8fff3ffffff0200ff7f000000d0fff7ff0b00feff030000c0fe5f00d0ff2f00f8ff0300008000000100001000e8ff0700fcff05000080feffff0f000800fcff01000000004000a0002000d8fff7fffbff0280febf0080ffdfffffffefff0100fffffebf000000a0ff0700f8ff0900028000c0ff1f00e0ffffff0700fefffeff0000ff1f00c0fff7fffffffffffd7f0040002000b0ff27000400040004000100ff7f00f0ffcfff03000200fe7f0100004000d0ffd7ff070002000200ff3fffffff0f0000001000fafff87fffff006000d0fff7fff3fffdffff7fffbfff3f00e0ffffff1300faff03800040006000c0fff7ff0700fcff0080000001c0ff2f00f8ffffff01000680004000c0ff1f00080004000800fbffffbf004000f0ff2700f4ffffff038000000260ff0f00000000000e0000000180ff5f00e0fff7ff1300fefffc7f0080002000f0ffefffefff0b0000000080ff1fff3f000800f0fff3fffffffebf00000000001800040004000080ff3fffdfff2f0018000c00faffff7f00c0ff1f000000f0ff07000200ff7f034000c000100008000400feff0200008000e0ffefffc7ff0b00060006800080ffbfffefff27000000faff05000040ff7f00d0ff17000400f6fffdff008000e0ff2f00e0ff0700fefffd7f008000e0ff4f002000fcffffff02800080ffdf001000080008000a00028000000020004000e8ff0f00fafffefffe3fff7f0020001800f4ff010001000200010000c0ff07000400feff0100fdfffe1f00c0ffe7ffffff0300ff7f004000a0ff0f00f8ff07000200fe7fffff0080ff1f00e8ff0b00fcff0280ffbfff5f00e0fffffff7fffdffff7f02c001a000c0ffffff13000800ff7ffebfff1f00f0ff27001000faff0080ff7f0060002000e0ff03000000fc7f00c0ff3f00e0ffffff130004000300fe7f000000300000000c00060003000380ffdfff4f00f0ffe3ffffff0200fe7f006000f0ffefffeffffdff0380fe3f00e0ff0f00f0fffbff0500fe7f01c0ff9fff0f00e8ffefff07000080ffbfffdfff2f001000140000000280fdffff3f00d0fff7ff1300feff0080fe3f012000100000000400fafffe7f01c0fe5f00f0ff0700040000000200018000a000d0ff17000800feff0080004000e0ff1f00000000000800018001c00020ff3f00e8ff0b000000048001000000003000e8ffefff0700018000c0000000d0ffefff03000c00fb7f02400040006000f8fffbfffbff0300ff7f00e0ffaf0008000c000000ffff01c0fe9fff2f0018000000fcfff9ffffff00e0ff3f00e8ff0300fcfffbfffebfff9fff2f0000000400f6ffffffff3fffbfff3f001000fcfffdfffefffc3f01e0ffefff17001000fcfffc7fffbfffffff1f0000001400faff018000c000c0ffcffffffffbfffbff0400ffbf00600030001000f4ff050003800040ffffff5f00f8ff0b000000ff7f02c0ff5f000000e0ff0b00020001800000ff5fff5f00180004000c00fd7ffebfff3f00200000000000fcff0280024000e0ff2f00f8ff03000800f9ffffbf00a0ffffff0f00040000000280febfff5f0000001800f8fffdfffdff02c0ffbfff2f000800f8ff01000680ff7f0060000000f0fff7ff090000000040002000c0fff7ffeffffdff0300ff7fffffff1f00300008000400fb7f02000080ff5f0030000400000003000280ff7f00f0fff7ff0700feff000000c0fe1f00100000000400feff0280fd3f002000d0ff07000400fefffd7f00c0ff5f00e0ff1700080006000200fffffe5fff2f0008000c000400feff010000e0ff4f00f8ff1700fafffeff0080ff1f00e0ff0700f4ff0100fffffebfffffffdfff1700fcffffff000000c0ff1f00e0ff1f00f4fff9fffdfffdbfff5f00e0fff7ffffff0300ffff00c0ff7f00f0ffefff0f0004000000000000c0ff0f000800fcffffffd7351abe2051daea0dfdac8f03fb7ee7
-Cipher Text   : f32fed51a319a743796c04e96c6d31ed8e850b2e14ee842af6713d9153948377730e6db9c9611ac42876a9e11a2954735879aaafcb6da088d8b0544bbc1d76dfe9d3154ce0ee6f64e1579d48001f3d5c7046e09e6f3f2cecb12f462c5759729985388b23c9736de6ef917c9187ca7a4cb17f2e419eb120d71ebd46e6a7a536d27d532e5e97c60e7196bd9f3da725ebdbdd8ec5d3e31ebbf6af6ad192b86a812a7da0d40be44eeb91fb684a5131afcbd8ca5763f9ebce3c97c08d629377e6e62263e6cf0f4016a8db0fc6818eb25f4942bb64addf24f0b2bad497f811cf4a8c7de0658f36e484a66cac704a0fc8e7422e74da5cb9b3109910241eaae20945c2a3f54d7e750e0694bcf1b0d2e92f1f18e0a6562ef9525787f9d484630a3585ac3607c05c9461f347be1e71107ccaf7df2cb4180f625c6b964b54343383ad8dd7b8de8e8288fa370912dafdfe2304dcb46d69f40d31a162f788ebc29b62665fb395909e91546ebd7827d45d91a9e2a71e0eadd674fc7c5880650239a3a8956ac3a8bc4c7679c99a3d5011ec118761f38253bff20693fef93ea6ce1c439d399a9858dad1313e11fb72725c1493b48cc4c0ebeb5fcf371026b723f0c4fe6828b7cc72f34e114b2098369712b13d8e2f5b2d80b1d165cbf6c764755b707c82a7a3c7fe1271b68fd0d32ec9671477040451da2b66e0b8e9e3c552775a15d61a03541d34a77572e49de60ad8777e4e4a3c8120465847842a6d226bc7679fdbdf5ad22f928cd67a369cad3b4c989d0718344cee52bc6a15ab06e2d1dcc63e0386e97ca481adfe7f4a94991c1dc215d27e58a9e35c980156256f6b42d55b2a653cd30f8386622f757d9eab490081fc96f26e88c558f7b5521e6b2a738d148118aca98e2c012d5b08a1c35359565e86817d8c86347dc6ca8daa91da4c6a24a707d7de20671d98522b52ee8a0d981a757a8b5370040fb4a9083fd395476307d1dab9d9de0ba75d48fc0e94420d0df9849e531459f4abe7f3d2b8f9c2cf3eddd5c5e03afb2b7608bc8a5d8d0e3cffe2a468b9253737caef77482b8bd25e3f4bcd2b32705badb78ef82e2cbccee3d70295fcab116683a71980f897bd5e8534e48c155c2e69a68973308eed84a3140ebf968092418672fb5b261bb829686d125ddd475f36666d50470e5d77a9d531d871a3e58758a2afbc61e1dd15558219e8fa8112e8628c1c9e10fbd7a5859caecf1a56d6feb0159ce88995e4d0522dac84f698679052c21176f14b4c9e6279287241ea18e5bb68618f2c9480b5a9c315d2249d0590dc811902023571dc9e77c4239bbdd5fd130f040b2a4c331e74450daee7c6d8563690776b0f53d07bca0963fdc9e7d303a3addacda8697e5dd020adbade57b6ea015c67db5e9ab7e56a5139de4e64b9cadd88b0a1741a6a998f27a1bf278a4b727e7205de3898c49baa9310f9f0cbc52ef9501b41c1d61a39a4a6f9b453ac73235392cbd86c46c429f58d32b3899c9fba9445253e655a9ddfa6dab5355499fae40e91df5576f062fa1db885441e1ef425077f88f5fd7599a4a0d00abb1c083d533a043907d70d8b68754a984957c31a40cf09b3f465f66f55b9125b4f1ed6c4b9314dd18f57e37607126e87f13894c68a92091f81cd7e5f73f295355a409da9629712fc614c07046393136aa9dac55526f6dd81caee27786bbb06307b2b61dcfab8d3b3342d7b555e867be2262a306e810e295669d6fd0b51ac67de9be1cc61ccfaa1f59fdbd95db8776d2484d9744639703205fdd0a3b88701d4f8bf2035841ca94a0649218ec99e42ba6a4901de3b1b8a8eec3db97017ddad89dedb832ccad3c2afb78d01f727ceaec005e85ba411ffee950d497a712555a854c396801c1455c79d6ca63ed1a69874f661c1dbd01bfed15195f80dc9a788bd9451b12fb99579ed46b299e7a300ad59533608812201adcfa18d08137dfff9de5df5307ccd69138f27b92b00c45200784f8d93237b9f5da67c1bada8da0d95be1144981fe2c847b6ec4b7d0994bba8c4b8b619650b1e7b5715c5675607eccf11737b22a4d4371fbedcb6f0f75d72af5000e8fbf61f564f7b64d323892312cb54098d63ab08e6c1afe24b7821f5b43fea78eb18349cd5bf2787fe9bcf8b9de5d2f0fc3d2612d95786849da30798d2eec73bd08bee400c05a8b0ac4f8708b9bb03df06934cd9f64e15fa269d866fa0bb58687d97def0ecad04676fdce295cd164a0073b27f6a4e036f41b70823f8fe4aca44a54c7fb5c1fe76da4a90c8cd3ff37f1d2fe032445843735d2c22749cb147942a3ba809e5ad5e806693c909e17270de8baeec1f2bd145e81671be8f6bfb1fb6a224a991955b9812d6eb204d05b77d7d1a5982d63024f0c1de0bd0e7cb9e75deb4ade8573e3d27966386efba90a26405ac9cbc903185bcda77eea35144acac1e1a96a35ff079d4235672ad4230d138c49f8513bd1758373024cfafbc62969e08f2e8c04588cf13f80a1acb379f9947613f9b2a91db0723c6de7413aaedf5ad3ea13323b27d924a656a8dd332dd9832d7861b1330bd9e77fe7e347e8aea5acacf2492e12e4267c5bffe18ae28e0b7571782b7e09c1a5437afb6c3942bca042b7a3656ef6f7991840e264958c3665545bd825141738c0072b40a240392b482ba595bc7e09ca3b4b9acc2437b8d6d0cb8be8c451bcfe11a0c6d78de6fd9e8498d780a457f3792263452aef1c9c4cf93cac25d0a12f1462bb0b4d9d3cd52df4ba4d847280a96bd0045bc1ac4d6e429a2473afe0cf6d3adc43a572b9f0283d165cbe6120e59b1db3a04d72548f9e06dc6ff50801a51de2fdf1668233c1625f7db1eaaea2369a49f261d6efc5640854cac8c596f02729381f40824de745a54bdcc5ba2850872d9567a2e5b4073e6647a1590ed7796be3881cf2b4ad8e3b2ac6ee992b89fcb2a19fdc5642a5db44443b6a988003f7380d3cffae1e1cd3359a2e291dfe5f02155fe68e4a74ba85aae0d7a57dcaf23916a7897aeccaae989135639aa2508c10f7b5f172ece207a2ef500a4e8bfef545287a5a74941869f43a00775b3b43c59a2d9be721cf0201b8131690ed0aebbf8a599dfdefe0f066b8142ac76dc693d931c903422489a754e099aeac2d7495664fa511a84f1011e303fac6aaef2d05fb326cd1cff90097d3195d6a0f639e0420ef34c0245a055938b5f7f4d43f49d1100f303ee84fe3fbc315e6081b46c78798bdc12717629f61bf0cf8fbb1afd1677c6fc438688e89f9a3018e285a61bed891df57334d5ff5283819f90fddae592ea32675ec7d8ce04c2dadab974d5948faac88f3bb094d5ad16d11398979fef933ef7fa6a0e01acc851a73cbb4d62cca3d08966ed0d9d04ed6ab5b4dbf17ddb53bdc474f68e992950f8e3938d2d9b3d34fd1ba4df4cfaedd742000b37b1396d57906d4bae4197568e571d21836baf644c3f942b943cd51f544f32a3ad3b6f5a9764630ba0d3153352dc31439b64bcdfb4c8a625631e5965f1efd0b756632a4aee5fd8f1e4befa5e7ae735600b0cd21cfe5e6060ce18f82bb560d13d8fb862113f9ae75ae7e6b2c7a5d13b0a72b5889ba0743faf0b1fb6701644998e7ba9e30ef0483797adbcfba6214c3ba9ced59b19acd1b2ab8cc38d12a85cb75df23707803ce017b2b47ea43fcbb367a3ae1f40611274ebf8b1f405b5d12963997c36731cdd1bbdd5a192d07db04eb75579405627563edded896dae5ec618fd4a9a658b8c68c5109f64a101f4a61da8c23201e9671094210b5ce64432da7817ec900e753f746ad288243b1fa7b537922076c99818e52a9abff5ef6e209c3aa61b7110d58fbd5b13efdcd59704ed90df948138d3ecf536f76784646429e58f02f0249559b1762471c894754b3063a5d45a81c3cbf53795b4290d8d2a636a3acdebe12ecc158288ca2ec0413bccd18a3d3bf983ac56d73d1084601522a31a2061e6886560a4e83e1a161f830335ab4cfde8191b54e5addb8e85bce41c40ef98dcdc0835401667c3bf7fd1d8f141c0b8e4e45ebed149ee4c6658cda609347de70e9ea5a40e989f3e59ef5b7ddb60aa6d7fa23ce8f2b137cecec14d1c152e7103f89971a779e120ca83ae73fa7ec59a6327fa35e7b89efe8ad24495427bda4a7965e24c3911d8116c35fdb922cc3bc43f02e1668aa397e7b41a75c9be7dc211b33392a51b1a4050fba61261c12c65a2513f5a34c6076e237236f554440c1640da2354ab8a07c86ed0d3e7e1326711a48795f3d64f3f2ae808c0d4a5815c0fc4df7c237b371314d5883675a330fadbfa68f43d64901635e3fa38ca329a1f6499b4ab394e2d1696614ff8567bbe7e2f317897cf4017d54d2c22eab6834094ed094477df0fa758952117af408e04f4ec01fab7f15e5994518ed37d1de231f0666c32e46342751780386cb86aaa47889265529a16c86e779dfb3c0d227a4340cda3e70104112aa854dd5bd5fc9d3089b91f18ce7b738b8f52dcd221d124052e62934895220b059bec6634346dacce48b936feeeebda9805315381096986da7e950e2f762de8068865db898d23b3d1a270c2101194510596aa2f999e3ed7a707735ac2323455d85ea06427a8e82be66f86ac2308abfcc910f4f0285fbeac3045436a43d8a5a126f436c9398b5f104ed95d143d6d57fcb8d3f6c8a311d9c90da08c61c5aba6022ff733b7c643b72f4d96bbf6742d459ebb12a12c4b425c79616fff4cf5e94db07e199342bb3786acf74e4c39005da58aa23b45af874fbb0245a16be1ba2d717239152069ea56c88f5d6f546ba7e091f130092cac118e1e84e3da2b836d3ab1fe6407be89710cead78853d1cff48347090a44ac1cd0d04a8352425417735b3b64dfab6dbb52a746b9cda95bf566169d31d7f8d0c72cc71ebb90bdc4e062c33de89301669a2751bf2c185334afc5e11483391d29e32065b691c8f60e1c22e588590484038036302576be9a995c510488acfe6aabb2afc38bb8c353d3d56948220fb14240ccb8193e93dccc002ac167232caacaa1241f4cccd207bd4c894cf010f60a6d90f1dde45d3f36071344c4e31d52e3d16b237dacc780be623b327a987cba722a57ff29c21a3bb845ca2380fd211fc96b7687c5e1a06262cc59f0a5e9578fb2cce47368e8c9b4b5f3858e42ebe28c0d89f394764225fa9b7c8b525f4125f55d465e559c4eb0ae52054ce0ee8f91f47da5377e2f3787a3d505e5b5829f9a8e64e2debd69b4a7e6cb16f474b96ef1994137c65942ca353dee861011e984a070a92077e7a6a0b919a95ce2609172a7b0e61636e25eb8ed5717789c1e3f6f7915edaa7e859b991eb2985cb4ce0b5f2d25eea1fc3870b0ac433b83c6f57ab5f421cb69b05b010cd2ac2707ab3ba5b31086a6d4aa62af6105d773cf424a7e271173af2ec73397f474abcb96b613ae0845491bf2d58605a94cdce45d2b312a68f00b7bd2d0da7eeaecd54713b5d093c461ed4f14ce91608979d37e058ec477025856321a451cf3ce4d88fa9bafc17edcf2ae480bf72f5170e680322eed600e663bab3f0145d70543d85b64d803df0e5f2a4f1b15c466e5519d106b7543d6f53bf4a2a199d7a083a5e13710f8d8c4485240e891aead9891f093fedaea0d1f7c003aec1426471168d80262bc2fcb645c2f42f45b7d36486ead0719a6c6464493b1fedbbc1f7721a84c49941dbeb8005e507ea7cdbb721280522a5a84c627a21cff3b8a788695ffd232113c2e42b5a8afbb53f8ff893cee064e2d0949d362d7d3d62dbe5ccf0c436e220b13034ca25d37c8553a2c01120aacb1989aaf6baddf49db6e5c27676d79d780477f399abeeb008c45f8a8deb6780c32e2d0fc18eb7868b16eee1d3a9f9065b1eba1fa500e174190395c38b66130c739732ba7c7431563db6ddbe0ba6f68e79164f49a07cf9133f5f761b6d4b7efc0b71e95934cd45763b5470d936c9ae638ffc5fe21d6536fbfc7a11a8930058042fce531cd493b4d44309eb4a68b0fdeaadf380d2a75acda1d83b8c2ff316e96d2cb907eb951f3a7805572a25628a787076033385f7f53291c78484ce61329398107d94daa8c8224581e90413faeb332bab1b6ec0b71796a079a6678cfecbce29b6eac9327e05ac60f35d4e7c9f3948b49e6c37f355ba88667ecee3fe5eb2737b345791a0957c8e13df7987a6d174bdb16519e400f8429a4f102eeecbf4df52e7aa5e30c50c7432c868c766ca91641b3aeacbe02720854dbe761a4e72e34adaf78016f6affdc14058ce5fe0ce10ee9a8e962672550f12f33cfa951e0a495ff204e54c2cad687ac20a06e75426df3a7f165bdd619b88207c82fd36ed559e8f12fee9aa2a039a215e0c6231bbe2e3b5147a30156b9efd32d2b69e9e50497dad9de6c1cb466540d072503729c631ad5730087bb10c52820174e165c6a95ed17af693503ce6af5df37f1553203bf23faf84390d18fe82d05aacc14585e92fdabc3f67047c8fa8d9d4bf62374f7acd4c5a5ee0df844d304dbee8aff192ebf63735162eb9ef208a66598e1293467fa15e797b48a5e5dd25c01f8876f12df366c61c2a7c6957e983d05834eed94456907339c06b48a7d6c5f30d4d0cbfc29971980c9ce85957ca5f82a752ff7534480c35ec19500568cc1f06e3d745395e78e0d79e304e763bb7025749bcd2d4c73aa7e6e1e27704454387058edd1706d6d7a0f4010c7a4e11f40a3ca764c2468252e2160a121f82974dfefdcbcf666b49e950ff595b996e23fc05fca2d8f14d334e9f62677e4030a71c86c5bffd442b52f840b5ea655e9719096d5f4eaa766cc2439c2a2ee87c0e6629bfd03854070f7cbc2def7cbfb8b0e15b1ecd15354da7baa361c24cac3c1fc2824ee816178964966574ca46d35d7989d4981ee2c8ce946c0859bdeddaa1dc28d7aba622b33a3e5eee99710abb65b10affcf83019348aad2e8327785d0aabb638ee4ebca16348021c7cffa2c0db2d602dae98f98b62393c1559712810d13b26d7ccf9a8fcd26be2858fc6aa49f812ab2646384b9a6279803c8e5085ccfe09cf74fd0b6b185cc29f8a1c80d45b45be482207a35c7f13281bba5c27509935e06bbb6cbb7a643010e44f9bf05fde3c9c8388c8e5dfe9661df136c96679a2861ac6fec65e7c017278f03846327749b03cfb407c1dfb90c2df847d5813582abcd643ef6a06e325721d3f2e432f12bada10455612d2c8f64fa03ee5be6096d502cb95aa960a4921e67432107465b3cfb91e7034689626bd8e553f9742a01970a9b5dc7ddbc7085a3f694dfe4ec326c71e126bfff8f372bb39c6707b816c45633f254cd170ee7501d9ec78d512386d1bfbacd47455576ee867a37c5f24dc483d36b55ca262f384567a18e41e55acc4983e6140d3204b48f5768e2f04f11131d1d6f7c7fffa20d66b3e3520bdc340758df412742d6e45a5e35896ae494f1d62b5158e4e35e60db824c271ce733bbb0a3d12a622c7db1bd1e5256f886af45a2a7dfb3a90e1a1babea76ab8576befb2fa60bd93d0cd42ecebc4698fa4a434cbfa1dbb5199a0b832f79082876f03e089ed9d43fc6ed9a8a7d705b21fc3203731760a9f288b6eab9b3a0a89bfa369be8d22c01b68f6976f3b62fec2ff581d2caa970ca63ecb7020bf6b8d32a04a8ba4eac0174ab011d497a03c74f2e7a9e91914d648ae4fcc7d0772efb483f5aa197fdd6b884fee00678d43f0e7c1e657bf4088a13fab156ad76aefa42a1a47f716c41e4698b4d99a82e2abdd4b2981e1b0a09050cf5031049884d25e26f1748b66123fd24a24bab34b9b8345f6153c09bd80f2d2fde44d9bd9d1d10120b718cb000f0dba73ae1823798ce9311ef2942b3f53120615143c2fa08e9219bd7231a486ae7b0a697a0379a5464ab735fb8a08623408f556ed9989e003fc28d8ed879bd4f83d78b62a84f06d2bb390e144034e6cde2ba9d606338fbb0f42e1f67dce38242c819ed678f3a9bbebfbc33b033e885c24d6c43395b403e51a83ce2c63e3b6473639b8c5ec759e3e5a7ae7f201c7f873ea5239d66803851df6f5acfe7735905fcecc3d70ce01deb98eea07d18fc4b7498d00ca8cceb99b085619cfa4bec0323ac5d4d1b415a93fa7d6882d202c3c862ddd6140f783b7729dd78f130bc3976b053c655e5401c75af2a01bb9e683ea9e8baa0c24a71ec67a9846b65ab381fba7eba8875bd981782e0ec98578301b98d54e031024da1dab409be13765e09bc62060fd5dd36131f4c35d98a766e6245a7320da5671850b36fe3b4d95643a99da83820f3c4b5a864c1eab76f260c5b9836276f1405f9ae6095f1ab15bbb66598551c355d3b0cb9a9b84e64dd00abacfb93b9197b95cc2bfc7ec9c579c338e01533bf7a1a01c7164772430ae2405b8c08cd4e227bbce8fd372a1ef146b3391b700b3b1a0bda6dd96f6e453f24d46bb2288ea47f2e493f3144cb0bd886a7ac46a24f4320dc896a9e4762dd604d0eae11a479156b5c98a5f97fa55c2abd684f91af5648d7426dea3b085c7de6cd0f10079a63cc11a4484223fc1aadb4e46695ddc82997a692bf8857a3f6de5ee923c699992ebb1976b689b9463ef49f7a1abd5df87e1ece5d1e762d05d78edf2311929eb1f018497426d7d8eaa8a361c63f03edb1cbb115376686ec7d939f68f2e9c9facddb9f172b0887151aac834096767538f77aac38774a985e278e8e303d4848cd65f1cc56f664c6aad8372107374fb6641ed108d26d8f31f7220bca62ed8176f36afb101d7bf13bdeba00c53cd6472e2c6aa0a6cc91d51b6f5fe1144c86e74c3e5594b68dbd7f49979cc3db5251423e6cbc8933980de4351708b318f2b345a7f73d9e3f95c74c66128598c480e8c9454e8ad18e007f6a5f0108fceced8b65aad9fa21c7f8db643686082f7f44b6cf947d602bc3ddcdf30134663fa6ff86c30252d8915a4431a264445ee3aa87513c5cd9111d7bd43c6e9e6eb65497bee47cd867e022eb6e0b2e4f4f34164b3388e4a1801cad586ea6c3a335a0cb102a3741bc182d86fcec16c01825231e0c1e0d1582ef5586c7b27e088bbd97e34ad5a1015385629cfb998e016c199c3007ea47709f1207ff61ec6d6fc04d59e43277f4257dbff246168d7f3750824b0558ecab722280e11e34386ad72767b05ae71eb7b6ebd07293f4b29a26898e975af80d631dee1ae557747fb8a917feb28f465c4f15fc2cf8074673640f1dd66fc8065c8687fb1a2813ca29a0bcc9e1cd8fe49d674828688222574878b2244e53cd58e0c4e4e9e04635b7c9e7ae3e14627676a353d6ce7b44604aa99c9950b9eaa51cc742114341281bd488e8e43ee2cd1d161f7c662b253349b56931a1cfef36a3b3659ad813cbd5acfb9575aeda13de89c7a3f5ec08efbf0db6a67d0d2ace9109852248606c4cc912709a1696e96bc3be762c4f364fd55a60ba7293ba01cd89f5f927c4d4e8b36237d871489c20179bdd4d8b460a552c1b0647f145288fe05e5625127e7a5a559e224f16e4ed7007b55121aa065c0860ca4158ca6cb7aff77ca9f926d389cc2e5c7bfa306efd50025004644b870d013055fb479e7352f0d66571060b850bd7ece444f04ec61a64f0afa7985888e72b23b25dfe4f3343411d9012953f22f2d468513c9f45b6b46f22578c60ac29978d714b28520476d8d73dfe972e4b087a954551cd0306831b1996b16a963c2c79d56e9e302b79f4a06622aac9feba16e5bd6eacaac217726fe2773f632caa899f75f8a8ce8ec26750a6820c154842bb43956a72b504ae722b1b033a182c4a74d6163d55f67278634574d302448863e801b00fdd1df466138b7275ac577d568b4581031d0800b42d61cdc4159ce5b772b5faf182a51263cbe6473ed2fa3a58acf71f84fcb1826423545eee78c09dc5abcadeb6c02073c6148f64ab9743fc4c7279af1a7711521ffd090a0ce7166fe4cf97bc99c9addef22f3c850ac0fa38bff047f802af8d5a69593b189ce08722b15a08a9f4ca7e7de0b349d603e6c89d4e30db60210374d4784b3dbdcbc37d1b62ba34dbdd0ee7dd4e6299dfffbb17da1ff0a717246c25524cb5dd298d2ba4f1841f661e095a4af19a490fd3d946d7ef3f7b0a26a4215d62267dd008aa14001e31fb2644cc315017e6f765cde9c7d35d2482fef8c78072a3662ba07d71f9bcd92a37c71290ff0d17d92147077801b1e50a20801fc2df5fa1b6e132e93ab01b73bc0e9e313808c8d55b05bf9631de89de86034c754ca224b16083afa21d256c9a5b8f349b830059ae6b6444d668fdf94b5bd799a1fa32fd4b7de16dca3bdafa8dbd13f8da3bcf6f56db35a646d0c167fac4369320a9e4302d9c2ac5611c1581785f93e30beec433d60c436e8e96699261496cebe13506a00df762501511e61e1f53e4e734282fe83a194ffe6c263e477f439028165298824b0b405c2cb4b105f0103c6fea47796f507e28a5c5431e1c40ab02052b34fd5d77a16bd33c0fc86a6ee93c6868f01f535e719fe8f2faaa820b642464e7c39a1186b3652cde90878836478ca767b22d703909ca6390c1f746126cbf3dab721b7f48974f21c3add3f19bfc6c4393c84d9163953d31975c02bc9a5dc4720371d7893fdb1d936e5780421cfbe69fc7abc86e3990c372b86241c289025a2d4a1fb08f20910689a2fb72ed3c23b4a81d44d55af54095f9b4d6a644435e4910074f091586afb01c9cc02e9dc80ff85b81db9a8306c5e7eccca517214e818b0e843a58f39e305a7aad50c40bbccdfb61d83002ea9af0afbb7c943459d69eb2c425d0280eda4921c4ab61f90f4f290a346ca8f15863e661d4a5d33f013054b0746c7422e2c8da98ce963b63c01e0db5f7382817800451a7663ef5e1e92a8a4dfcb16d8895c3b9f8a65768ac978f71246b69acd0221ed64da59ed6ec391776d2c1202ba5d01528b609d8307c37d1d85201a6326d94ebe90a760bccf99a27c0d74f8e62080fa5b1fa02c164f5d3d25f6147317a52d71f81d108e4d3491c8c0497290a33ec43a5ee20798a085eb48b9f0a69c281796c1bb7910f9dda736736996e10114d19f63e6ebc9dafbd57e8aaa71bac0103683faa049983e7146187f48c5afbf3b409753bac902d4c0f9c851c0702d4156e49aa26485518bbda0b9677f34171f6f0567165c9927dac656500649ad01f5beb200933038106098544042de442c82cca6e9f9dc12144f93eb09fb44a731d27860c0433cbcb100861a99f4ac46d27502aca3e260aefefc267b9c2d640268c0cd7b693eca17e5fe8fba9e8a3c87c229f9fbfb73e6f043e65ce82ba6ae040f06275e6a164e7b96c3d3942671e1b9869ca1e34318210f3a8b4c964e7de4aecc8b466c5c7f4f0ac353b82cf6474354e3c9bd47049ce6d8c9d3501f4802c9112fe38d0ae95e4025ada9cd5e83b0a6f51b71c900af4e94aafd562e6b35d286a02321cd8b6af55965eea32f1e2dfaadfc9bc0e313fae7c9a6c8c200c5cdbc8d9b3bdaff63a3d7434fe1b8aea898fb979c67d3a61ae4f525b483c9906d30e35885d135c13f84979e365764a1c3908d9b75a8701b96e52747dcf6783845b0349130ee60ddf28575a7272f682b07b0248390d9a402a8aeb670b90b2e95cb6907ae3f06dd475c9c2e04a2cc4c94b83fe2b0f4a51f51bb62ab70ca1298ccce4ea16e3541dd98bbdc321aa2100083532771bfc7d20277532665cf6c364abe50ad24770e0eb76c5f7fdf8941e15d7789ae52012dfe29abfbfc5f8bfbe4c319fd67bad55cb930a9e1e5461add8f492743a0025d4129731b26205c11da65115b1dae1fdfad636acc1e7608986c4817d759c0adc1db1407d27505cd8cab84e113ccac6dc372ae4f7e59e1a013376f8516467d43bbbc775ec4f0b2a9334aa9af0a7d63dadf7e3e221a4251a7475ae9f89c119236bac365bd475005f9bc88aa193a94883932fb31e69b7e6076a7f3e45bdad18df52a34a88fa3dab7aaeae2af231362fe9071a44ee26c7c897de4c9b054a70735f8af8857c0e2169a042c6960cef5399f9272e25b2b2f63c12924bb1ff6fe30ab97fb128f0cce3415f8d2f5a3f31584603fb13289f22b065257b1329e82e29723be372d655363d49eafd19fdbbe368c971ef126033760cde1777e33e2ba31c71b649b2eaff6b0aaecf21868a36d1add8f723d5110dac68147891d604ead92f044b1eb300e9478e42b67ce624c655e516bcada747c27aa6f78c3336ba15295e7e5436784827a6e28e87f05c986d3b9cf247f2253b841f40845924b1d8447b28e1a837c29dd081ee784bffccb1eccdad1d9d95b18321de619eeec398587fd2b499834b8e6910d2f9e1ca40a025fc41124faac0f36d56bde181cbc06c395574cf7a6f4cd00a573d76c6675dc26516d373de409d0807c7fee0e122094dd51717f0bd98e714f2e2485a23f17b534970826e0f3debbbf5612ffe0fb759a78501faf2900d7e49c9bb684b3ca0e0a7e0767bd6785f575000b682c1212db6e999b1c16c42ed0cf8aaec6d94fc930ea41a3add5fcec475474880ae6eafd37d2642dced1d68976cd0ddb56411cdf7800dd02215e55f5cb2420ab1076bbbe69380ffbb7f78c73ee7dc081cd54830d15b205c84283e3afd32b792c40ac0a564d426443687b704723bfbda2cbe3732a1c9304265ecf89e6de6aa42f8b0db5b250aceb91fa8fa1a826f1112670452fc06a83a1cdcd2405d77d6f60fb7ee0e264d3f8f78a56847f06d42ee341ee2552ccee9b7cf062b5a979e493eb91305b070a4d673c65858b91c4638890967cc88e0aa11cd19869bbb1d80e82ce68c3b1ed75962e6eb75e4bcf58558b82131ae20b4f81d87cddc47e7742b2f8edb8b2042d510b8f29d7b8f964c03c36e1f81744ce3c00781a46ae707061b798f1153a32e5fb1a23d84fa80c16cf8fb37d3fe6f94c120776ac0f17bafec03af3ae2d1f159eae5b775182404925a8902e7d2fb88e1257f283b6877cad9ae961f843e9137c145dc0de99ad3666e557824f42aa9905b0be240adf3db8d5f18b955c90f9d2f1fe09003fcb8058839333848ba4f89e7effa7a7bf6d81c56923a4772685263f2724d5844ec9c053682e32bb572b7b32ee9b225e26d9399860baa908397bac325652e68593efe380d3734b1013486ddea1ff57ddafb6ba6b83050d744fb956634a382d261f7dce96a8af88b834cb636e7894b39adb5b6bf8ff763203dbd7453908001ac087e2fcf3f59fe1d1d0fe4bf37a062ae55549bc9a64b6c937acc4c49c22b79061effc73685bfe07401fb10f34d278e29ed46622e6cbf019e153d57e94530327d13b0988db1150502c167bb17dee56b74480d8bacd883b30d71f2a0412a5abf84abbc232e43bf66d09299c24b0aebffc41b2f66bcd18acd008ad30fc5156143eebdbb3d74196c1ff59559981005a603190b7a644a93112b5b0afb6ac22044174d65eedf7202d194d1c93da8771f5843d3f011af8a9d843637578bd42c791be9a608db32255eb953205970e430b2af06520fd10226184190dc27cfa253dd46483103eaecbada9820f4c529629d2cc676cc0a0f5945e363c268e144470424004839f1550133e5e87756ec0b51857248403186eed07d9711446b12e7b37b242eda49a2ad9a9a6e05e8a4395823cf958f0692df1cdf3c970a8b8e093a3836992bf3da6d91e0103f68648341ba05baf88b13fb6b55433dd1af5294d2fb1fb7318f3eadfad789e28ca3440c71bc1
-Shared Secret : 6b7b3392ed112be7392ef7f456d365f1
-
 $ g++ -std=c++20 -O3 -march=native -Wall -I include -I sha3/include -I subtle/include examples/frodo640_kem.cpp && ./a.out
 
 Frodo-640 KEM
@@ -656,8 +726,8 @@ Cipher Text   : 408d099ab76c11ea31aae22ef1634eecb2674ac93312b337587ffe0d4500ffb6
 Shared Secret : ebad3b0a0a8b82188a75d3a415b405b
 ```
 
-> **Warning**
-Before you consider using Psuedo Random Number Generator which comes with this library implementation, I *strongly* advice you to go through [include/prng.hpp](./include/prng.hpp).
+> [!CAUTION]
+> Before you consider using Psuedo Random Number Generator which comes with this library implementation, I *strongly* advice you to go through [include/prng.hpp](./include/prng.hpp).
 
-> **Note**
-Looking at API documentation, in header files, can give you good idea of how to use FrodoKEM API. Note, this library doesn't expose any raw pointer based interface, rather everything is wrapped under statically defined `std::span` - which one can easily create from `std::{array, vector}`. I opt for using statically defined `std::span` based function interfaces because we always know, at compile-time, how many bytes the seeds/ keys/ cipher-texts/ shared-secrets are, for various different Frodo parameters. This gives much better type safety and compile-time error reporting.
+> [!NOTE]
+> Looking at API documentation, in header files, can give you good idea of how to use FrodoKEM API. Note, this library doesn't expose any raw pointer based interface, rather everything is wrapped under statically defined `std::span` - which one can easily create from `std::{array, vector}`. I opt for using statically defined `std::span` based function interfaces because we always know, at compile-time, how many bytes the seeds/ keys/ cipher-texts/ shared-secrets are, for various different Frodo parameters. This gives much better type safety and compile-time error reporting.
