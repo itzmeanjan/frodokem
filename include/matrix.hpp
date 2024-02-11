@@ -136,17 +136,17 @@ public:
   inline static constexpr matrix<rows, cols, D> generate(std::span<const uint8_t, (len_seed_A + 7) / 8> seed)
     requires(rows == cols)
   {
-    constexpr size_t seed_bytes = seed.size();
+    constexpr size_t row_byte_len = 2 * cols;
 
-    std::array<uint8_t, 2 + seed_bytes> buf{};
-    std::array<uint8_t, cols * 2> dig{};
-
-    std::memcpy(buf.data() + 2, seed.data(), seed_bytes);
+    std::array<uint8_t, 2 + seed.size()> buf{};
+    std::memcpy(buf.data() + 2, seed.data(), seed.size());
 
     matrix<rows, cols, D> mat{};
+    auto mat_ptr = reinterpret_cast<uint8_t*>(mat.elements.data());
 
     for (size_t i = 0; i < rows; i++) {
       const uint16_t ridx = static_cast<uint16_t>(i);
+      const size_t row_byte_off = i * row_byte_len;
 
       buf[0] = (ridx >> 0) & 0xff;
       buf[1] = (ridx >> 8) & 0xff;
@@ -155,13 +155,7 @@ public:
 
       hasher.absorb(buf);
       hasher.finalize();
-      hasher.squeeze(dig);
-
-      for (size_t j = 0; j < cols; j++) {
-        const uint16_t word = (static_cast<uint16_t>(dig[2 * j + 1]) << 8) | (static_cast<uint16_t>(dig[2 * j + 0]) << 0);
-
-        mat[{ i, j }] = zq::zq_t<D>(word);
-      }
+      hasher.squeeze(std::span(mat_ptr + row_byte_off, row_byte_len));
     }
 
     return mat;
@@ -182,7 +176,7 @@ public:
   // Given a matrix M of dimension m x n, this routine can be used for
   // serializing each of its elements as two little-endian bytes and
   // concatenating them in order to compute a byte array of length m * n * 2.
-  inline void write_as_le_bytes(std::span<uint8_t, rows * cols * 2> bytes) const
+  inline constexpr void write_as_le_bytes(std::span<uint8_t, rows * cols * 2> bytes) const
   {
     for (size_t i = 0; i < this->element_count(); i++) {
       const size_t boff = i * 2;
